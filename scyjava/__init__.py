@@ -55,7 +55,7 @@ def repository(url, name=None, **grape_options):
 repository('http://maven.imagej.net/content/groups/public', 'imagej')
 
 
-def dependency(artifactId, groupId=None, version=None, **grape_options):
+def dependency(groupId, artifactId, version=None, **grape_options):
     m = _default_map(**grape_options)
     m.put('artifactId', artifactId)
     m.put('groupId', groupId)

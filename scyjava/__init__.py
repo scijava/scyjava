@@ -10,14 +10,14 @@ def _init_jvm():
 
     CLASSPATH_STR = 'SCYJAVA_CLASSPATH'
 
-    CLASSPATH = os.environ[ CLASSPATH_STR ].split( jnius_config.split_char ) if CLASSPATH_STR in os.environ else []
+    CLASSPATH = os.environ[CLASSPATH_STR].split(jnius_config.split_char) if CLASSPATH_STR in os.environ else []
 
-    jnius_config.add_classpath( *CLASSPATH )
+    jnius_config.add_classpath(*CLASSPATH)
 
     JVM_OPTIONS_STR = 'SCYJAVA_JVM_OPTIONS'
 
     if JVM_OPTIONS_STR in os.environ:
-        jnius_config.add_options( *os.environ[ JVM_OPTIONS_STR ].split(' ') )
+        jnius_config.add_options(*os.environ[JVM_OPTIONS_STR].split(' '))
 
     import jnius
 
@@ -67,7 +67,7 @@ def import_class(clazz):
 
 def list_grapes():
     grapes = _grapeIvy.enumerateGrapes()
-    grapes = {k : grapes.get( k ).toString() for k in grapes.keySet().toArray()}
+    grapes = {k : grapes.get(k).toString() for k in grapes.keySet().toArray()}
     return grapes
 
 

@@ -29,7 +29,13 @@ logger = _get_logger('scyjava')
 
 config, _jnius, _scijava  = _init_jvm()
 
-from jnius import autoclass as _autoclass, cast as _cast
+from jnius import (
+    autoclass as _autoclass,
+    cast as _cast,
+    JavaException )
+
+from .wrap_java_class import _wrap_java_class
+
 
 # for now, use grape directly:
 _HashMap     = _autoclass('java.util.HashMap')
@@ -54,7 +60,6 @@ def repository(url, name=None, **grape_options):
 
 repository('http://maven.imagej.net/content/groups/public', 'imagej')
 
-
 def dependency(groupId, artifactId, version=None, **grape_options):
     m = _default_map(**grape_options)
     m.put('artifactId', artifactId)
@@ -63,7 +68,12 @@ def dependency(groupId, artifactId, version=None, **grape_options):
     return _grapeIvy.grab(m)
 
 def import_class(clazz):
-    return _autoclass( clazz )
+    loaded_class = _classLoader.loadClass(clazz)
+    # clz = Class(noinstance=True)
+    # clz.instanciate_from(create_local_ref(j_env, jc))
+    # return _autoclass(clazz)
+    print( "CONSTRS ", loaded_class)
+    return _wrap_java_class(clazz, loaded_class)
 
 def list_grapes():
     grapes = _grapeIvy.enumerateGrapes()

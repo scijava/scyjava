@@ -1,3 +1,7 @@
+import jnius_config
+jnius_config.add_classpath('/home/phil/git/scyjava2/groovy-3.0.0-alpha-2.jar')
+jnius_config.add_classpath('/home/phil/git/scyjava2/ivy-2.5.0-rc1.jar')
+
 import scyjava
 from jnius.reflect import Modifier
 print(Modifier)

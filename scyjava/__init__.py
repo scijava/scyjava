@@ -14,8 +14,11 @@ def _init_jvm():
             PYJNIUS_JAR = os.environ[PYJNIUS_JAR_STR]
             jnius_config.add_classpath(PYJNIUS_JAR)
         except KeyError as e:
-            print("Path to pyjnius.jar not defined! Use environment variable {} to define it.".format(PYJNIUS_JAR_STR))
-            raise e
+            if e.args[0] == PYJNIUS_JAR_STR:
+                _logger.error('Unable to import scyjava: %s environment variable not defined.', PYJNIUS_JAR_STR)
+            else:
+                raise e
+            return None
 
     endpoints = scyjava_config.get_endpoints()
     repositories = scyjava_config.get_repositories()
@@ -37,7 +40,9 @@ def _init_jvm():
         return jnius
     except KeyError as e:
         if e.args[0] == 'JAVA_HOME':
-            _logger.info('Unable to import scyjava: JAVA_HOME environment variable not defined, cannot import jnius.')
+            _logger.error('Unable to import scyjava: JAVA_HOME environment variable not defined, cannot import jnius.')
+        else:
+            raise e
         return None
 
 jnius = _init_jvm()

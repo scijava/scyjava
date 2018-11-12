@@ -8,6 +8,11 @@ def _init_jvm():
     import jnius_config
     import jrun
 
+    if jnius_config.vm_running:
+        _logger.warning('JVM is already running, will not add endpoints to classpath -- required classes might not be on classpath..')
+        import jnius
+        return jnius
+
     PYJNIUS_JAR_STR = 'PYJNIUS_JAR'
     if PYJNIUS_JAR_STR not in globals():
         try:

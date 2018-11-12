@@ -1,10 +1,11 @@
 import setuptools
+import scyjava_config
 
 setuptools.setup(
     name='scyjava',
     packages=['scyjava'],
     py_modules=['scyjava_config'],
-    version='0.1.0-dev',
+    version=scyjava_config.version,
     author='Philipp Hanslovsky',
     author_email='hanslovskyp@janelia.hhmi.org',
     description='scyjava',

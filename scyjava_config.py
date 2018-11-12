@@ -21,6 +21,8 @@ import logging
 import jnius_config
 import pathlib
 
+version = '0.1.0-dev'
+
 _logger = logging.getLogger(__name__)
 
 _endpoints    = []

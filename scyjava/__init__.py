@@ -31,8 +31,10 @@ def _init_jvm():
     _logger.debug('Adding jars from endpoints %s', endpoints)
 
     if len(endpoints) > 0:
+        endpoints = endpoints[:1] + sorted(endpoints[1:])
+        _logger.debug('Using endpoints %s', endpoints)
         _, workspace = jrun.resolve_dependencies(
-            '+'.join(endpoints[:1] + sorted(endpoints[1:])),
+            '+'.join(endpoints),
             m2_repo=scyjava_config.get_m2_repo(),
             cache_dir=scyjava_config.get_cache_dir(),
             repositories=repositories,

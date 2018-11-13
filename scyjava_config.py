@@ -1,4 +1,5 @@
 __all__ = (
+    'maven_imagej_net_public',
     'add_endpoints',
     'get_endpoints',
     'add_repositories',
@@ -31,6 +32,11 @@ _verbose      = 0
 _cache_dir    = pathlib.Path.home() / '.jrun'
 _m2_repo      = pathlib.Path.home() / '.m2' / 'repository'
 
+def maven_imagej_net_public():
+    """
+    :return: url for public imagej maven repo
+    """
+    return 'https://maven.imagej.net/content/groups/public'
 
 def add_endpoints(*endpoints):
     global _endpoints
@@ -65,6 +71,7 @@ def set_verbose(level):
 
 def get_verbose():
     global _verbose
+    _logger.debug('Getting verbose level: %d', _verbose)
     return _verbose
 
 

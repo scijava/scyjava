@@ -3,6 +3,7 @@ import scyjava_config
 
 setuptools.setup(
     name='scyjava',
+    python_requires='>=3',
     packages=['scyjava'],
     py_modules=['scyjava_config'],
     version=scyjava_config.version,

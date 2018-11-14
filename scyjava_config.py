@@ -29,7 +29,7 @@ _logger = logging.getLogger(__name__)
 _endpoints    = []
 _repositories = {}
 _verbose      = 0
-_cache_dir    = pathlib.Path.home() / '.jrun'
+_cache_dir    = pathlib.Path.home() / '.jgo'
 _m2_repo      = pathlib.Path.home() / '.m2' / 'repository'
 
 def maven_scijava_repository():

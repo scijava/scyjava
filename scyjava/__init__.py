@@ -6,7 +6,7 @@ _logger = logging.getLogger(__name__)
 def _init_jvm():
     import scyjava_config
     import jnius_config
-    import jrun
+    import jgo
 
     if jnius_config.vm_running:
         _logger.warning('JVM is already running, will not add endpoints to classpath -- required classes might not be on classpath..')
@@ -33,7 +33,7 @@ def _init_jvm():
     if len(endpoints) > 0:
         endpoints = endpoints[:1] + sorted(endpoints[1:])
         _logger.debug('Using endpoints %s', endpoints)
-        _, workspace = jrun.resolve_dependencies(
+        _, workspace = jgo.resolve_dependencies(
             '+'.join(endpoints),
             m2_repo=scyjava_config.get_m2_repo(),
             cache_dir=scyjava_config.get_cache_dir(),

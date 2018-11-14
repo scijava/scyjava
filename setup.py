@@ -11,6 +11,6 @@ setuptools.setup(
     author_email='hanslovskyp@janelia.hhmi.org',
     description='scyjava',
     url='https://github.com/scijava/scyjava',
-    install_requires=['pyjnius', 'jrun']
+    install_requires=['pyjnius', 'jgo']
     )
 

@@ -1,5 +1,5 @@
 __all__ = (
-    'maven_imagej_net_public',
+    'maven_scijava_repository',
     'add_endpoints',
     'get_endpoints',
     'add_repositories',
@@ -32,9 +32,9 @@ _verbose      = 0
 _cache_dir    = pathlib.Path.home() / '.jrun'
 _m2_repo      = pathlib.Path.home() / '.m2' / 'repository'
 
-def maven_imagej_net_public():
+def maven_scijava_repository():
     """
-    :return: url for public imagej maven repo
+    :return: url for public scijava maven repo
     """
     return 'https://maven.imagej.net/content/groups/public'
 

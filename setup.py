@@ -18,6 +18,7 @@ setuptools.setup(
     description='scyjava',
     long_description=scyjava_long_description,
     long_description_content_type='text/markdown',
+    license='Public domain',
     url='https://github.com/scijava/scyjava',
     install_requires=['pyjnius', 'jgo'],
 )

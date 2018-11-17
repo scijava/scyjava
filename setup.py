@@ -1,5 +1,11 @@
 import setuptools
 import scyjava_config
+from os import path
+
+here = path.abspath(path.dirname(__file__))
+
+with open(path.join(here, 'README.md')) as f:
+    scyjava_long_description = f.read()
 
 setuptools.setup(
     name='scyjava',
@@ -10,7 +16,8 @@ setuptools.setup(
     author='Philipp Hanslovsky',
     author_email='hanslovskyp@janelia.hhmi.org',
     description='scyjava',
+    long_description=scyjava_long_description,
+    long_description_content_type='text/markdown',
     url='https://github.com/scijava/scyjava',
-    install_requires=['pyjnius', 'jgo']
-    )
-
+    install_requires=['pyjnius', 'jgo'],
+)

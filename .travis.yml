@@ -15,9 +15,10 @@ install:
   - conda update -q conda
   # Useful for debugging any issues with conda
   - conda info -a
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION cython openjdk
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
   - source activate test-environment
-  - pip install pyjnius jgo
+  - conda install -c conda-forge pyjnius
+  - pip install jgo
 
 script:
   - python -m unittest discover tests -v

@@ -13,7 +13,7 @@ setuptools.setup(
     packages=['scyjava'],
     py_modules=['scyjava_config'],
     version=scyjava_config.version,
-    author='Philipp Hanslovsky',
+    author='Philipp Hanslovsky, Curtis Rueden',
     author_email='hanslovskyp@janelia.hhmi.org',
     description='scyjava',
     long_description=scyjava_long_description,

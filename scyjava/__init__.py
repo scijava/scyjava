@@ -1,5 +1,7 @@
 import logging
 import os
+import sys
+from pathlib import Path
 
 _logger = logging.getLogger(__name__)
 
@@ -15,14 +17,15 @@ def _init_jvm():
 
     PYJNIUS_JAR_STR = 'PYJNIUS_JAR'
     if PYJNIUS_JAR_STR not in globals():
+        PYJNIUS_JAR = None
         try:
-            PYJNIUS_JAR = os.environ[PYJNIUS_JAR_STR]
-            jnius_config.add_classpath(PYJNIUS_JAR)
+            PYJNIUS_JAR = Path(os.environ[PYJNIUS_JAR_STR])
         except KeyError as e:
-            if e.args[0] == PYJNIUS_JAR_STR:
-                _logger.error('Unable to import scyjava: %s environment variable not defined.', PYJNIUS_JAR_STR)
-            else:
-                raise e
+            PYJNIUS_JAR = Path(sys.prefix) / 'share/pyjnius/pyjnius.jar'
+        if PYJNIUS_JAR.is_file():
+            jnius_config.add_classpath(PYJNIUS_JAR)
+        else:
+            _logger.error('Unable to import scyjava: pyjnius JAR not found.')
             return None
 
     endpoints = scyjava_config.get_endpoints()

@@ -29,6 +29,21 @@ def _init_jvm():
             _logger.error('Unable to import scyjava: pyjnius JAR not found.')
             return None
 
+    # attempt to set JAVA_HOME if the environment variable is not set.
+    JAVA_HOME_STR = 'JAVA_HOME'
+    if JAVA_HOME_STR not in globals():
+        JAVA_HOME = None
+        try:
+            JAVA_HOME = os.environ[JAVA_HOME_STR]
+        except KeyError as e:
+            JAVA_HOME = sys.prefix
+        # TODO is this necessary?
+        if Path(JAVA_HOME).is_dir():
+            os.environ['JAVA_HOME'] = JAVA_HOME
+        else:
+            _logger.error('Unable to import scyjava: jre not found')
+            return None
+
     endpoints = scyjava_config.get_endpoints()
     repositories = scyjava_config.get_repositories()
 

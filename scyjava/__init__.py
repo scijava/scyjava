@@ -15,14 +15,15 @@ def _init_jvm():
         import jnius
         return jnius
 
+    # attempt to find pyjnius.jar if the envrionment variable is not set.
     PYJNIUS_JAR_STR = 'PYJNIUS_JAR'
     if PYJNIUS_JAR_STR not in globals():
         PYJNIUS_JAR = None
         try:
-            PYJNIUS_JAR = Path(os.environ[PYJNIUS_JAR_STR])
+            PYJNIUS_JAR = os.environ[PYJNIUS_JAR_STR]
         except KeyError as e:
-            PYJNIUS_JAR = Path(sys.prefix) / 'share/pyjnius/pyjnius.jar'
-        if PYJNIUS_JAR.is_file():
+            PYJNIUS_JAR = sys.prefix + '/share/pyjnius/pyjnius.jar'
+        if Path(PYJNIUS_JAR).is_file():
             jnius_config.add_classpath(PYJNIUS_JAR)
         else:
             _logger.error('Unable to import scyjava: pyjnius JAR not found.')

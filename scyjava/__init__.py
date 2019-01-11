@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+import subprocess
 from pathlib import Path
 
 _logger = logging.getLogger(__name__)
@@ -36,8 +37,26 @@ def _init_jvm():
         try:
             JAVA_HOME = os.environ[JAVA_HOME_STR]
         except KeyError as e:
-            JAVA_HOME = sys.prefix
-        # TODO is this necessary?
+            # attempt to find the jre by interrogating maven
+            # (which we have because is needed by jgo)
+            try: 
+                mvn = str(subprocess.check_output(['mvn', '-v']))
+            except subprocess.CalledProcessError as e:
+                _logger.error('Unable to import scyjava, could not find Maven')
+                return None
+            try:
+                begin = mvn.index('Java home: ')
+            except ValueError as e:
+                # in some versions of maven it is instead called runtime
+                try:
+                    begin = mvn.index('runtime: ')
+                except ValueError as e:
+                    _logger.error('Unable to import scyjava, could not locate jre')
+                    return None
+            # cut out 'Java home' or 'runtime'
+            begin = mvn.index('/', begin)
+            end = mvn.index('\\n', begin)
+            JAVA_HOME = mvn[begin:end]
         if Path(JAVA_HOME).is_dir():
             os.environ['JAVA_HOME'] = JAVA_HOME
         else:

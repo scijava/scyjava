@@ -23,7 +23,7 @@ def _init_jvm():
         try:
             PYJNIUS_JAR = os.environ[PYJNIUS_JAR_STR]
         except KeyError as e:
-            PYJNIUS_JAR = sys.prefix + '/share/pyjnius/pyjnius.jar'
+            PYJNIUS_JAR = os.path.join(sys.prefix, 'share', 'pyjnius', 'pyjnius.jar')
         if Path(PYJNIUS_JAR).is_file():
             jnius_config.add_classpath(PYJNIUS_JAR)
         else:

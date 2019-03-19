@@ -1,5 +1,26 @@
+import scyjava_config
+scyjava_config.add_repositories({'imagej.public': 'https://maven.imagej.net/content/groups/public'})
+scyjava_config.add_endpoints('org.scijava:scijava-table')
+
 import unittest
+import pandas as pd
+import numpy as np
 from scyjava.convert import jclass, to_java, to_python
+import scyjava
+import jnius
+
+
+def assert_same_table(table, df):
+    import numpy.testing as npt
+
+    assert len(table.toArray()) == df.shape[1]
+    assert len(table.toArray()[0].toArray()) == df.shape[0]
+
+    for i, column in enumerate(table.toArray()):
+        npt.assert_array_almost_equal(df.iloc[:, i].values, column.toArray())
+
+        assert table.getColumnHeader(i) == df.columns[i]
+
 
 class TestConvert(unittest.TestCase):
 
@@ -144,6 +165,58 @@ class TestConvert(unittest.TestCase):
         pml = to_python(jml)
         self.assertEqual(ml, pml)
         self.assertEqual(str(ml), str(pml))
+
+    def testPandasToTable(self):
+        # Float table.
+        columns = ["header1", "header2", "header3", "header4", "header5"]
+        array = np.random.random(size=(7, 5))
+
+        df = pd.DataFrame(array, columns=columns)
+        table = scyjava.to_java(df)
+
+        assert_same_table(table, df)
+        assert type(table) == jnius.autoclass('org.scijava.table.DefaultFloatTable')
+
+        # Int table.
+        columns = ["header1", "header2", "header3", "header4", "header5"]
+        array = np.random.random(size=(7, 5)) * 100
+        array = array.astype('int')
+
+        df = pd.DataFrame(array, columns=columns)
+        table = scyjava.to_java(df)
+
+        assert_same_table(table, df)
+        assert type(table) == jnius.autoclass('org.scijava.table.DefaultIntTable')
+
+        # Bool table.
+        columns = ["header1", "header2", "header3", "header4", "header5"]
+        array = np.random.random(size=(7, 5)) > 0.5
+
+        df = pd.DataFrame(array, columns=columns)
+        table = scyjava.to_java(df)
+
+        assert_same_table(table, df)
+        assert type(table) == jnius.autoclass('org.scijava.table.DefaultBoolTable')
+
+        # Mixed table.
+        columns = ["header1", "header2", "header3", "header4", "header5"]
+        array = np.random.random(size=(7, 5))
+
+        df = pd.DataFrame(array, columns=columns)
+
+        # Convert column 0 to integer
+        df.iloc[:, 0] = (df.iloc[:, 0] * 100).astype('int')
+        # Convert column 1 to bool
+        df.iloc[:, 1] = df.iloc[:, 1] > 0.5
+        # Convert column 2 to string
+        df.iloc[:, 2] = df.iloc[:, 2].to_string(index=False).split('\n')
+
+        table = scyjava.to_java(df)
+
+        # Table types cannot be the same here, unless we want to cast.
+        # assert_same_table(table, df)
+        assert type(table) == jnius.autoclass('org.scijava.table.DefaultGenericTable')
+
 
 if __name__ == '__main__':
     unittest.main()

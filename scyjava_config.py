@@ -111,11 +111,17 @@ def get_classpath():
 
 
 def add_options(*opts):
-    jnius_config.add_options(*opts)
+    if not jnius_config.vm_running:
+        jnius_config.add_options(*opts)
+    else:
+        _logger.warning('JVM is already running, will not add options to it.')
 
 
 def set_options(*opts):
-    jnius_config.set_options(*opts)
+    if not jnius_config.vm_running:
+        jnius_config.set_options(*opts)
+    else:
+        _logger.warning('JVM is already running, will not set options to it.')
 
 
 def get_options():

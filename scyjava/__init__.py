@@ -1,5 +1,8 @@
 import logging
 import os
+import sys
+import subprocess
+from pathlib import Path
 
 _logger = logging.getLogger(__name__)
 
@@ -13,16 +16,51 @@ def _init_jvm():
         import jnius
         return jnius
 
+    # attempt to find pyjnius.jar if the envrionment variable is not set.
     PYJNIUS_JAR_STR = 'PYJNIUS_JAR'
     if PYJNIUS_JAR_STR not in globals():
+        PYJNIUS_JAR = None
         try:
             PYJNIUS_JAR = os.environ[PYJNIUS_JAR_STR]
-            jnius_config.add_classpath(PYJNIUS_JAR)
         except KeyError as e:
-            if e.args[0] == PYJNIUS_JAR_STR:
-                _logger.error('Unable to import scyjava: %s environment variable not defined.', PYJNIUS_JAR_STR)
-            else:
-                raise e
+            PYJNIUS_JAR = os.path.join(sys.prefix, 'share', 'pyjnius', 'pyjnius.jar')
+        if Path(PYJNIUS_JAR).is_file():
+            jnius_config.add_classpath(PYJNIUS_JAR)
+        else:
+            _logger.error('Unable to import scyjava: pyjnius JAR not found.')
+            return None
+
+    # attempt to set JAVA_HOME if the environment variable is not set.
+    JAVA_HOME_STR = 'JAVA_HOME'
+    if JAVA_HOME_STR not in globals():
+        JAVA_HOME = None
+        try:
+            JAVA_HOME = os.environ[JAVA_HOME_STR]
+        except KeyError as e:
+            # attempt to find the jre by interrogating maven
+            # (which we have because is needed by jgo)
+            try: 
+                mvn = str(subprocess.check_output(['mvn', '-v']))
+            except subprocess.CalledProcessError as e:
+                _logger.error('Unable to import scyjava, could not find Maven')
+                return None
+            try:
+                begin = mvn.index('Java home: ')
+            except ValueError as e:
+                # in some versions of maven it is instead called runtime
+                try:
+                    begin = mvn.index('runtime: ')
+                except ValueError as e:
+                    _logger.error('Unable to import scyjava, could not locate jre')
+                    return None
+            # cut out 'Java home' or 'runtime'
+            begin = mvn.index('/', begin)
+            end = mvn.index('\\n', begin)
+            JAVA_HOME = mvn[begin:end]
+        if Path(JAVA_HOME).is_dir():
+            os.environ['JAVA_HOME'] = JAVA_HOME
+        else:
+            _logger.error('Unable to import scyjava: jre not found')
             return None
 
     endpoints = scyjava_config.get_endpoints()

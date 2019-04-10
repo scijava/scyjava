@@ -6,6 +6,14 @@ from pathlib import Path
 
 _logger = logging.getLogger(__name__)
 
+# Enable debug logging if DEBUG environment variable is set.
+try:
+    debug = os.environ['DEBUG']
+    if debug:
+        _logger.setLevel(logging.DEBUG)
+except KeyError as e:
+    pass
+
 def _init_jvm():
     import scyjava_config
     import jnius_config
@@ -21,22 +29,29 @@ def _init_jvm():
     if PYJNIUS_JAR_STR not in globals():
         PYJNIUS_JAR = None
         try:
+            _logger.debug('Checking %s environment variable', PYJNIUS_JAR_STR)
             PYJNIUS_JAR = os.environ[PYJNIUS_JAR_STR]
         except KeyError as e:
+            _logger.debug('No %s environment variable; falling back to default path', PYJNIUS_JAR_STR)
             PYJNIUS_JAR = os.path.join(sys.prefix, 'share', 'pyjnius', 'pyjnius.jar')
         if Path(PYJNIUS_JAR).is_file():
+            _logger.debug('%s found at "%s"', PYJNIUS_JAR_STR, PYJNIUS_JAR)
             jnius_config.add_classpath(PYJNIUS_JAR)
         else:
             _logger.error('Unable to import scyjava: pyjnius JAR not found.')
             return None
+    else:
+        _logger.debug('%s found in globals', PYJNIUS_JAR_STR)
 
     # attempt to set JAVA_HOME if the environment variable is not set.
     JAVA_HOME_STR = 'JAVA_HOME'
     if JAVA_HOME_STR not in globals():
         JAVA_HOME = None
         try:
+            _logger.debug('Checking %s environment variable', JAVA_HOME_STR)
             JAVA_HOME = os.environ[JAVA_HOME_STR]
         except KeyError as e:
+            _logger.debug('No %s environment variable; checking with Maven', JAVA_HOME_STR)
             # attempt to find Java by interrogating maven
             # (which we have because it is needed by jgo)
             try: 
@@ -44,6 +59,7 @@ def _init_jvm():
             except subprocess.CalledProcessError as e:
                 _logger.error('Unable to import scyjava, could not find Maven')
                 return None
+            _logger.debug('Maven said: %s', mvn)
             try:
                 begin = mvn.index('Java home: ')
             except ValueError as e:
@@ -58,10 +74,13 @@ def _init_jvm():
             end = mvn.index('\\n', begin)
             JAVA_HOME = mvn[begin:end]
         if Path(JAVA_HOME).is_dir():
+            _logger.debug('%s found at "%s"', JAVA_HOME_STR, JAVA_HOME)
             os.environ['JAVA_HOME'] = JAVA_HOME
         else:
             _logger.error('Unable to import scyjava: jre not found')
             return None
+    else:
+        _logger.debug('%s found in globals', JAVA_HOME_STR)
 
     endpoints = scyjava_config.get_endpoints()
     repositories = scyjava_config.get_repositories()

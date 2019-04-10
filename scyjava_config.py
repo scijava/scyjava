@@ -22,7 +22,7 @@ import logging
 import jnius_config
 import pathlib
 
-version = '0.1.1.dev0'
+version = '0.2.0'
 
 _logger = logging.getLogger(__name__)
 

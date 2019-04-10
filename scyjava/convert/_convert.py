@@ -2,6 +2,9 @@
 
 import jnius, collections
 
+from ._pandas import table_to_pandas
+from ._pandas import pandas_to_table
+
 String        = jnius.autoclass('java.lang.String')
 Boolean       = jnius.autoclass('java.lang.Boolean')
 Integer       = jnius.autoclass('java.lang.Integer')
@@ -63,6 +66,7 @@ def to_java(data):
     :returns: A corresponding Java object with the same contents.
     :raises TypeError: if the argument is not one of the aforementioned types.
     """
+
     if isjava(data):
         return data
 
@@ -87,6 +91,10 @@ def to_java(data):
             return Double(data)
         else:
             return BigDecimal(str(data))
+
+    # Trying to get the type without importing Pandas.
+    if type(data).__name__ == 'DataFrame':
+        return pandas_to_table(data)
 
     if isinstance(data, collections.Mapping):
         jmap = LinkedHashMap()
@@ -325,6 +333,9 @@ def to_python(data):
         return float(data.toString())
     if StringClass.isInstance(data):
         return data.toString()
+
+    if jclass('org.scijava.table.Table').isInstance(data):
+        return table_to_pandas(data)
 
     if ListClass.isInstance(data):
         return JavaList(data)

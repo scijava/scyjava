@@ -114,7 +114,7 @@ def _init_jvm():
         return None
 
 jnius = _init_jvm()
-if (jnius == None):
+if jnius is None:
     raise ImportError('Unable to import scyjava dependency jnius.')
 
 from .convert import isjava, jclass, to_java, to_python

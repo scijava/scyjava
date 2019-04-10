@@ -10,7 +10,7 @@ with open(path.join(here, 'README.md')) as f:
 setuptools.setup(
     name='scyjava',
     python_requires='>=3',
-    packages=['scyjava'],
+    packages=['scyjava', 'scyjava.convert'],
     py_modules=['scyjava_config'],
     version=scyjava_config.version,
     author='Philipp Hanslovsky, Curtis Rueden',

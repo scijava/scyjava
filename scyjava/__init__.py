@@ -37,8 +37,8 @@ def _init_jvm():
         try:
             JAVA_HOME = os.environ[JAVA_HOME_STR]
         except KeyError as e:
-            # attempt to find the jre by interrogating maven
-            # (which we have because is needed by jgo)
+            # attempt to find Java by interrogating maven
+            # (which we have because it is needed by jgo)
             try: 
                 mvn = str(subprocess.check_output(['mvn', '-v']))
             except subprocess.CalledProcessError as e:

@@ -31,8 +31,11 @@ def _init_jvm():
         try:
             _logger.debug('Checking %s environment variable', PYJNIUS_JAR_STR)
             PYJNIUS_JAR = os.environ[PYJNIUS_JAR_STR]
-        except KeyError as e:
-            _logger.debug('No %s environment variable; falling back to default path', PYJNIUS_JAR_STR)
+        except KeyError:
+            _logger.debug('No %s environment variable', PYJNIUS_JAR_STR)
+        if not PYJNIUS_JAR:
+            # NB: This logic handles both None and empty string cases.
+            _logger.debug('%s still unknown; falling back to default path', PYJNIUS_JAR_STR)
             PYJNIUS_JAR = os.path.join(sys.prefix, 'share', 'pyjnius', 'pyjnius.jar')
         if Path(PYJNIUS_JAR).is_file():
             _logger.debug('%s found at "%s"', PYJNIUS_JAR_STR, PYJNIUS_JAR)
@@ -50,8 +53,11 @@ def _init_jvm():
         try:
             _logger.debug('Checking %s environment variable', JAVA_HOME_STR)
             JAVA_HOME = os.environ[JAVA_HOME_STR]
-        except KeyError as e:
-            _logger.debug('No %s environment variable; checking with Maven', JAVA_HOME_STR)
+        except KeyError:
+            _logger.debug('No %s environment variable', JAVA_HOME_STR)
+        if not JAVA_HOME:
+            # NB: This logic handles both None and empty string cases.
+            _logger.debug('%s still unknown; checking with Maven', JAVA_HOME_STR)
             # attempt to find Java by interrogating maven
             # (which we have because it is needed by jgo)
             try: 

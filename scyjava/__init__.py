@@ -73,8 +73,12 @@ def _init_jvm():
             begin = mvn.index('/', begin)
             end = mvn.index('\\n', begin)
             JAVA_HOME = mvn[begin:end]
-        if Path(JAVA_HOME).is_dir():
+        java_path = Path(JAVA_HOME)
+        if java_path.is_dir():
             _logger.debug('%s found at "%s"', JAVA_HOME_STR, JAVA_HOME)
+            if java_path.name is 'jre':
+                _logger.debug('JAVA_HOME points at jre folder; using parent instead')
+                JAVA_HOME = str(java_path.parent)
             os.environ['JAVA_HOME'] = JAVA_HOME
         else:
             _logger.error('Unable to import scyjava: jre not found')

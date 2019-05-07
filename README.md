@@ -38,7 +38,7 @@ sys.version_info(major=2, minor=7, micro=1, releaselevel='final', serial=0)
 
 ```python
 >>> import scyjava_config
->>> scyjava_config.add_repositories({'imagej.public': 'https://maven.imagej.net/content/groups/public'})
+>>> scyjava_config.add_repositories({'scijava.public': 'https://maven.scijava.org/content/groups/public'})
 >>> scyjava_config.add_endpoints('net.imagej:imagej:2.0.0-rc-65')
 >>> import scyjava, jnius
 >>> System = jnius.autoclass('java.lang.System')

@@ -1,5 +1,5 @@
 import scyjava_config
-scyjava_config.add_repositories({'imagej.public': 'https://maven.imagej.net/content/groups/public'})
+scyjava_config.add_repositories({'scijava.public': 'https://maven.scijava.org/content/groups/public'})
 scyjava_config.add_endpoints('org.scijava:scijava-table')
 
 import unittest

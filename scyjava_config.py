@@ -36,7 +36,7 @@ def maven_scijava_repository():
     """
     :return: url for public scijava maven repo
     """
-    return 'https://maven.imagej.net/content/groups/public'
+    return 'https://maven.scijava.org/content/groups/public'
 
 def add_endpoints(*endpoints):
     global _endpoints

@@ -1,5 +1,6 @@
 import logging
 import os
+import platform
 import sys
 import subprocess
 from pathlib import Path
@@ -61,7 +62,11 @@ def _init_jvm():
             # attempt to find Java by interrogating maven
             # (which we have because it is needed by jgo)
             try: 
-                mvn = str(subprocess.check_output(['mvn', '-v']))
+                if (platform.system() == 'Windows'):
+                    mvn = str(subprocess.check_output(['mvn.cmd', '-v']))
+                    mvn = mvn.replace('\\r\\n', '\\n') # Fix Windows line breaks.
+                else:
+                    mvn = str(subprocess.check_output(['mvn', '-v']))
             except subprocess.CalledProcessError as e:
                 _logger.error('Unable to import scyjava, could not find Maven')
                 return None
@@ -76,7 +81,7 @@ def _init_jvm():
                     _logger.error('Unable to import scyjava, could not locate jre')
                     return None
             # cut out 'Java home' or 'runtime'
-            begin = mvn.index('/', begin)
+            begin = mvn.index(':', begin) + 2
             end = mvn.index('\\n', begin)
             JAVA_HOME = mvn[begin:end]
         java_path = Path(JAVA_HOME)
@@ -91,6 +96,18 @@ def _init_jvm():
             return None
     else:
         _logger.debug('%s found in globals', JAVA_HOME_STR)
+
+    # On Windows, add server subfolder to the PATH so jvm.dll can be found.
+    if (platform.system() == 'Windows'):
+        # Java 9 and later
+        jvm_server_dir = os.path.join(os.environ['JAVA_HOME'], 'bin', 'server')
+        if Path(os.path.join(jvm_server_dir, 'jvm.dll')).is_file():
+            os.environ['PATH'] += ';' + jvm_server_dir
+        else:
+            # Java 8 and earlier
+            jvm_server_dir = os.path.join(os.environ['JAVA_HOME'], 'jre', 'bin', 'server')
+            if Path(os.path.join(jvm_server_dir, 'jvm.dll')).is_file():
+                os.environ['PATH'] += ';' + jvm_server_dir
 
     endpoints = scyjava_config.get_endpoints()
     repositories = scyjava_config.get_repositories()

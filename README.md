@@ -13,6 +13,17 @@ Built on [pyjnius](https://pyjnius.readthedocs.io/en/latest/) and [jgo](https://
 '1.8.0_152-release'
 ```
 
+To pass parameters to the JVM, such as an increased max heap size:
+
+```python
+>>> import scyjava_config
+>>> scyjava_config.add_options('-Xmx6g')
+>>> import scyjava, jnius
+>>> Runtime = jnius.autoclass('java.lang.Runtime')
+>>> Runtime.getRuntime().maxMemory() / 2**30
+5.33349609375
+```
+
 See the [Pyjnius documentation](https://pyjnius.readthedocs.io/en/latest/) for more about calling Java from Python.
 
 ## Use Maven artifacts from remote repositories

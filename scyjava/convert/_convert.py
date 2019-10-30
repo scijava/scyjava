@@ -1,6 +1,6 @@
 # General-purpose utility methods for Python <-> Java type conversion.
 
-import jnius, collections
+import jnius, collections.abc
 
 from ._pandas import table_to_pandas
 from ._pandas import pandas_to_table
@@ -96,7 +96,7 @@ def to_java(data):
     if type(data).__name__ == 'DataFrame':
         return pandas_to_table(data)
 
-    if isinstance(data, collections.Mapping):
+    if isinstance(data, collections.abc.Mapping):
         jmap = LinkedHashMap()
         for k, v in data.items():
             jk = to_java(k)
@@ -104,14 +104,14 @@ def to_java(data):
             jmap.put(jk, jv)
         return jmap
 
-    if isinstance(data, collections.Set):
+    if isinstance(data, collections.abc.Set):
         jset = LinkedHashSet()
         for item in data:
             jitem = to_java(item)
             jset.add(jitem)
         return jset
 
-    if isinstance(data, collections.Iterable):
+    if isinstance(data, collections.abc.Iterable):
         jlist = ArrayList()
         for item in data:
             jitem = to_java(item)
@@ -162,7 +162,7 @@ class JavaObject():
         return _jstr(self.jobj)
 
 
-class JavaIterable(JavaObject, collections.Iterable):
+class JavaIterable(JavaObject, collections.abc.Iterable):
     def __init__(self, jobj):
         JavaObject.__init__(self, jobj, IterableClass)
 
@@ -173,7 +173,7 @@ class JavaIterable(JavaObject, collections.Iterable):
         return '[' + ', '.join(_jstr(v) for v in self) + ']'
 
 
-class JavaCollection(JavaIterable, collections.Collection):
+class JavaCollection(JavaIterable, collections.abc.Collection):
     def __init__(self, jobj):
         JavaObject.__init__(self, jobj, CollectionClass)
 
@@ -195,7 +195,7 @@ class JavaCollection(JavaIterable, collections.Collection):
             return False
 
 
-class JavaIterator(JavaObject, collections.Iterator):
+class JavaIterator(JavaObject, collections.abc.Iterator):
     def __init__(self, jobj):
         JavaObject.__init__(self, jobj, IteratorClass)
 
@@ -205,7 +205,7 @@ class JavaIterator(JavaObject, collections.Iterator):
         raise StopIteration
 
 
-class JavaList(JavaCollection, collections.MutableSequence):
+class JavaList(JavaCollection, collections.abc.MutableSequence):
     def __init__(self, jobj):
         JavaObject.__init__(self, jobj, ListClass)
 
@@ -222,7 +222,7 @@ class JavaList(JavaCollection, collections.MutableSequence):
         return to_python(self.jobj.set(index, object))
 
 
-class JavaMap(JavaObject, collections.MutableMapping):
+class JavaMap(JavaObject, collections.abc.MutableMapping):
     def __init__(self, jobj):
         JavaObject.__init__(self, jobj, MapClass)
 
@@ -259,7 +259,7 @@ class JavaMap(JavaObject, collections.MutableMapping):
         return '{' + ', '.join(_jstr(k) + ': ' + _jstr(v) for k,v in self.items()) + '}'
 
 
-class JavaSet(JavaCollection, collections.MutableSet):
+class JavaSet(JavaCollection, collections.abc.MutableSet):
     def __init__(self, jobj):
         JavaObject.__init__(self, jobj, SetClass)
 
@@ -296,12 +296,12 @@ def to_python(data):
     * Boolean -> bool
     * Byte, Short, Integer, Long, BigInteger -> int
     * Float, Double, BigDecimal -> float
-    * Map -> collections.MutableMapping (dict-like)
-    * Set -> collections.MutableSet (set-like)
-    * List -> collections.MutableSequence (list-like)
-    * Collection -> collections.Collection
-    * Iterable -> collections.Iterable
-    * Iterator -> collections.Iterator
+    * Map -> collections.abc.MutableMapping (dict-like)
+    * Set -> collections.abc.MutableSet (set-like)
+    * List -> collections.abc.MutableSequence (list-like)
+    * Collection -> collections.abc.Collection
+    * Iterable -> collections.abc.Iterable
+    * Iterator -> collections.abc.Iterator
     :returns: A corresponding Python object with the same contents.
     :raises TypeError: if the argument is not one of the aforementioned types.
     """

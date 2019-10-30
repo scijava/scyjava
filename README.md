@@ -173,12 +173,12 @@ FUNCTIONS
         * Boolean -> bool
         * Byte, Short, Integer, Long, BigInteger -> int
         * Float, Double, BigDecimal -> float
-        * Map -> collections.MutableMapping (dict-like)
-        * Set -> collections.MutableSet (set-like)
-        * List -> collections.MutableSequence (list-like)
-        * Collection -> collections.Collection
-        * Iterable -> collections.Iterable
-        * Iterator -> collections.Iterator
+        * Map -> collections.abc.MutableMapping (dict-like)
+        * Set -> collections.abc.MutableSet (set-like)
+        * List -> collections.abc.MutableSequence (list-like)
+        * Collection -> collections.abc.Collection
+        * Iterable -> collections.abc.Iterable
+        * Iterator -> collections.abc.Iterator
         :returns: A corresponding Python object with the same contents.
         :raises TypeError: if the argument is not one of the aforementioned types.
 ```

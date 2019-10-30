@@ -6,6 +6,8 @@ __all__ = (
     'get_repositories',
     'set_verbose',
     'get_verbose',
+    'set_manage_deps',
+    'get_manage_deps',
     'set_cache_dir',
     'get_cache_dir',
     'set_m2_repo',
@@ -29,6 +31,7 @@ _logger = logging.getLogger(__name__)
 _endpoints    = []
 _repositories = {}
 _verbose      = 0
+_manage_deps  = True
 _cache_dir    = pathlib.Path.home() / '.jgo'
 _m2_repo      = pathlib.Path.home() / '.m2' / 'repository'
 
@@ -73,6 +76,17 @@ def get_verbose():
     global _verbose
     _logger.debug('Getting verbose level: %d', _verbose)
     return _verbose
+
+
+def set_manage_deps(manage):
+    global _manage_deps
+    _logger.debug('Setting manage deps to %d (was %d)', manage, _manage_deps)
+    _manage_deps = manage
+
+
+def get_manage_deps():
+    global _manage_deps
+    return _manage_deps
 
 
 def set_cache_dir(dir):

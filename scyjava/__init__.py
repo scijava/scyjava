@@ -121,7 +121,7 @@ def _init_jvm():
             '+'.join(endpoints),
             m2_repo=scyjava_config.get_m2_repo(),
             cache_dir=scyjava_config.get_cache_dir(),
-            manage_dependencies=scijava_config.get_manage_deps(),
+            manage_dependencies=scyjava_config.get_manage_deps(),
             repositories=repositories,
             verbose=scyjava_config.get_verbose()
         )

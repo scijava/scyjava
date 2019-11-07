@@ -334,8 +334,12 @@ def to_python(data):
     if StringClass.isInstance(data):
         return data.toString()
 
-    if jclass('org.scijava.table.Table').isInstance(data):
-        return table_to_pandas(data)
+    try:
+        if jclass('org.scijava.table.Table').isInstance(data):
+            return table_to_pandas(data)
+    except:
+        # No worries if scijava-table is not available.
+        pass
 
     if ListClass.isInstance(data):
         return JavaList(data)

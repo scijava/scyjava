@@ -178,6 +178,7 @@ class JavaCollection(JavaIterable, collections.abc.Collection):
         JavaObject.__init__(self, jobj, CollectionClass)
 
     def __contains__(self, item):
+        # NB: Collection.contains returns boolean, so no need for gentleness.
         return to_python(self.jobj.contains(to_java(item)))
 
     def __len__(self):
@@ -201,7 +202,9 @@ class JavaIterator(JavaObject, collections.abc.Iterator):
 
     def __next__(self):
         if self.jobj.hasNext():
-            return to_python(self.jobj.next())
+            # NB: Even if an element cannot be converted,
+            # we still want to support Pythonic iteration.
+            return to_python(self.jobj.next(), gentle=True)
         raise StopIteration
 
 
@@ -210,16 +213,21 @@ class JavaList(JavaCollection, collections.abc.MutableSequence):
         JavaObject.__init__(self, jobj, ListClass)
 
     def __getitem__(self, key):
-        return to_python(self.jobj.get(key))
+        # NB: Even if an element cannot be converted,
+        # we still want Pythonic access to elements.
+        return to_python(self.jobj.get(key), gentle=True)
 
     def __setitem__(self, key, value):
-        return to_python(self.jobj.set(key, to_java(value)))
+        # NB: List.set(int, Object) returns inserted element, so be gentle here.
+        return to_python(self.jobj.set(key, to_java(value)), gentle=True)
 
     def __delitem__(self, key):
+        # NB: List.remove(Object) returns boolean, so no need for gentleness.
         return to_python(self.jobj.remove(to_java(key)))
 
     def insert(self, index, object):
-        return to_python(self.jobj.set(index, to_java(object)))
+        # NB: List.set(int, Object) returns inserted element, so be gentle here.
+        return to_python(self.jobj.set(index, to_java(object)), gentle=True)
 
 
 class JavaMap(JavaObject, collections.abc.MutableMapping):
@@ -227,13 +235,17 @@ class JavaMap(JavaObject, collections.abc.MutableMapping):
         JavaObject.__init__(self, jobj, MapClass)
 
     def __getitem__(self, key):
-        return to_python(self.jobj.get(to_java(key)))
+        # NB: Even if an element cannot be converted,
+        # we still want Pythonic access to elements.
+        return to_python(self.jobj.get(to_java(key)), gentle=True)
 
     def __setitem__(self, key, value):
-        return to_python(self.jobj.put(to_java(key), to_java(value)))
+        # NB: Map.put(Object, Object) returns inserted value, so be gentle here.
+        return to_python(self.jobj.put(to_java(key), to_java(value)), gentle=True)
 
     def __delitem__(self, key):
-        return to_python(self.jobj.remove(to_python(key)))
+        # NB: Map.remove(Object) returns the removed key, so be gentle here.
+        return to_python(self.jobj.remove(to_java(key)), gentle=True)
 
     def keys(self):
         return to_python(self.jobj.keySet())
@@ -264,9 +276,11 @@ class JavaSet(JavaCollection, collections.abc.MutableSet):
         JavaObject.__init__(self, jobj, SetClass)
 
     def add(self, item):
+        # NB: Set.add returns boolean, so no need for gentleness.
         return to_python(self.jobj.add(to_java(item)))
 
     def discard(self, item):
+        # NB: Set.remove returns boolean, so no need for gentleness.
         return to_python(self.jobj.remove(to_java(item)))
 
     def __iter__(self):
@@ -287,10 +301,12 @@ class JavaSet(JavaCollection, collections.abc.MutableSet):
         return '{' + ', '.join(_jstr(v) for v in self) + '}'
 
 
-def to_python(data):
+def to_python(data, gentle=False):
     """
     Recursively convert a Java object to a Python object.
     :param data: The Java object to convert.
+    :param gentle: If set, and the type cannot be converted, leaves
+                   the data alone rather than raising a TypeError.
     Supported types include:
     * String, Character -> str
     * Boolean -> bool
@@ -303,7 +319,8 @@ def to_python(data):
     * Iterable -> collections.abc.Iterable
     * Iterator -> collections.abc.Iterator
     :returns: A corresponding Python object with the same contents.
-    :raises TypeError: if the argument is not one of the aforementioned types.
+    :raises TypeError: if the argument is not one of the aforementioned types,
+                       and the gentle flag is not set.
     """
     if not isjava(data):
         return data
@@ -354,4 +371,6 @@ def to_python(data):
     if IteratorClass.isInstance(data):
         return JavaIterator(data)
 
+    if gentle:
+        return data
     raise TypeError('Unsupported data type: ' + str(type(data)))

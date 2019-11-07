@@ -213,13 +213,13 @@ class JavaList(JavaCollection, collections.abc.MutableSequence):
         return to_python(self.jobj.get(key))
 
     def __setitem__(self, key, value):
-        return to_python(self.jobj.set(key, value))
+        return to_python(self.jobj.set(key, to_java(value)))
 
     def __delitem__(self, key):
-        return to_python(self.jobj.remove(key))
+        return to_python(self.jobj.remove(to_java(key)))
 
     def insert(self, index, object):
-        return to_python(self.jobj.set(index, object))
+        return to_python(self.jobj.set(index, to_java(object)))
 
 
 class JavaMap(JavaObject, collections.abc.MutableMapping):

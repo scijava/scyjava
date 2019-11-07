@@ -101,6 +101,9 @@ class TestConvert(unittest.TestCase):
         pl = to_python(jl)
         self.assertEqual(l, pl)
         self.assertEqual(str(l), str(pl))
+        self.assertEqual(pl[1], 'quick')
+        pl[7] = 'silly'
+        self.assertEqual('The quick brown fox jumps over the silly dogs', ' '.join(pl))
 
     def testSet(self):
         s = set(['orange', 'apple', 'pineapple', 'plum'])

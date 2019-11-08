@@ -169,6 +169,19 @@ class TestConvert(unittest.TestCase):
         self.assertEqual(ml, pml)
         self.assertEqual(str(ml), str(pml))
 
+    def testGentle(self):
+        Object = jnius.autoclass('java.lang.Object')
+        unknown_thing = Object()
+        converted_thing = to_python(unknown_thing, gentle=True)
+        assert type(converted_thing) == Object
+        bad_conversion = None
+        try:
+            bad_conversion = to_python(unknown_thing)
+        except:
+            # NB: Failure is expected here.
+            pass
+        self.assertIsNone(bad_conversion)
+
     def testPandasToTable(self):
         # Float table.
         columns = ["header1", "header2", "header3", "header4", "header5"]

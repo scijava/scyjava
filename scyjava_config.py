@@ -24,7 +24,7 @@ import logging
 import jnius_config
 import pathlib
 
-version = '0.4.0.dev0'
+version = '0.4.0'
 
 _logger = logging.getLogger(__name__)
 

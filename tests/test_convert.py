@@ -182,6 +182,29 @@ class TestConvert(unittest.TestCase):
             pass
         self.assertIsNone(bad_conversion)
 
+    def testStructureWithSomeUnsupportedItems(self):
+        # Create Java data structure with some challenging items.
+        Object = jnius.autoclass('java.lang.Object')
+        jmap = to_java({
+            'list': ['a', Object(), 1],
+            'set': {'x', Object(), 2},
+            'object': Object(),
+            'foo': 'bar'
+        })
+        self.assertEqual('java.util.LinkedHashMap', jclass(jmap).getName())
+
+        # Convert it back to Python.
+        pdict = to_python(jmap)
+        l = pdict['list']
+        self.assertEqual(pdict['list'][0], 'a')
+        assert type(pdict['list'][1]) == Object
+        assert pdict['list'][2] == 1
+        assert 'x' in pdict['set']
+        assert 2 in pdict['set']
+        assert len(pdict['set']) == 3
+        assert type(pdict['object']) == Object
+        self.assertEqual(pdict['foo'], 'bar')
+
     def testPandasToTable(self):
         # Float table.
         columns = ["header1", "header2", "header3", "header4", "header5"]

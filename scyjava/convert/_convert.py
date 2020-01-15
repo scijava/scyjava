@@ -51,6 +51,28 @@ def jclass(data):
     raise TypeError('Cannot glean class from data of type: ' + str(type(data)))
 
 
+def jstacktrace(exc):
+    """
+    Extract the Java-side stack trace from a wrapped Java exception.
+
+    Example of usage:
+
+        from jnius import autoclass
+        try:
+            Integer = autoclass('java.lang.Integer')
+            nan = Integer.parseInt('not a number')
+        except Exception as exc:
+            print(jstacktrace(exc))
+
+    :param exc: The JavaException from which to extract the stack trace.
+    :returns: A multi-line string containing the stack trace, or empty string
+    if no stack trace could be extracted.
+    """
+    if not hasattr(exc, 'classname') or exc.classname is None:
+        return str(exc)
+    return '' if not exc.stacktrace else '\n\tat '.join(exc.stacktrace)
+
+
 def to_java(data):
     """
     Recursively convert a Python object to a Java object.

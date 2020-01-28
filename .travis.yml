@@ -17,7 +17,8 @@ install:
   - conda info -a
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
   - source activate test-environment
-  - conda install -c conda-forge pyjnius jgo pandas numpy
+  - conda install -c conda-forge jgo pandas numpy
+  - pip install pyjnius
 
 script:
   - python -m unittest discover tests -v

@@ -169,6 +169,16 @@ class TestConvert(unittest.TestCase):
         self.assertEqual(ml, pml)
         self.assertEqual(str(ml), str(pml))
 
+    def testNone(self):
+        d = {'key':None, None:'value', 'foo':'bar'}
+        jd = to_java(d)
+        self.assertEqual(3, jd.size())
+        self.assertEqual(None, jd.get('key'))
+        self.assertEqual('value', jd.get(None))
+        self.assertEqual('bar', jd.get('foo'))
+        pd = to_python(jd)
+        self.assertEqual(d, pd)
+
     def testGentle(self):
         Object = jnius.autoclass('java.lang.Object')
         unknown_thing = Object()

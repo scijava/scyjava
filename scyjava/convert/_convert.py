@@ -89,6 +89,9 @@ def to_java(data):
     :raises TypeError: if the argument is not one of the aforementioned types.
     """
 
+    if data is None:
+        return None
+
     if isjava(data):
         return data
 

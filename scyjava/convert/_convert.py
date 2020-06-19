@@ -24,7 +24,9 @@ ArrayList     = jnius.autoclass('java.util.ArrayList')
 
 def isjava(data):
     """Return whether the given data object is a Java object."""
-    return isinstance(data, jnius.JavaClass) or isinstance(data, jnius.MetaJavaClass)
+    return isinstance(data, jnius.JavaClass) or \
+           isinstance(data, jnius.MetaJavaClass) or \
+           isinstance(data, jnius.PythonJavaClass)
 
 
 def jclass(data):

@@ -1,21 +1,18 @@
 # General-purpose utility methods for Python <-> Java type conversion.
 
-import jnius, collections.abc
+import collections.abc
+import jpype
+import jpype.imports
+import scyjava
+import scyjava.jvm
+from jpype.types import *
+from _jpype import _JObject
 
-from ._pandas import table_to_pandas
-from ._pandas import pandas_to_table
+# Java imports:
+from java.lang import Boolean, Byte, Character, Double, Float, Integer, Iterable, Long, Object, Short, String, Void
+from java.math import BigDecimal, BigInteger
+from java.util import ArrayList, Collection, Iterator, LinkedHashMap, LinkedHashSet, List, Map, Set
 
-String        = jnius.autoclass('java.lang.String')
-Boolean       = jnius.autoclass('java.lang.Boolean')
-Integer       = jnius.autoclass('java.lang.Integer')
-Long          = jnius.autoclass('java.lang.Long')
-BigInteger    = jnius.autoclass('java.math.BigInteger')
-Float         = jnius.autoclass('java.lang.Float')
-Double        = jnius.autoclass('java.lang.Double')
-BigDecimal    = jnius.autoclass('java.math.BigDecimal')
-LinkedHashMap = jnius.autoclass('java.util.LinkedHashMap')
-LinkedHashSet = jnius.autoclass('java.util.LinkedHashSet')
-ArrayList     = jnius.autoclass('java.util.ArrayList')
 
 # -- Python to Java --
 
@@ -24,9 +21,7 @@ ArrayList     = jnius.autoclass('java.util.ArrayList')
 
 def isjava(data):
     """Return whether the given data object is a Java object."""
-    return isinstance(data, jnius.JavaClass) or \
-           isinstance(data, jnius.MetaJavaClass) or \
-           isinstance(data, jnius.PythonJavaClass)
+    return isinstance(data, jpype.JClass) or isinstance(data, _JObject)
 
 
 def jclass(data):
@@ -37,19 +32,18 @@ def jclass(data):
     Supported types include:
     A. Name of a class to look up, analogous to
     Class.forName("java.lang.String");
-    B. A jnius.MetaJavaClass object e.g. from jnius.autoclass, analogous to
-    String.class;
-    C. A jnius.JavaClass object e.g. instantiated from a jnius.MetaJavaClass,
-    analogous to "Hello".getClass().
+    B. A jpype.JClass object analogous to String.class;
+    C. A _jpype._JObject instance analogous to o.getClass().
     :returns: A java.lang.Class object, suitable for use with reflection.
     :raises TypeError: if the argument is not one of the aforementioned types.
     """
-    if isinstance(data, jnius.JavaClass):
+
+    if isinstance(data, jpype.JClass):
+        return data.class_
+    if isinstance(data, _JObject):
         return data.getClass()
-    if isinstance(data, jnius.MetaJavaClass):
-        return jnius.find_javaclass(data.__name__)
     if isinstance(data, str):
-        return jnius.find_javaclass(data)
+        return jclass(jpype.JClass(data))
     raise TypeError('Cannot glean class from data of type: ' + str(type(data)))
 
 
@@ -147,29 +141,8 @@ def to_java(data):
 
     raise TypeError('Unsupported type: ' + str(type(data)))
 
+
 # -- Java to Python --
-
-BooleanClass    = jclass('java.lang.Boolean')
-ByteClass       = jclass('java.lang.Byte')
-CharacterClass  = jclass('java.lang.Character')
-DoubleClass     = jclass('java.lang.Double')
-FloatClass      = jclass('java.lang.Float')
-IntegerClass    = jclass('java.lang.Integer')
-LongClass       = jclass('java.lang.Long')
-ShortClass      = jclass('java.lang.Short')
-VoidClass       = jclass('java.lang.Void')
-
-BigIntegerClass = jclass('java.math.BigInteger')
-BigDecimalClass = jclass('java.math.BigDecimal')
-StringClass     = jclass('java.lang.String')
-
-ObjectClass     = jclass('java.lang.Object')
-IterableClass   = jclass('java.lang.Iterable')
-CollectionClass = jclass('java.util.Collection')
-IteratorClass   = jclass('java.util.Iterator')
-ListClass       = jclass('java.util.List')
-MapClass        = jclass('java.util.Map')
-SetClass        = jclass('java.util.Set')
 
 
 def _jstr(data):
@@ -180,8 +153,8 @@ def _jstr(data):
 
 
 class JavaObject():
-    def __init__(self, jobj, intended_class=ObjectClass):
-        if not intended_class.isInstance(jobj):
+    def __init__(self, jobj, intended_class=Object):
+        if not isinstance(jobj, intended_class):
             raise TypeError('Not a ' + intended_class.getName() + ': ' + jclass(jobj).getName())
         self.jobj = jobj
 
@@ -191,7 +164,7 @@ class JavaObject():
 
 class JavaIterable(JavaObject, collections.abc.Iterable):
     def __init__(self, jobj):
-        JavaObject.__init__(self, jobj, IterableClass)
+        JavaObject.__init__(self, jobj, Iterable)
 
     def __iter__(self):
         return to_python(self.jobj.iterator())
@@ -202,7 +175,7 @@ class JavaIterable(JavaObject, collections.abc.Iterable):
 
 class JavaCollection(JavaIterable, collections.abc.Collection):
     def __init__(self, jobj):
-        JavaObject.__init__(self, jobj, CollectionClass)
+        JavaObject.__init__(self, jobj, Collection)
 
     def __contains__(self, item):
         # NB: Collection.contains returns boolean, so no need for gentleness.
@@ -225,7 +198,7 @@ class JavaCollection(JavaIterable, collections.abc.Collection):
 
 class JavaIterator(JavaObject, collections.abc.Iterator):
     def __init__(self, jobj):
-        JavaObject.__init__(self, jobj, IteratorClass)
+        JavaObject.__init__(self, jobj, Iterator)
 
     def __next__(self):
         if self.jobj.hasNext():
@@ -237,7 +210,7 @@ class JavaIterator(JavaObject, collections.abc.Iterator):
 
 class JavaList(JavaCollection, collections.abc.MutableSequence):
     def __init__(self, jobj):
-        JavaObject.__init__(self, jobj, ListClass)
+        JavaObject.__init__(self, jobj, List)
 
     def __getitem__(self, key):
         # NB: Even if an element cannot be converted,
@@ -259,7 +232,7 @@ class JavaList(JavaCollection, collections.abc.MutableSequence):
 
 class JavaMap(JavaObject, collections.abc.MutableMapping):
     def __init__(self, jobj):
-        JavaObject.__init__(self, jobj, MapClass)
+        JavaObject.__init__(self, jobj, Map)
 
     def __getitem__(self, key):
         # NB: Even if an element cannot be converted,
@@ -300,7 +273,7 @@ class JavaMap(JavaObject, collections.abc.MutableMapping):
 
 class JavaSet(JavaCollection, collections.abc.MutableSet):
     def __init__(self, jobj):
-        JavaObject.__init__(self, jobj, SetClass)
+        JavaObject.__init__(self, jobj, Set)
 
     def add(self, item):
         # NB: Set.add returns boolean, so no need for gentleness.
@@ -352,52 +325,117 @@ def to_python(data, gentle=False):
     if not isjava(data):
         return data
 
-    if BooleanClass.isInstance(data):
+    if isinstance(data, JBoolean):
+        return bool(data)
+    if isinstance(data, JInt) or isinstance(data, JLong) or isinstance(data, JShort):
+        return int(data)
+    if isinstance(data, JDouble) or isinstance(data, JFloat):
+        return float(data)
+    if isinstance(data, JChar):
+        return str(data)
+
+    if isinstance(data, Boolean):
         return data.booleanValue()
-    if ByteClass.isInstance(data):
+    if isinstance(data, Byte):
         return data.byteValue()
-    if CharacterClass.isInstance(data):
+    if isinstance(data, Character):
         return data.toString()
-    if DoubleClass.isInstance(data):
+    if isinstance(data, Double):
         return data.doubleValue()
-    if FloatClass.isInstance(data):
+    if isinstance(data, Float):
         return data.floatValue()
-    if IntegerClass.isInstance(data):
+    if isinstance(data, Integer):
         return data.intValue()
-    if LongClass.isInstance(data):
+    if isinstance(data, Long):
         return data.longValue()
-    if ShortClass.isInstance(data):
+    if isinstance(data, Short):
         return data.shortValue()
-    if VoidClass.isInstance(data):
+    if isinstance(data, Void):
         return None
 
-    if BigIntegerClass.isInstance(data):
-        return int(data.toString())
-    if BigDecimalClass.isInstance(data):
+    if isinstance(data, BigInteger):
+        return int(str(data.toString()))
+    if isinstance(data, BigDecimal):
         return float(data.toString())
-    if StringClass.isInstance(data):
-        return data.toString()
+    if isinstance(data, String):
+        return str(data)
 
     try:
-        if jclass('org.scijava.table.Table').isInstance(data):
+        if isinstance(data, jclass('org.scijava.table.Table')):
             return table_to_pandas(data)
     except:
         # No worries if scijava-table is not available.
         pass
 
-    if ListClass.isInstance(data):
+    if isinstance(data, List):
         return JavaList(data)
-    if MapClass.isInstance(data):
+    if isinstance(data, Map):
         return JavaMap(data)
-    if SetClass.isInstance(data):
+    if isinstance(data, Set):
         return JavaSet(data)
-    if CollectionClass.isInstance(data):
+    if isinstance(data, Collection):
         return JavaCollection(data)
-    if IterableClass.isInstance(data):
+    if isinstance(data, Iterable):
         return JavaIterable(data)
-    if IteratorClass.isInstance(data):
+    if isinstance(data, Iterator):
         return JavaIterator(data)
 
     if gentle:
         return data
     raise TypeError('Unsupported data type: ' + str(type(data)))
+
+
+def _import_pandas():
+    try:
+        import pandas as pd
+        return pd
+    except ImportError:
+        msg = "The Pandas library is missing (http://pandas.pydata.org/). "
+        msg += "Please instal it using: "
+        msg += "conda install pandas (prefered)"
+        msg += " or "
+        msg += "pip install pandas."
+        raise Exception(msg)
+
+
+def table_to_pandas(table):
+    pd = _import_pandas()
+
+    data = []
+    headers = []
+    for i, column in enumerate(table.toArray()):
+        data.append(column.toArray())
+        headers.append(table.getColumnHeader(i))
+    df = pd.DataFrame(data).T
+    df.columns = headers
+    return df
+
+
+def pandas_to_table(df):
+    pd = _import_pandas()
+
+    if len(df.dtypes.unique()) > 1:
+        TableClass = jpype.JClass('org.scijava.table.DefaultGenericTable')
+    else:
+        table_type = df.dtypes.unique()[0]
+        if table_type.name.startswith('float'):
+            TableClass = jpype.JClass('org.scijava.table.DefaultFloatTable')
+        elif table_type.name.startswith('int'):
+            TableClass = jpype.JClass('org.scijava.table.DefaultIntTable')
+        elif table_type.name.startswith('bool'):
+            TableClass = jpype.JClass('org.scijava.table.DefaultBoolTable')
+        else:
+            msg = "The type '{}' is not supported.".format(table_type.name)
+            raise Exception(msg)
+
+    table = TableClass(*df.shape[::-1])
+
+    for c, column_name in enumerate(df.columns):
+        table.setColumnHeader(c, column_name)
+
+    for i, (index, row) in enumerate(df.iterrows()):
+        for c, value in enumerate(row):
+            header = df.columns[c]
+            table.set(header, i, to_java(value))
+
+    return table

@@ -21,19 +21,20 @@ __all__ = (
     'expand_classpath')
 
 import logging
-import jnius_config
 import pathlib
+import jpype
 
-version = '0.4.1.dev0'
+version = '0.4.1.dev1'
 
 _logger = logging.getLogger(__name__)
 
-_endpoints    = []
-_repositories = {}
-_verbose      = 0
-_manage_deps  = True
-_cache_dir    = pathlib.Path.home() / '.jgo'
-_m2_repo      = pathlib.Path.home() / '.m2' / 'repository'
+_endpoints = []
+_repositories = {1: 'https://maven.scijava.org/content/repositories/releases'}
+_verbose = 0
+_manage_deps = True
+_cache_dir = pathlib.Path.home() / '.jgo'
+_m2_repo = pathlib.Path.home() / '.m2' / 'repository'
+_options = ""
 
 def maven_scijava_repository():
     """
@@ -46,11 +47,9 @@ def add_endpoints(*endpoints):
     _logger.debug('Adding endpoints %s to %s', endpoints, _endpoints)
     _endpoints.extend(endpoints)
 
-
 def get_endpoints():
     global _endpoints
     return _endpoints
-
 
 def add_repositories(*args, **kwargs):
     global _repositories
@@ -60,11 +59,9 @@ def add_repositories(*args, **kwargs):
     _logger.debug('Adding repositories %s to %s', kwargs, _repositories)
     _repositories.update(kwargs)
 
-
 def get_repositories():
     global _repositories
     return _repositories
-
 
 def set_verbose(level):
     global _verbose
@@ -110,32 +107,21 @@ def get_m2_repo():
     global _m2_repo
     return _m2_repo
 
-
-# directly delegating to jnius_config
 def add_classpath(*path):
-    jnius_config.add_classpath(*path)
+    jpype.addClassPath(*path)
 
 
 def set_classpath(*path):
-    jnius_config.set_classpath(*path)
+    jpype.addClassPath(*path)
 
 
 def get_classpath():
-    return jnius_config.get_classpath()
+    return jpype.getClassPath()
 
-
-def add_options(*opts):
-    jnius_config.add_options(*opts)
-
-
-def set_options(*opts):
-    jnius_config.set_options(*opts)
-
+def add_options(options):
+    global _options
+    _options = options
 
 def get_options():
-    return jnius_config.get_options()
-
-
-def expand_classpath():
-    return jnius_config.expand_classpath()
-
+    global _options
+    return _options

@@ -1,4 +1,4 @@
-# scyjava
+# Testing JPype and scyjava 
 
 Supercharged Java access from Python.
 

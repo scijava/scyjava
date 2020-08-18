@@ -40,6 +40,15 @@ def maven_scijava_repository():
     """
     return 'https://maven.scijava.org/content/groups/public'
 
+def add_endpoints(*endpoints):
+    global _endpoints
+    _logger.debug('Adding endpoints %s to %s', endpoints, _endpoints)
+    _endpoints.extend(endpoints)
+
+def get_endpoints():
+    global _endpoints
+    return _endpoints
+
 def add_repositories(*args, **kwargs):
     global _repositories
     for arg in args:
@@ -48,7 +57,79 @@ def add_repositories(*args, **kwargs):
     _logger.debug('Adding repositories %s to %s', kwargs, _repositories)
     _repositories.update(kwargs)
 
-def add_endpoints(*endpoints):
-    global _endpoints
-    _logger.debug('Adding endpoints %s to %s', endpoints, _endpoints)
-    _endpoints.extend(endpoints)
+def get_repositories():
+    global _repositories
+    return _repositories
+
+def set_verbose(level):
+    global _verbose
+    _logger.debug('Setting verbose level to %d (was %d)', level, _verbose)
+    _verbose = level
+
+
+def get_verbose():
+    global _verbose
+    _logger.debug('Getting verbose level: %d', _verbose)
+    return _verbose
+
+
+def set_manage_deps(manage):
+    global _manage_deps
+    _logger.debug('Setting manage deps to %d (was %d)', manage, _manage_deps)
+    _manage_deps = manage
+
+
+def get_manage_deps():
+    global _manage_deps
+    return _manage_deps
+
+
+def set_cache_dir(dir):
+    global _cache_dir
+    _logger.debug('Setting cache dir to %s (was %s)', dir, _cache_dir)
+    _cache_dir = dir
+
+
+def get_cache_dir():
+    global _cache_dir
+    return _cache_dir
+
+
+def set_m2_repo(dir):
+    global _m2_repo
+    _logger.debug('Setting m2 repo dir to %s (was %s)', dir, _m2_repo)
+    _m2_repo = dir
+
+
+def get_m2_repo():
+    global _m2_repo
+    return _m2_repo
+
+# directly delegating to jnius_config
+def add_classpath(*path):
+    jnius_config.add_classpath(*path)
+
+
+def set_classpath(*path):
+    jnius_config.set_classpath(*path)
+
+
+def get_classpath():
+    return jnius_config.get_classpath()
+
+
+def add_options(*opts):
+    jnius_config.add_options(*opts)
+
+
+def set_options(*opts):
+    jnius_config.set_options(*opts)
+
+
+def get_options():
+    return jnius_config.get_options()
+
+
+def expand_classpath():
+    return jnius_config.expand_classpath()
+

@@ -21,10 +21,9 @@ __all__ = (
     'expand_classpath')
 
 import logging
-import jnius_config
 import pathlib
 
-version = '0.4.1.dev0'
+version = '0.4.1.dev1'
 
 _logger = logging.getLogger(__name__)
 
@@ -46,11 +45,9 @@ def add_endpoints(*endpoints):
     _logger.debug('Adding endpoints %s to %s', endpoints, _endpoints)
     _endpoints.extend(endpoints)
 
-
 def get_endpoints():
     global _endpoints
     return _endpoints
-
 
 def add_repositories(*args, **kwargs):
     global _repositories
@@ -60,11 +57,9 @@ def add_repositories(*args, **kwargs):
     _logger.debug('Adding repositories %s to %s', kwargs, _repositories)
     _repositories.update(kwargs)
 
-
 def get_repositories():
     global _repositories
     return _repositories
-
 
 def set_verbose(level):
     global _verbose
@@ -109,7 +104,6 @@ def set_m2_repo(dir):
 def get_m2_repo():
     global _m2_repo
     return _m2_repo
-
 
 # directly delegating to jnius_config
 def add_classpath(*path):

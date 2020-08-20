@@ -122,8 +122,5 @@ def _init_jvm():
     else:
         print('[DEBUG] JVM status: Stopped')
 
-    # after the JPype JVM has been started, java imports can be made
-    from java.lang import System
-    
     # print classpath of the jvm
     #print('[DEBUG] JVM ClassPath: {0}'.format(System.getProperty("java.class.path")))

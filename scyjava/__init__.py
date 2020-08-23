@@ -14,18 +14,8 @@ _logger = logging.getLogger(__name__)
 
 def _init_jvm():
     import scyjava_config
-    # jnius_config is imported here: --> jnius_config.vm_running status
-    import jgo
-
-    # sense if the vm is already running via jinus_config
-
-    # attempt to find pyjnius.jar if the environment variable is not set
-    # EE: I removed this section as it is no longer relevant with regards to 
-    # JPype.
 
     # attempt to set JAVA_HOME if the environment variable is not set.
-    # EE: This section is unchanged.
-
     JAVA_HOME_STR = 'JAVA_HOME'
     if JAVA_HOME_STR not in globals():
         JAVA_HOME = None
@@ -94,9 +84,7 @@ def _init_jvm():
     # use the logger to notify user that endpoints are being added
     _logger.debug('Adding jars from endpoints {0}'.format(endpoints))
 
-    # looks like as long as there are endpoints jgo will fetch/resolve
-    # the dependence and passing the classpath to jnius_config 
-    # (now replaced with jpype)
+    # get endpoints and add to JPype class path
     if len(endpoints) > 0:
         endpoints = endpoints[:1] + sorted(endpoints[1:])
         _logger.debug('Using endpoints %s', endpoints)
@@ -109,9 +97,7 @@ def _init_jvm():
             verbose=scyjava_config.get_verbose()
         )
         jpype.addClassPath(os.path.join(workspace, '*'))
-
-    # start the vm here. with jnius this is done via 'import jnius' after
-    # jnius_config has been configured.
+        
     # Initialize JPype JVM
     print('[DEBUG] Starting JPype JVM')
     jpype.startJVM()
@@ -121,6 +107,3 @@ def _init_jvm():
         print('[DEBUG] JVM status: Running')
     else:
         print('[DEBUG] JVM status: Stopped')
-
-    # print classpath of the jvm
-    #print('[DEBUG] JVM ClassPath: {0}'.format(System.getProperty("java.class.path")))

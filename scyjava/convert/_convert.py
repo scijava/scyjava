@@ -1,21 +1,31 @@
 # General-purpose utility methods for Python <-> Java type conversion.
 
-import jnius, collections.abc
+#import jnius, collections.abc
 
+import collections.abc
+import jpype
+import jpype.imports
+from jpype.types import *
+
+# Initialize JPype JVM
+jpype.startJVM()
+
+# EE: Not sure if these will still be needed after switch to JPype
 from ._pandas import table_to_pandas
 from ._pandas import pandas_to_table
 
-String        = jnius.autoclass('java.lang.String')
-Boolean       = jnius.autoclass('java.lang.Boolean')
-Integer       = jnius.autoclass('java.lang.Integer')
-Long          = jnius.autoclass('java.lang.Long')
-BigInteger    = jnius.autoclass('java.math.BigInteger')
-Float         = jnius.autoclass('java.lang.Float')
-Double        = jnius.autoclass('java.lang.Double')
-BigDecimal    = jnius.autoclass('java.math.BigDecimal')
-LinkedHashMap = jnius.autoclass('java.util.LinkedHashMap')
-LinkedHashSet = jnius.autoclass('java.util.LinkedHashSet')
-ArrayList     = jnius.autoclass('java.util.ArrayList')
+# Java imports:
+from java.lang import String
+from java.lang import Boolean
+from java.lang import Integer
+from java.lang import Long
+from java.math import BigInteger
+from java.lang import Float
+from java.lang import Double
+from java.math import BigDecimal
+from java.util import LinkedHashMap
+from java.util import LinkedHashSet
+from java.util import ArrayList
 
 # -- Python to Java --
 
@@ -23,12 +33,12 @@ ArrayList     = jnius.autoclass('java.util.ArrayList')
 # https://github.com/kivy/pyjnius/issues/217#issue-145981070
 
 def isjava(data):
+    # NOTE: removed jnius.MetaJavaClass and jnius.PythonJavaClass -- metajavaclass should 
+    # be covered by jpype.JClass, I don't think jpype supports python --> java class implementation
+
     """Return whether the given data object is a Java object."""
-    return isinstance(data, jnius.JavaClass) or \
-           isinstance(data, jnius.MetaJavaClass) or \
-           isinstance(data, jnius.PythonJavaClass)
-
-
+    return isinstance(data, jpype.JClass)
+    
 def jclass(data):
     """
     Obtain a Java class object.

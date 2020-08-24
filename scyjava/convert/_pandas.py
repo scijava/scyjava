@@ -1,7 +1,10 @@
 # Pandas <-> Scijava Table converters.
-import jnius
 import scyjava
+import jpype
+import jpype.imports
+from jpype.types import *
 
+jpype.startJVM()
 
 def _import_pandas():
     try:
@@ -33,15 +36,15 @@ def pandas_to_table(df):
     pd = _import_pandas()
 
     if len(df.dtypes.unique()) > 1:
-        TableClass = jnius.autoclass('org.scijava.table.DefaultGenericTable')
+        TableClass = jpype.JClass('org.scijava.table.DefaultGenericTable')
     else:
         table_type = df.dtypes.unique()[0]
         if table_type.name.startswith('float'):
-            TableClass = jnius.autoclass('org.scijava.table.DefaultFloatTable')
+            TableClass = jpype.JClass('org.scijava.table.DefaultFloatTable')
         elif table_type.name.startswith('int'):
-            TableClass = jnius.autoclass('org.scijava.table.DefaultIntTable')
+            TableClass = jpype.JClass('org.scijava.table.DefaultIntTable')
         elif table_type.name.startswith('bool'):
-            TableClass = jnius.autoclass('org.scijava.table.DefaultBoolTable')
+            TableClass = jpype.JClass('org.scijava.table.DefaultBoolTable')
         else:
             msg = "The type '{}' is not supported.".format(table_type.name)
             raise Exception(msg)

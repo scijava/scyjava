@@ -3,6 +3,7 @@ import os
 import platform
 import sys
 import subprocess
+import jgo
 import jpype # import module
 import jpype.imports # enable java imports
 from jpype.types import * # pull in types
@@ -55,7 +56,7 @@ def _init_jvm():
         java_path = Path(JAVA_HOME)
         if java_path.is_dir():
             _logger.debug('%s found at "%s"', JAVA_HOME_STR, JAVA_HOME)
-            if java_path.name is 'jre':
+            if java_path.name == 'jre':
                 _logger.debug('JAVA_HOME points at jre folder; using parent instead')
                 JAVA_HOME = str(java_path.parent)
             os.environ['JAVA_HOME'] = JAVA_HOME

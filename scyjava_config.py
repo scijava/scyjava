@@ -22,6 +22,7 @@ __all__ = (
 
 import logging
 import pathlib
+import jpype
 
 version = '0.4.1.dev1'
 
@@ -107,29 +108,28 @@ def get_m2_repo():
 
 # directly delegating to jnius_config
 def add_classpath(*path):
-    jnius_config.add_classpath(*path)
+    jpype.addClassPath(*path)
 
 
 def set_classpath(*path):
-    jnius_config.set_classpath(*path)
+    jpype.addClassPath(*path)
 
 
 def get_classpath():
-    return jnius_config.get_classpath()
+    return jpype.getClassPath()
 
-
-def add_options(*opts):
-    jnius_config.add_options(*opts)
-
-
-def set_options(*opts):
-    jnius_config.set_options(*opts)
-
-
-def get_options():
-    return jnius_config.get_options()
-
-
-def expand_classpath():
-    return jnius_config.expand_classpath()
-
+# currently unused
+#def add_options(*opts):
+#    jnius_config.add_options(*opts)
+#
+#
+#def set_options(*opts):
+#    jnius_config.set_options(*opts)
+#
+#
+#def get_options():
+#    return jnius_config.get_options()
+#
+#
+#def expand_classpath():
+#    return jnius_config.expand_classpath()

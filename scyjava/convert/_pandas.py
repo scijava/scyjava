@@ -4,8 +4,6 @@ import jpype
 import jpype.imports
 from jpype.types import *
 
-jpype.startJVM()
-
 def _import_pandas():
     try:
         import pandas as pd

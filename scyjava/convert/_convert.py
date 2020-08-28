@@ -52,7 +52,13 @@ def jclass(data):
     :returns: A java.lang.Class object, suitable for use with reflection.
     :raises TypeError: if the argument is not one of the aforementioned types.
     """
+
+    # import the java class
+    data_str = data
+    data = jpype.JClass(data)
+
     if isinstance(data, jpype.JClass):
+        print('[DEBUG] Class: {0} JClass: {1}'.format(data_str, isinstance(data, jpype.JClass(data))))
         return data.getClass()
     #if isinstance(data, jnius.MetaJavaClass):
     #    return jnius.find_javaclass(data.__name__)

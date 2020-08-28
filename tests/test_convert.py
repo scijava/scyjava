@@ -5,12 +5,13 @@ scyjava_config.add_endpoints('org.scijava:scijava-table')
 import unittest
 import pandas as pd
 import numpy as np
-from scyjava.convert import jclass, to_java, to_python
 import scyjava
+from scyjava.convert import jclass, to_java, to_python
 import jpype
 import jpype.imports
 from jpype.types import *
 
+scyjava.startJVM()
 
 def assert_same_table(table, df):
     import numpy.testing as npt
@@ -81,7 +82,7 @@ class TestConvert(unittest.TestCase):
     def testBigInteger(self):
         bi = 9879999999999999789
         jbi = to_java(bi)
-        self.assertEqual(bi, int(jbi.toString()))
+        self.assertEqual(bi, int(str(jbi.toString())))
         pbi = to_python(jbi)
         self.assertEqual(bi, pbi)
         self.assertEqual(str(bi), str(pbi))
@@ -223,7 +224,7 @@ class TestConvert(unittest.TestCase):
         array = np.random.random(size=(7, 5))
 
         df = pd.DataFrame(array, columns=columns)
-        table = scyjava.to_java(df)
+        table = to_java(df)
 
         assert_same_table(table, df)
         assert type(table) == jpype.JClass('org.scijava.table.DefaultFloatTable')
@@ -234,7 +235,7 @@ class TestConvert(unittest.TestCase):
         array = array.astype('int')
 
         df = pd.DataFrame(array, columns=columns)
-        table = scyjava.to_java(df)
+        table = to_java(df)
 
         assert_same_table(table, df)
         assert type(table) == jpype.JClass('org.scijava.table.DefaultIntTable')
@@ -244,7 +245,7 @@ class TestConvert(unittest.TestCase):
         array = np.random.random(size=(7, 5)) > 0.5
 
         df = pd.DataFrame(array, columns=columns)
-        table = scyjava.to_java(df)
+        table = to_java(df)
 
         assert_same_table(table, df)
         assert type(table) == jpype.JClass('org.scijava.table.DefaultBoolTable')
@@ -262,7 +263,7 @@ class TestConvert(unittest.TestCase):
         # Convert column 2 to string
         df.iloc[:, 2] = df.iloc[:, 2].to_string(index=False).split('\n')
 
-        table = scyjava.to_java(df)
+        table = to_java(df)
 
         # Table types cannot be the same here, unless we want to cast.
         # assert_same_table(table, df)

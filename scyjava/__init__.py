@@ -13,7 +13,9 @@ _logger = logging.getLogger(__name__)
 
 # enable debug logging here if variable is set.
 
-def _init_jvm():
+def startJVM():
+    if jpype.isJVMStarted(): return
+
     import scyjava_config
 
     # attempt to set JAVA_HOME if the environment variable is not set.

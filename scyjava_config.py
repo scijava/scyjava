@@ -118,18 +118,3 @@ def set_classpath(*path):
 def get_classpath():
     return jpype.getClassPath()
 
-# currently unused
-#def add_options(*opts):
-#    jnius_config.add_options(*opts)
-#
-#
-#def set_options(*opts):
-#    jnius_config.set_options(*opts)
-#
-#
-#def get_options():
-#    return jnius_config.get_options()
-#
-#
-#def expand_classpath():
-#    return jnius_config.expand_classpath()

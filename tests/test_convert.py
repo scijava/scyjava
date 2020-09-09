@@ -11,8 +11,6 @@ import jpype
 import jpype.imports
 from jpype.types import *
 
-scyjava.startJVM()
-
 def assert_same_table(table, df):
     import numpy.testing as npt
 

@@ -106,7 +106,6 @@ def get_m2_repo():
     global _m2_repo
     return _m2_repo
 
-# directly delegating to jnius_config
 def add_classpath(*path):
     jpype.addClassPath(*path)
 

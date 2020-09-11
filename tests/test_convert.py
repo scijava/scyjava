@@ -5,11 +5,15 @@ scyjava_config.add_endpoints('org.scijava:scijava-table')
 import unittest
 import pandas as pd
 import numpy as np
-import scyjava
-from scyjava.convert import jclass, to_java, to_python
+import scyjava.jvm
 import jpype
 import jpype.imports
 from jpype.types import *
+
+# EE: scyjava.convert perfroms imports that need to happen after the JVM
+# has started.
+scyjava.jvm.start_JVM()
+from scyjava.convert import jclass, to_java, to_python
 
 def assert_same_table(table, df):
     import numpy.testing as npt

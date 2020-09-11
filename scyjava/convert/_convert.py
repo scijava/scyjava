@@ -3,14 +3,10 @@
 import collections.abc
 import jpype
 import jpype.imports
+import scyjava
+import scyjava.jvm
 from jpype.types import *
 from _jpype import _JObject
-
-# Initialize JPype JVM
-# This is necessary here to load the subsequent Java classes,
-# and then use them when defining Python-side wrapper classes.
-import scyjava
-scyjava.startJVM()
 
 # Java imports:
 from java.lang import Boolean, Byte, Character, Double, Float, Integer, Iterable, Long, Object, Short, String, Void

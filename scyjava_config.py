@@ -29,7 +29,7 @@ version = '0.4.1.dev1'
 _logger = logging.getLogger(__name__)
 
 _endpoints    = []
-_repositories = {}
+_repositories = {1: 'https://maven.scijava.org/content/repositories/releases'}
 _verbose      = 0
 _manage_deps  = True
 _cache_dir    = pathlib.Path.home() / '.jgo'

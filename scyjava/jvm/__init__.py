@@ -102,6 +102,7 @@ def start_JVM():
             repositories=repositories,
             verbose=scyjava_config.get_verbose()
         )
+        print('[DEBUG] addClassPath: {0}'.format(os.path.join(workspace, '*')))
         jpype.addClassPath(os.path.join(workspace, '*'))
         
     # Initialize JPype JVM

@@ -14,7 +14,7 @@ from pathlib import Path
 _logger = logging.getLogger(__name__)
 
 # TODO: Pass options
-def start_JVM():
+def start_JVM(options):
 
     # if jvm JVM is already running -- break
     if JVM_status() == True:
@@ -107,7 +107,7 @@ def start_JVM():
         
     # Initialize JPype JVM
     print('[DEBUG] Starting JPype JVM')
-    jpype.startJVM()
+    jpype.startJVM(options)
 
     if JVM_status() == True:
         print('[DEBUG] JVM status: Started sucessfully.')

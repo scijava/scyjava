@@ -28,12 +28,13 @@ version = '0.4.1.dev1'
 
 _logger = logging.getLogger(__name__)
 
-_endpoints    = []
+_endpoints = []
 _repositories = {1: 'https://maven.scijava.org/content/repositories/releases'}
-_verbose      = 0
-_manage_deps  = True
-_cache_dir    = pathlib.Path.home() / '.jgo'
-_m2_repo      = pathlib.Path.home() / '.m2' / 'repository'
+_verbose = 0
+_manage_deps = True
+_cache_dir = pathlib.Path.home() / '.jgo'
+_m2_repo = pathlib.Path.home() / '.m2' / 'repository'
+_options = ""
 
 def maven_scijava_repository():
     """
@@ -117,3 +118,10 @@ def set_classpath(*path):
 def get_classpath():
     return jpype.getClassPath()
 
+def add_options(options):
+    global _options
+    _options = options
+
+def get_options():
+    global _options
+    return _options

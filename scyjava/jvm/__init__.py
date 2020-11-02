@@ -14,7 +14,7 @@ from pathlib import Path
 _logger = logging.getLogger(__name__)
 
 # TODO: Pass options
-def start_JVM(options):
+def start_JVM(options=''):
 
     # if jvm JVM is already running -- break
     if JVM_status() == True:

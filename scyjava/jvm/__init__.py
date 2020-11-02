@@ -18,7 +18,7 @@ def start_JVM(options):
 
     # if jvm JVM is already running -- break
     if JVM_status() == True:
-        print('[DEBUG]: The JVM is already running.') 
+        _logger.debug('The JVM is already running.')
         return
 
     # attempt to set JAVA_HOME if the environment variable is not set.
@@ -105,11 +105,7 @@ def start_JVM(options):
         jpype.addClassPath(os.path.join(workspace, '*'))
         
     # Initialize JPype JVM
-    print('[DEBUG] Starting JPype JVM')
     jpype.startJVM(options)
-
-    if JVM_status() == True:
-        print('[DEBUG] JVM status: Started successfully.')
 
     return
 

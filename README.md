@@ -66,8 +66,7 @@ sys.version_info(major=2, minor=7, micro=1, releaselevel='final', serial=0)
 >>> ImageJ = JClass('net.imagej.ImageJ')
 >>> ij = ImageJ()
 >>> formula = "10 * (Math.cos(0.3*p[0]) + Math.sin(0.3*p[1]))"
->>> LongArray = JArray(JLong)
->>> dims = LongArray([64, 16])
+>>> dims = JLong[64, 16]
 >>> blank = ij.op().getClass().getMethod('create').invoke(ij.op()).img(dims)
 >>> sinusoid = ij.op().image().equation(blank, formula)
 >>> print(ij.op().image().ascii(sinusoid))

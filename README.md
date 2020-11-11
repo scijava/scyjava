@@ -1,47 +1,52 @@
-# scyjava
-
 Supercharged Java access from Python.
 
-Built on [pyjnius](https://pyjnius.readthedocs.io/en/latest/) and [jgo](https://github.com/scijava/jgo).
+Built on [JPype](https://jpype.readthedocs.io/en/latest/) and [jgo](https://github.com/scijava/jgo).
 
 ## Use Java classes from Python
 
 ```python
->>> import scyjava, jnius
->>> System = jnius.autoclass('java.lang.System')
+>>> import jpype
+>>> import jpype.imports
+>>> jpype.startJVM()
+>>> System = jpype.JClass('java.lang.System')
 >>> System.getProperty('java.version')
-'1.8.0_152-release'
+'1.8.0_252'
 ```
 
 To pass parameters to the JVM, such as an increased max heap size:
 
 ```python
->>> import scyjava_config
->>> scyjava_config.add_options('-Xmx6g')
->>> import scyjava, jnius
->>> Runtime = jnius.autoclass('java.lang.Runtime')
+>>> import jpype
+>>> import jpype.imports
+>>> import scyjava.jvm
+>>> scyjava.jvm.start_JVM('-Xmx6g')
+>>> Runtime = jpype.JClass('java.lang.Runtime')
 >>> Runtime.getRuntime().maxMemory() / 2**30
 5.33349609375
 ```
 
-See the [Pyjnius documentation](https://pyjnius.readthedocs.io/en/latest/) for more about calling Java from Python.
+See the [JPype documentation](https://jpype.readthedocs.io/en/latest/) for more about calling Java from Python.
 
 ## Use Maven artifacts from remote repositories
 
 ### From Maven Central
 
 ```python
->>> import sys; sys.version_info
+>>> import sys
+>>> sys.version_info
 sys.version_info(major=3, minor=6, micro=5, releaselevel='final', serial=0)
 >>> import scyjava_config
 >>> scyjava_config.add_endpoints('org.python:jython-standalone:2.7.1')
->>> import scyjava, jnius
->>> jython = jnius.autoclass('org.python.util.jython')
+>>> import jpype
+>>> import scyjava.jvm
+>>> scyjava.jvm.start_JVM()
+>>> jython = jpype.JClass('org.python.util.jython')
 >>> jython.main([])
-Jython 2.7.1 (default:0df7adb1b397, Jun 30 2017, 19:02:43)
-[OpenJDK 64-Bit Server VM (JetBrains s.r.o)] on java1.8.0_152-release
+Jython 2.7.1 (default:0df7adb1b397, Jun 30 2017, 19:02:43) 
+[OpenJDK 64-Bit Server VM (AdoptOpenJDK)] on java1.8.0_252
 Type "help", "copyright", "credits" or "license" for more information.
->>> import sys; sys.version_info
+>>> import sys
+>>> sys.version_info
 sys.version_info(major=2, minor=7, micro=1, releaselevel='final', serial=0)
 ```
 
@@ -51,13 +56,18 @@ sys.version_info(major=2, minor=7, micro=1, releaselevel='final', serial=0)
 >>> import scyjava_config
 >>> scyjava_config.add_repositories({'scijava.public': 'https://maven.scijava.org/content/groups/public'})
 >>> scyjava_config.add_endpoints('net.imagej:imagej:2.0.0-rc-65')
->>> import scyjava, jnius
->>> System = jnius.autoclass('java.lang.System')
+>>> import scyjava.jvm
+>>> import jpype
+>>> import jpype.imports
+>>> from jpype import JClass, JArray, JLong
+>>> scyjava.jvm.start_JVM()
+>>> System = JClass('java.lang.System')
 >>> System.setProperty('java.awt.headless', 'true')
->>> ImageJ = jnius.autoclass('net.imagej.ImageJ')
+>>> ImageJ = JClass('net.imagej.ImageJ')
 >>> ij = ImageJ()
 >>> formula = "10 * (Math.cos(0.3*p[0]) + Math.sin(0.3*p[1]))"
->>> blank = ij.op().create().img([64, 16])
+>>> dims = JLong[64, 16]
+>>> blank = ij.op().getClass().getMethod('create').invoke(ij.op()).img(dims)
 >>> sinusoid = ij.op().image().equation(blank, formula)
 >>> print(ij.op().image().ascii(sinusoid))
 ,,,--+oo******oo+--,,,,,--+oo******o++--,,,,,--+oo******o++--,,,
@@ -85,16 +95,19 @@ See the [jgo documentation](https://github.com/scijava/jgo) for more about Maven
 ### Convert Java collections to Python
 
 ```python
->>> import scyjava, jnius
->>> System = jnius.autoclass('java.lang.System')
+>>> import jpype
+>>> import jpype.imports
+>>> import scyjava
+>>> import scyjava.jvm
+>>> scyjava.jvm.start_JVM()
+>>> import scyjava.convert
+>>> System = jpype.JClass('java.lang.System')
 >>> props = System.getProperties()
 >>> props
-<java.util.Properties at 0x10dc2daf0 jclass=java/util/Properties jself=<LocalRef obj=0x7fcfefd34b20 at 0x10dc371f0>>
+<java object 'java.util.Properties'>
 >>> [k for k in props]
-Traceback (most recent call last):
-  File "<stdin>", line 1, in <module>
-TypeError: 'java.util.Properties' object is not iterable
->>> [k for k in scyjava.to_python(props) if k.startswith('java.vm.')]
+['java.runtime.name', 'sun.boot.library.path', 'java.vm.version', 'java.vm.vendor', 'java.vendor.url', 'path.separator', 'java.vm.name', 'file.encoding.pkg', 'user.country', 'sun.os.patch.level', 'java.vm.specification.name', 'user.dir', 'java.runtime.version', 'java.awt.graphicsenv', 'java.endorsed.dirs', 'os.arch', 'java.io.tmpdir', 'line.separator', 'java.vm.specification.vendor', 'os.name', 'sun.jnu.encoding', 'java.library.path', 'java.specification.name', 'java.class.version', 'sun.management.compiler', 'os.version', 'user.home', 'user.timezone', 'java.awt.printerjob', 'file.encoding', 'java.specification.version', 'java.class.path', 'user.name', 'java.vm.specification.version', 'java.home', 'sun.arch.data.model', 'user.language', 'java.specification.vendor', 'awt.toolkit', 'java.vm.info', 'java.version', 'java.ext.dirs', 'sun.boot.class.path', 'java.vendor', 'file.separator', 'java.vendor.url.bug', 'sun.io.unicode.encoding', 'sun.cpu.endian', 'sun.desktop', 'sun.cpu.isalist']
+>>> [k for k in scyjava.convert.to_python(props) if k.startswith('java.vm.')]
 ['java.vm.version', 'java.vm.vendor', 'java.vm.name', 'java.vm.specification.name', 'java.vm.specification.vendor', 'java.vm.specification.version', 'java.vm.info']
 ```
 
@@ -108,26 +121,25 @@ TypeError: 'java.util.Properties' object is not iterable
 Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
 AttributeError: 'list' object has no attribute 'stream'
->>> scyjava.to_java(squares).stream()
-<java.util.stream.Stream at 0x119d8ba40 jclass=java/util/stream/Stream jself=<LocalRef obj=0x7fcfefd34810 at 0x10dc37810>>
+>>> scyjava.convert.to_java(squares).stream()
+<java object 'java.util.stream.ReferencePipeline.Head'>
 ```
 
 ### Introspect Java classes
 
 ```python
->>> import scyjava
->>> NumberClass = scyjava.jclass('java.lang.Number')
+>>> NumberClass = scyjava.convert.jclass('java.lang.Number')
 >>> NumberClass
-<Class at 0x10dca89e8 jclass=java/lang/Class jself=<LocalRef obj=0x7fcfefd33420 at 0x10dc37a30>>
+<java object 'java.util.stream.ReferencePipeline.Head'>
 >>> NumberClass.getName()
 'java.lang.Number'
->>> NumberClass.isInstance(scyjava.to_java(5))
+>>> NumberClass.isInstance(scyjava.convert.to_java(5))
 True
->>> NumberClass.isInstance(scyjava.to_java('Hello'))
+>>> NumberClass.isInstance(scyjava.convert.to_java('Hello'))
 False
 ```
 
-## Available functions
+## Available functions -- EE fix this
 
 ```
 >>> import scyjava

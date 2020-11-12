@@ -6,7 +6,7 @@ import subprocess
 import jgo
 import jpype
 import jpype.imports
-import scyjava_config
+import scyjava.config
 
 from pathlib import Path
 
@@ -84,8 +84,8 @@ def start_JVM(options=''):
                 os.environ['PATH'] += ';' + jvm_server_dir
             
     # retrieve endpoint and repositories from scyjava_config
-    endpoints = scyjava_config.get_endpoints()
-    repositories = scyjava_config.get_repositories()
+    endpoints = scyjava.config.get_endpoints()
+    repositories = scyjava.config.get_repositories()
 
     # use the logger to notify user that endpoints are being added
     _logger.debug('Adding jars from endpoints {0}'.format(endpoints))
@@ -96,11 +96,11 @@ def start_JVM(options=''):
         _logger.debug('Using endpoints %s', endpoints)
         _, workspace = jgo.resolve_dependencies(
             '+'.join(endpoints),
-            m2_repo=scyjava_config.get_m2_repo(),
-            cache_dir=scyjava_config.get_cache_dir(),
-            manage_dependencies=scyjava_config.get_manage_deps(),
+            m2_repo=scyjava.config.get_m2_repo(),
+            cache_dir=scyjava.config.get_cache_dir(),
+            manage_dependencies=scyjava.config.get_manage_deps(),
             repositories=repositories,
-            verbose=scyjava_config.get_verbose()
+            verbose=scyjava.config.get_verbose()
         )
         jpype.addClassPath(os.path.join(workspace, '*'))
         

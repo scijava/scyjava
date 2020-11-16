@@ -3,8 +3,6 @@
 import collections.abc
 import jpype
 import jpype.imports
-import scyjava
-import scyjava.jvm
 from jpype.types import *
 from _jpype import _JObject
 

@@ -17,8 +17,7 @@ __all__ = (
     'get_options',
     'set_classpath',
     'add_classpath',
-    'get_classpath',
-    'expand_classpath')
+    'get_classpath')
 
 import logging
 import os
@@ -39,10 +38,15 @@ _verbose = 0
 _manage_deps = True
 _cache_dir = pathlib.Path.home() / '.jgo'
 _m2_repo = pathlib.Path.home() / '.m2' / 'repository'
-_options = ""
+_options = ''
+_add_options = ''
 
 
 def start_JVM(options=''):
+    # set _options to the default options from pyimagej if none are specified
+    global _options
+    _options = options
+
     # if jvm JVM is already running -- break
     if JVM_status() == True:
         _logger.debug('The JVM is already running.')
@@ -132,7 +136,17 @@ def start_JVM(options=''):
         jpype.addClassPath(os.path.join(workspace, '*'))
 
     # Initialize JPype JVM
-    jpype.startJVM(options)
+    jvm_options = _options
+
+    # append any additional options
+    if _add_options == '':
+        pass
+    else:
+        jvm_options = jvm_options + ' ' + _add_options
+
+    # store options used for the jvm in _options -- user can check what was used
+    _options = jvm_options
+    jpype.startJVM(jvm_options)
 
     return
 
@@ -223,9 +237,13 @@ def get_classpath():
     return jpype.getClassPath()
 
 def add_options(options):
-    global _options
-    _options = options
+    global _add_options
+    _add_options = options
 
 def get_options():
     global _options
     return _options
+
+def set_options(options):
+    global _options
+    _options = options

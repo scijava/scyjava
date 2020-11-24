@@ -28,8 +28,6 @@ import jpype
 import jpype.imports
 import subprocess
 
-version = '0.4.1.dev1'
-
 _logger = logging.getLogger(__name__)
 
 _endpoints = []

@@ -1,5 +1,4 @@
 import setuptools
-import scyjava.config
 from os import path
 
 here = path.abspath(path.dirname(__file__))
@@ -12,7 +11,7 @@ setuptools.setup(
     python_requires='>=3',
     packages=['scyjava', 'scyjava.convert'],
     py_modules=['scyjava.config'],
-    version=scyjava.config.version,
+    version='1.0.0.dev0',
     author='Philipp Hanslovsky, Curtis Rueden',
     author_email='hanslovskyp@janelia.hhmi.org',
     description='scyjava',

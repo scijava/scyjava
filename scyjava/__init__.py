@@ -1,15 +1,85 @@
-# General-purpose utility methods for Python <-> Java type conversion.
-
 import collections.abc
+import jgo
 import jpype
-import jpype.imports
+import logging
+import os
+import scyjava.config
 from jpype.types import *
 from _jpype import _JObject
 
-# Java imports:
-from java.lang import Boolean, Byte, Character, Double, Float, Integer, Iterable, Long, Object, Short, String, Void
-from java.math import BigDecimal, BigInteger
-from java.util import ArrayList, Collection, Iterator, LinkedHashMap, LinkedHashSet, List, Map, Set
+_logger = logging.getLogger(__name__)
+
+
+# -- JVM setup --
+
+def start_jvm(options=scyjava.config.get_options()):
+    """
+    Explicitly connect to the Java virtual machine (JVM). Only one JVM can
+    be active; does nothing if the JVM has already been started. Calling
+    this function directly is typically not necessary, because the first
+    time a scyjava function needing a JVM is invoked, one is started on the
+    fly with the configuration specified via the scijava.config mechanism.
+
+    :param options: List of options to pass to the JVM. For example:
+                    ['-Djava.awt.headless=true', '-Xmx4g']
+    """
+    # if JVM is already running -- break
+    if jvm_started():
+        _logger.debug('The JVM is already running.')
+        return
+
+    # retrieve endpoint and repositories from scyjava config
+    endpoints = scyjava.config.get_endpoints()
+    repositories = scyjava.config.get_repositories()
+
+    # use the logger to notify user that endpoints are being added
+    _logger.debug('Adding jars from endpoints {0}'.format(endpoints))
+
+    # get endpoints and add to JPype class path
+    if len(endpoints) > 0:
+        endpoints = endpoints[:1] + sorted(endpoints[1:])
+        _logger.debug('Using endpoints %s', endpoints)
+        _, workspace = jgo.resolve_dependencies(
+            '+'.join(endpoints),
+            m2_repo=scyjava.config.get_m2_repo(),
+            cache_dir=scyjava.config.get_cache_dir(),
+            manage_dependencies=scyjava.config.get_manage_deps(),
+            repositories=repositories,
+            verbose=scyjava.config.get_verbose()
+        )
+        jpype.addClassPath(os.path.join(workspace, '*'))
+
+    # Initialize JPype JVM
+    jpype.startJVM(*options)
+
+    # Grab needed Java classes.
+    global Boolean; Boolean = jimport('java.lang.Boolean')
+    global Byte; Byte = jimport('java.lang.Byte')
+    global Character; Character = jimport('java.lang.Character')
+    global Double; Double = jimport('java.lang.Double')
+    global Float; Float = jimport('java.lang.Float')
+    global Integer; Integer = jimport('java.lang.Integer')
+    global Iterable; Iterable = jimport('java.lang.Iterable')
+    global Long; Long = jimport('java.lang.Long')
+    global Object; Object = jimport('java.lang.Object')
+    global Short; Short = jimport('java.lang.Short')
+    global String; String = jimport('java.lang.String')
+    global Void; Void = jimport('java.lang.Void')
+    global BigDecimal; BigDecimal = jimport('java.math.BigDecimal')
+    global BigInteger; BigInteger = jimport('java.math.BigInteger')
+    global ArrayList; ArrayList = jimport('java.util.ArrayList')
+    global Collection; Collection = jimport('java.util.Collection')
+    global Iterator; Iterator = jimport('java.util.Iterator')
+    global LinkedHashMap; LinkedHashMap = jimport('java.util.LinkedHashMap')
+    global LinkedHashSet; LinkedHashSet = jimport('java.util.LinkedHashSet')
+    global List; List = jimport('java.util.List')
+    global Map; Map = jimport('java.util.Map')
+    global Set; Set = jimport('java.util.Set')
+
+
+def jvm_started():
+    """Return true iff a Java virtual machine (JVM) has been started."""
+    return jpype.isJVMStarted()
 
 
 # -- Python to Java --
@@ -35,14 +105,25 @@ def jclass(data):
     :returns: A java.lang.Class object, suitable for use with reflection.
     :raises TypeError: if the argument is not one of the aforementioned types.
     """
-
     if isinstance(data, jpype.JClass):
         return data.class_
     if isinstance(data, _JObject):
         return data.getClass()
     if isinstance(data, str):
-        return jclass(jpype.JClass(data))
+        return jclass(jimport(data))
     raise TypeError('Cannot glean class from data of type: ' + str(type(data)))
+
+
+def jimport(class_name):
+    """
+    Import a class from Java to Python.
+
+    :param class_name: Name of the class to import.
+    :returns: A pointer to the class, which can be used to
+              e.g. instantiate objects of that class.
+    """
+    start_jvm()
+    return jpype.JClass(class_name)
 
 
 def jstacktrace(exc):
@@ -82,6 +163,7 @@ def to_java(data):
     :returns: A corresponding Java object with the same contents.
     :raises TypeError: if the argument is not one of the aforementioned types.
     """
+    start_jvm()
 
     if data is None:
         return None
@@ -113,7 +195,7 @@ def to_java(data):
 
     # Trying to get the type without importing Pandas.
     if type(data).__name__ == 'DataFrame':
-        return pandas_to_table(data)
+        return _pandas_to_table(data)
 
     if isinstance(data, collections.abc.Mapping):
         jmap = LinkedHashMap()
@@ -151,7 +233,9 @@ def _jstr(data):
 
 
 class JavaObject():
-    def __init__(self, jobj, intended_class=Object):
+    def __init__(self, jobj, intended_class=None):
+        if intended_class is None:
+            intended_class = Object
         if not isinstance(jobj, intended_class):
             raise TypeError('Not a ' + intended_class.getName() + ': ' + jclass(jobj).getName())
         self.jobj = jobj
@@ -320,6 +404,8 @@ def to_python(data, gentle=False):
     :raises TypeError: if the argument is not one of the aforementioned types,
                        and the gentle flag is not set.
     """
+    start_jvm()
+
     if not isjava(data):
         return data
 
@@ -360,7 +446,7 @@ def to_python(data, gentle=False):
 
     try:
         if isinstance(data, jclass('org.scijava.table.Table')):
-            return table_to_pandas(data)
+            return _table_to_pandas(data)
     except:
         # No worries if scijava-table is not available.
         pass
@@ -389,14 +475,11 @@ def _import_pandas():
         return pd
     except ImportError:
         msg = "The Pandas library is missing (http://pandas.pydata.org/). "
-        msg += "Please instal it using: "
-        msg += "conda install pandas (prefered)"
-        msg += " or "
-        msg += "pip install pandas."
+        msg += "Please install it before using this function."
         raise Exception(msg)
 
 
-def table_to_pandas(table):
+def _table_to_pandas(table):
     pd = _import_pandas()
 
     data = []
@@ -409,19 +492,19 @@ def table_to_pandas(table):
     return df
 
 
-def pandas_to_table(df):
+def _pandas_to_table(df):
     pd = _import_pandas()
 
     if len(df.dtypes.unique()) > 1:
-        TableClass = jpype.JClass('org.scijava.table.DefaultGenericTable')
+        TableClass = jimport('org.scijava.table.DefaultGenericTable')
     else:
         table_type = df.dtypes.unique()[0]
         if table_type.name.startswith('float'):
-            TableClass = jpype.JClass('org.scijava.table.DefaultFloatTable')
+            TableClass = jimport('org.scijava.table.DefaultFloatTable')
         elif table_type.name.startswith('int'):
-            TableClass = jpype.JClass('org.scijava.table.DefaultIntTable')
+            TableClass = jimport('org.scijava.table.DefaultIntTable')
         elif table_type.name.startswith('bool'):
-            TableClass = jpype.JClass('org.scijava.table.DefaultBoolTable')
+            TableClass = jimport('org.scijava.table.DefaultBoolTable')
         else:
             msg = "The type '{}' is not supported.".format(table_type.name)
             raise Exception(msg)

@@ -1,23 +1,11 @@
 import scyjava.config
-scyjava.config.add_repositories({'scijava.public': 'https://maven.scijava.org/content/groups/public'})
-scyjava.config.add_endpoints('org.scijava:scijava-table')
-
 import unittest
-import pandas as pd
-import numpy as np
-import jpype
-import jpype.imports
-from jpype.types import *
+from scyjava import jclass, jimport, to_java, to_python
 
-# EE: scyjava.convert perfroms imports that need to happen after the JVM
-# has started.
-scyjava.config.set_options('-Djava.awt.headless=true')
-scyjava.config.start_JVM()
-from scyjava.convert import jclass, to_java, to_python
+scyjava.config.add_endpoints('org.scijava:scijava-table')
+scyjava.config.add_option('-Djava.awt.headless=true')
 
 def assert_same_table(table, df):
-    import numpy.testing as npt
-
     assert len(table.toArray()) == df.shape[1]
     assert len(table.toArray()[0].toArray()) == df.shape[0]
 
@@ -185,7 +173,7 @@ class TestConvert(unittest.TestCase):
         self.assertEqual(d, pd)
 
     def testGentle(self):
-        Object = jpype.JClass('java.lang.Object')
+        Object = jimport('java.lang.Object')
         unknown_thing = Object()
         converted_thing = to_python(unknown_thing, gentle=True)
         assert type(converted_thing) == Object
@@ -199,7 +187,7 @@ class TestConvert(unittest.TestCase):
 
     def testStructureWithSomeUnsupportedItems(self):
         # Create Java data structure with some challenging items.
-        Object = jpype.JClass('java.lang.Object')
+        Object = jimport('java.lang.Object')
         jmap = to_java({
             'list': ['a', Object(), 1],
             'set': {'x', Object(), 2},
@@ -219,57 +207,6 @@ class TestConvert(unittest.TestCase):
         assert len(pdict['set']) == 3
         assert type(pdict['object']) == Object
         self.assertEqual(pdict['foo'], 'bar')
-
-    def testPandasToTable(self):
-        # Float table.
-        columns = ["header1", "header2", "header3", "header4", "header5"]
-        array = np.random.random(size=(7, 5))
-
-        df = pd.DataFrame(array, columns=columns)
-        table = to_java(df)
-
-        assert_same_table(table, df)
-        assert type(table) == jpype.JClass('org.scijava.table.DefaultFloatTable')
-
-        # Int table.
-        columns = ["header1", "header2", "header3", "header4", "header5"]
-        array = np.random.random(size=(7, 5)) * 100
-        array = array.astype('int')
-
-        df = pd.DataFrame(array, columns=columns)
-        table = to_java(df)
-
-        assert_same_table(table, df)
-        assert type(table) == jpype.JClass('org.scijava.table.DefaultIntTable')
-
-        # Bool table.
-        columns = ["header1", "header2", "header3", "header4", "header5"]
-        array = np.random.random(size=(7, 5)) > 0.5
-
-        df = pd.DataFrame(array, columns=columns)
-        table = to_java(df)
-
-        assert_same_table(table, df)
-        assert type(table) == jpype.JClass('org.scijava.table.DefaultBoolTable')
-
-        # Mixed table.
-        columns = ["header1", "header2", "header3", "header4", "header5"]
-        array = np.random.random(size=(7, 5))
-
-        df = pd.DataFrame(array, columns=columns)
-
-        # Convert column 0 to integer
-        df.iloc[:, 0] = (df.iloc[:, 0] * 100).astype('int')
-        # Convert column 1 to bool
-        df.iloc[:, 1] = df.iloc[:, 1] > 0.5
-        # Convert column 2 to string
-        df.iloc[:, 2] = df.iloc[:, 2].to_string(index=False).split('\n')
-
-        table = to_java(df)
-
-        # Table types cannot be the same here, unless we want to cast.
-        # assert_same_table(table, df)
-        assert type(table) == jpype.JClass('org.scijava.table.DefaultGenericTable')
 
 
 if __name__ == '__main__':

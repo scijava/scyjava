@@ -41,11 +41,10 @@ _add_options = ''
 
 
 def start_JVM(options=''):
-    # set _options to the default options from pyimagej if none are specified
     global _options
     _options = options
 
-    # if jvm JVM is already running -- break
+    # if JVM is already running -- break
     if JVM_status() == True:
         _logger.debug('The JVM is already running.')
         return
@@ -112,7 +111,7 @@ def start_JVM(options=''):
             if pathlib.Path(os.path.join(jvm_server_dir, 'jvm.dll')).is_file():
                 os.environ['PATH'] += ';' + jvm_server_dir
 
-    # retrieve endpoint and repositories from scyjava_config
+    # retrieve endpoint and repositories from scyjava config
     endpoints = get_endpoints()
     repositories = get_repositories()
 

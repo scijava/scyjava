@@ -15,9 +15,9 @@ and [jgo](https://github.com/scijava/jgo).
 To pass parameters to the JVM, such as an increased max heap size:
 
 ```python
->>> from scyjava import jimport
 >>> import scyjava.config
 >>> scyjava.config.add_option('-Xmx6g')
+>>> from scyjava import jimport
 >>> Runtime = jimport('java.lang.Runtime')
 >>> Runtime.getRuntime().maxMemory() / 2**30
 5.33349609375
@@ -103,6 +103,7 @@ True
 Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
 AttributeError: 'java.util.HashSet' object has no attribute 'isdisjoint'
+>>> from scyjava import to_python as j2p
 >>> j2p(jbirds).isdisjoint(moves)
 False
 >>> j2p(jbirds).isdisjoint(fish)

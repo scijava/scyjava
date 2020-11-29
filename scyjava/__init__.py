@@ -128,24 +128,29 @@ def jimport(class_name):
 
 def jstacktrace(exc):
     """
-    Extract the Java-side stack trace from a wrapped Java exception.
+    Extract the Java-side stack trace from a Java exception.
 
     Example of usage:
 
-        from jnius import autoclass
+        from scyjava import jimport, jstacktrace
         try:
-            Integer = autoclass('java.lang.Integer')
+            Integer = jimport('java.lang.Integer')
             nan = Integer.parseInt('not a number')
         except Exception as exc:
             print(jstacktrace(exc))
 
-    :param exc: The JavaException from which to extract the stack trace.
+    :param exc: The Java Throwable from which to extract the stack trace.
     :returns: A multi-line string containing the stack trace, or empty string
     if no stack trace could be extracted.
     """
-    if not hasattr(exc, 'classname') or exc.classname is None:
-        return str(exc)
-    return '' if not exc.stacktrace else '\n\tat '.join(exc.stacktrace)
+    try:
+        StringWriter = jimport('java.io.StringWriter')
+        PrintWriter = jimport('java.io.PrintWriter')
+        sw = StringWriter()
+        exc.printStackTrace(PrintWriter(sw, True))
+        return sw.toString()
+    except:
+        return ''
 
 
 def to_java(data):

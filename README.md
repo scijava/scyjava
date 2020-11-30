@@ -139,7 +139,6 @@ True
 '[1, 2, 3]'
 ```
 
-
 ## Available functions
 
 ```

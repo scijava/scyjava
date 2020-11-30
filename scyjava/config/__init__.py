@@ -1,23 +1,3 @@
-__all__ = (
-    'maven_scijava_repository',
-    'add_endpoints',
-    'get_endpoints',
-    'add_repositories',
-    'get_repositories',
-    'set_verbose',
-    'get_verbose',
-    'set_manage_deps',
-    'get_manage_deps',
-    'set_cache_dir',
-    'get_cache_dir',
-    'set_m2_repo',
-    'get_m2_repo',
-    'add_classpath',
-    'get_classpath',
-    'add_option',
-    'add_options',
-    'get_options')
-
 import logging
 import pathlib
 import jpype

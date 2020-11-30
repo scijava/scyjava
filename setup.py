@@ -10,7 +10,7 @@ setup(
     name='scyjava',
     python_requires='>=3',
     packages=find_packages(),
-    version='1.0.1.dev0',
+    version='1.1.0.dev0',
     author='Curtis Rueden, Philipp Hanslovsky, Edward Evans',
     author_email='ctrueden@wisc.edu',
     description='scyjava',

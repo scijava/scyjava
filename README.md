@@ -230,4 +230,12 @@ FUNCTIONS
         :returns: A corresponding Python object with the same contents.
         :raises TypeError: if the argument is not one of the aforementioned types,
                            and the gentle flag is not set.
+
+    when_jvm_starts(f)
+        Registers a function to be called when the JVM starts (or immediately).
+        This is useful to defer construction of Java-dependent data structures
+        until the JVM is known to be available. If the JVM has already been
+        started, the function executes immediately.
+
+        :param f: Function to invoke when scyjava.start_jvm() is called.
 ```

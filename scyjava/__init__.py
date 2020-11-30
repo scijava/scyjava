@@ -12,6 +12,9 @@ _logger = logging.getLogger(__name__)
 
 # -- JVM setup --
 
+_callbacks = []
+
+
 def start_jvm(options=scyjava.config.get_options()):
     """
     Explicitly connect to the Java virtual machine (JVM). Only one JVM can
@@ -49,10 +52,10 @@ def start_jvm(options=scyjava.config.get_options()):
         )
         jpype.addClassPath(os.path.join(workspace, '*'))
 
-    # Initialize JPype JVM
+    # initialize JPype JVM
     jpype.startJVM(*options)
 
-    # Grab needed Java classes.
+    # grab needed Java classes
     global Boolean; Boolean = jimport('java.lang.Boolean')
     global Byte; Byte = jimport('java.lang.Byte')
     global Character; Character = jimport('java.lang.Character')
@@ -76,10 +79,32 @@ def start_jvm(options=scyjava.config.get_options()):
     global Map; Map = jimport('java.util.Map')
     global Set; Set = jimport('java.util.Set')
 
+    # invoke registered callback functions
+    for callback in _callbacks:
+        callback()
+
 
 def jvm_started():
     """Return true iff a Java virtual machine (JVM) has been started."""
     return jpype.isJVMStarted()
+
+
+def when_jvm_starts(f):
+    """
+    Registers a function to be called when the JVM starts (or immediately).
+    This is useful to defer construction of Java-dependent data structures
+    until the JVM is known to be available. If the JVM has already been
+    started, the function executes immediately.
+
+    :param f: Function to invoke when scyjava.start_jvm() is called.
+    """
+    if jvm_started():
+        # JVM was already started; invoke callback function immediately.
+        f()
+    else:
+        # Add function to the list of callbacks to invoke upon start_jvm().
+        global _callbacks
+        _callbacks.append(f)
 
 
 # -- Python to Java --

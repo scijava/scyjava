@@ -1,12 +1,11 @@
 import numpy as np
 import numpy.testing as npt
 import pandas as pd
-import scyjava.config
 import unittest
-from scyjava import jimport, to_java
+from scyjava import config, jimport, to_java
 
-scyjava.config.add_endpoints('org.scijava:scijava-table')
-scyjava.config.add_option('-Djava.awt.headless=true')
+config.add_endpoints('org.scijava:scijava-table')
+config.add_option('-Djava.awt.headless=true')
 
 
 def assert_same_table(table, df):

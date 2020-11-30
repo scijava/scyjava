@@ -15,9 +15,8 @@ and [jgo](https://github.com/scijava/jgo).
 To pass parameters to the JVM, such as an increased max heap size:
 
 ```python
->>> import scyjava.config
->>> scyjava.config.add_option('-Xmx6g')
->>> from scyjava import jimport
+>>> from scyjava import config, jimport
+>>> config.add_option('-Xmx6g')
 >>> Runtime = jimport('java.lang.Runtime')
 >>> Runtime.getRuntime().maxMemory() / 2**30
 5.33349609375
@@ -34,9 +33,8 @@ for all the gritty details on how this wrapping works.
 >>> import sys
 >>> sys.version_info
 sys.version_info(major=3, minor=8, micro=5, releaselevel='final', serial=0)
->>> import scyjava.config
->>> scyjava.config.add_endpoints('org.python:jython-slim:2.7.2')
->>> from scyjava import jimport
+>>> from scyjava import config, jimport
+>>> config.add_endpoints('org.python:jython-slim:2.7.2')
 >>> jython = jimport('org.python.util.jython')
 >>> jython.main([])
 Jython 2.7.2 (v2.7.2:925a3cc3b49d, Mar 21 2020, 10:12:24)
@@ -53,10 +51,9 @@ u'1.8.0_152-release'
 ### From other Maven repositories
 
 ```python
->>> import scyjava.config
->>> scyjava.config.add_repositories({'scijava.public': 'https://maven.scijava.org/content/groups/public'})
->>> scyjava.config.add_endpoints('net.imagej:imagej:2.1.0')
->>> from scyjava import jimport
+>>> from scyjava import config, jimport
+>>> config.add_repositories({'scijava.public': 'https://maven.scijava.org/content/groups/public'})
+>>> config.add_endpoints('net.imagej:imagej:2.1.0')
 >>> ImageJ = jimport('net.imagej.ImageJ')
 >>> ij = ImageJ()
 >>> formula = "10 * (Math.cos(0.3*p[0]) + Math.sin(0.3*p[1]))"

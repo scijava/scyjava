@@ -1,9 +1,8 @@
-import scyjava.config
 import unittest
-from scyjava import jclass, jimport, to_java, to_python
+from scyjava import config, jclass, jimport, to_java, to_python
 
-scyjava.config.add_endpoints('org.scijava:scijava-table')
-scyjava.config.add_option('-Djava.awt.headless=true')
+config.add_endpoints('org.scijava:scijava-table')
+config.add_option('-Djava.awt.headless=true')
 
 def assert_same_table(table, df):
     assert len(table.toArray()) == df.shape[1]

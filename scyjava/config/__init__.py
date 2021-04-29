@@ -105,7 +105,10 @@ def add_option(option):
 
 def add_options(options):
     global _options
-    _options.extend(options)
+    if isinstance(options, str):
+        _options.append(options)
+    else:
+        _options.extend(options)
 
 
 def get_options():

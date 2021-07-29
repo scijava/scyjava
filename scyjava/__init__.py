@@ -106,6 +106,23 @@ def when_jvm_starts(f):
         global _callbacks
         _callbacks.append(f)
 
+# -- Utility functions --
+
+def get_version(java_class):
+    """Return the version of a Java class. """
+    VersionUtils = jimport('org.scijava.util.VersionUtils')
+    version = VersionUtils.getVersion(java_class)
+    return version
+
+def compare_version(version, java_class_version):
+    """
+    Return a boolean on a version comparison. True is returned
+    if the Java class version is higher than the specified version. False
+    is returned if the specified version is higher than the Java class version.
+    """
+    VersionUtils = jimport('org.scijava.util.VersionUtils')
+    comparison = VersionUtils.compare(version, java_class_version) < 0
+    return comparison
 
 # -- Python to Java --
 

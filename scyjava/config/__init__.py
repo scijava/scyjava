@@ -11,7 +11,7 @@ _manage_deps = True
 _cache_dir = pathlib.Path.home() / '.jgo'
 _m2_repo = pathlib.Path.home() / '.m2' / 'repository'
 _options = []
-
+_shortcuts = {}
 
 def maven_scijava_repository():
     """
@@ -114,3 +114,11 @@ def add_options(options):
 def get_options():
     global _options
     return _options
+
+
+def add_shortcut(k, v):
+    _shortcuts[k] = v
+
+
+def get_shortcuts():
+    return _shortcuts

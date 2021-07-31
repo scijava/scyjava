@@ -13,6 +13,7 @@ _m2_repo = pathlib.Path.home() / '.m2' / 'repository'
 _options = []
 _shortcuts = {}
 
+
 def maven_scijava_repository():
     """
     :return: url for public scijava maven repo

@@ -118,8 +118,10 @@ def get_options():
 
 
 def add_shortcut(k, v):
+    global _shortcuts
     _shortcuts[k] = v
 
 
 def get_shortcuts():
+    global _shortcuts
     return _shortcuts

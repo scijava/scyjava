@@ -1,23 +1,17 @@
 import logging
 import pathlib
 import jpype
+from jgo import maven_scijava_repository
 
 _logger = logging.getLogger(__name__)
 
 _endpoints = []
-_repositories = {1: 'https://maven.scijava.org/content/repositories/releases'}
+_repositories = {'scijava.public': maven_scijava_repository()}
 _verbose = 0
 _manage_deps = True
 _cache_dir = pathlib.Path.home() / '.jgo'
 _m2_repo = pathlib.Path.home() / '.m2' / 'repository'
 _options = []
-
-
-def maven_scijava_repository():
-    """
-    :return: url for public scijava maven repo
-    """
-    return 'https://maven.scijava.org/content/groups/public'
 
 
 def add_endpoints(*endpoints):

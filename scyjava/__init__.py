@@ -527,7 +527,6 @@ def _import_pandas():
 
 
 def _table_to_pandas(table):
-    breakpoint()
     pd = _import_pandas()
 
     data = []

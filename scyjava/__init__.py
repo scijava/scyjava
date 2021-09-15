@@ -490,9 +490,9 @@ def to_python(data, gentle=False):
         return float(data.toString())
     if isinstance(data, String):
         return str(data)
-
+    
     try:
-        if isinstance(data, jclass('org.scijava.table.Table')):
+        if isinstance(data, jimport('org.scijava.table.Table')):
             return _table_to_pandas(data)
     except:
         # No worries if scijava-table is not available.
@@ -527,6 +527,7 @@ def _import_pandas():
 
 
 def _table_to_pandas(table):
+    breakpoint()
     pd = _import_pandas()
 
     data = []

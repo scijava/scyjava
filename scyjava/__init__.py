@@ -533,7 +533,7 @@ def _table_to_pandas(table):
     headers = []
     for i, column in enumerate(table.toArray()):
         data.append(column.toArray())
-        headers.append(table.getColumnHeader(i))
+        headers.append(str(table.getColumnHeader(i)))   
     df = pd.DataFrame(data).T
     df.columns = headers
     return df

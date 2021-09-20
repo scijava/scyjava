@@ -5,7 +5,7 @@ from jgo import maven_scijava_repository
 
 _logger = logging.getLogger(__name__)
 
-_endpoints = []
+endpoints = []
 _repositories = {'scijava.public': maven_scijava_repository()}
 _verbose = 0
 _manage_deps = True
@@ -14,15 +14,25 @@ _m2_repo = pathlib.Path.home() / '.m2' / 'repository'
 _options = []
 
 
-def add_endpoints(*endpoints):
-    global _endpoints
-    _logger.debug('Adding endpoints %s to %s', endpoints, _endpoints)
-    _endpoints.extend(endpoints)
+def add_endpoints(*new_endpoints):
+    """
+    DEPRECATED since v1.2.1
+    Please modify the endpoints field directly instead.
+    """
+    _logger.warn('Deprecated method call: scyjava.config.add_endpoints(). Please modify scyjava.config.endpoints directly instead.')
+    global endpoints
+    _logger.debug('Adding endpoints %s to %s', new_endpoints, endpoints)
+    endpoints.extend(new_endpoints)
 
 
 def get_endpoints():
-    global _endpoints
-    return _endpoints
+    """
+    DEPRECATED since v1.2.1
+    Please access the endpoints field directly instead.
+    """
+    _logger.warn('Deprecated method call: scyjava.config.get_endpoints(). Please access scyjava.config.endpoints directly instead.')
+    global endpoints
+    return endpoints
 
 
 def add_repositories(*args, **kwargs):

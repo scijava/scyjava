@@ -11,7 +11,7 @@ setup(
     python_requires='>=3',
     packages=find_packages(),
     version="1.3.1.dev0",
-    author='Curtis Rueden, Philipp Hanslovsky, Edward Evans',
+    author='Curtis Rueden, Philipp Hanslovsky, Edward Evans, Mark Hiner',
     author_email='ctrueden@wisc.edu',
     description='scyjava',
     long_description=scyjava_long_description,

@@ -32,7 +32,7 @@ def start_jvm(options=scyjava.config.get_options()):
         return
 
     # retrieve endpoint and repositories from scyjava config
-    endpoints = scyjava.config.get_endpoints()
+    endpoints = scyjava.config.endpoints
     repositories = scyjava.config.get_repositories()
 
     # use the logger to notify user that endpoints are being added

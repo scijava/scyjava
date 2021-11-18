@@ -1,0 +1,11 @@
+# Use this environment file when running the tests, when scyjava will be
+# installed from source 
+name: scyjava
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - jpype1
+  - jgo
+  - numpy
+  - pandas

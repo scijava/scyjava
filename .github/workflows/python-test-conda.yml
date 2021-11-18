@@ -26,7 +26,7 @@ jobs:
     - name: Install dependencies
       run: |
         mamba env update --file environment-test.yml --name base
-    - name: Install primary project
+    - name: Install current project in dev mode
       run: |
         pip install -e .
     - name: Install pytest

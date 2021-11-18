@@ -1,0 +1,8 @@
+name: scyjava
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - jpype1
+  - jgo
+  - scyjava

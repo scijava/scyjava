@@ -1,4 +1,4 @@
-[![build status](https://github.com/hinerm/scyjava/actions/workflows/python-test-conda.yml/badge.svg)](https://github.com/hinerm/scyjava/actions/workflows/python-test-conda.yml)
+[![build status](https://github.com/scijava/scyjava/actions/workflows/python-test-conda.yml/badge.svg)](https://github.com/scijava/scyjava/actions/workflows/python-test-conda.yml)
 
 Supercharged Java access from Python.
 

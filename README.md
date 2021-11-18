@@ -1,3 +1,5 @@
+[![build status](https://github.com/hinerm/scyjava/actions/workflows/python-test-conda.yml/badge.svg)](https://github.com/hinerm/scyjava/actions/workflows/python-test-conda.yml)
+
 Supercharged Java access from Python.
 
 Built on [JPype](https://jpype.readthedocs.io/en/latest/)

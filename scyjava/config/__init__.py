@@ -1,4 +1,5 @@
 import logging
+import os
 import pathlib
 import jpype
 from jgo import maven_scijava_repository
@@ -95,7 +96,48 @@ def get_m2_repo():
 
 
 def add_classpath(*path):
-    jpype.addClassPath(*path)
+    """
+    Add elements to the Java class path.
+
+    See also find_jars, which can be combined with add_classpath to
+    add all the JARs beneath a given directory to the class path, a la:
+
+        add_classpath(*find_jars('/path/to/folder-of-jars'))
+
+    :param path:
+        One or more file paths to add to the Java class path.
+
+        A valid Java class path element is typically either a .jar file or a
+        directory. When a class needs to be loaded, the Java runtime looks
+        beneath each class path element for the .class file, nested in a folder
+        structure matching the class's package name. For example, when loading
+        a class foo.bar.Fubar, if a directory /home/jdoe/classes is included as
+        a class path element, the class file at
+        /home/jdoe/classes/foo/bar/Fubar.class will be used. It works the same
+        for JAR files, except that the class files are loaded from the
+        directory structure inside the JAR; in this example, a JAR file
+        /home/jdoe/jars/fubar.jar on the class path containing file
+        foo/bar/Fubar.class inside would be another way to provide the class
+        foo.bar.Fubar.
+    """
+    for p in path:
+        jpype.addClassPath(p)
+
+
+def find_jars(directory):
+    """
+    Find .jar files beneath a given directory.
+
+    :param directory: the folder to be searched
+    :return: a list of JAR files
+    """
+    jars = []
+    for root, dirs, files in os.walk(directory):
+        for f in files:
+            if f.lower().endswith('.jar'):
+                path = os.path.join(root, f)
+                jars.append(path)
+    return jars
 
 
 def get_classpath():

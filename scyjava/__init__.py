@@ -1,9 +1,11 @@
+import atexit
 import collections.abc
 import jgo
 import jpype
 import logging
 import os
 import scyjava.config
+import jpype.config
 from jpype.types import *
 from _jpype import _JObject
 
@@ -12,7 +14,8 @@ _logger = logging.getLogger(__name__)
 
 # -- JVM setup --
 
-_callbacks = []
+_startup_callbacks = []
+_shutdown_callbacks = []
 
 
 def start_jvm(options=scyjava.config.get_options()):
@@ -53,7 +56,12 @@ def start_jvm(options=scyjava.config.get_options()):
         jpype.addClassPath(os.path.join(workspace, '*'))
 
     # initialize JPype JVM
-    jpype.startJVM(*options)
+    jpype.startJVM(*options, interrupt=True)
+
+    # replace JPype/JVM shutdown handling with our own
+    jpype.config.onexit = False
+    jpype.config.free_resources = False
+    atexit.register(shutdown_jvm)
 
     # grab needed Java classes
     global Boolean; Boolean = jimport('java.lang.Boolean')
@@ -80,9 +88,30 @@ def start_jvm(options=scyjava.config.get_options()):
     global Set; Set = jimport('java.util.Set')
 
     # invoke registered callback functions
-    for callback in _callbacks:
+    for callback in _startup_callbacks:
         callback()
 
+def shutdown_jvm():
+    """Shutdown the JVM.
+
+    Shutdown the JVM. Set the jpype .config.destroy_jvm flag to true
+    to ask JPype to destory the JVM itself. Note that enabling 
+    jpype.config.destroy_jvm can lead to delayed shutdown times while
+    the JVM is waiting for threads to finish.
+    """
+    # invoke registered shutdown callback functions
+    for callback in _shutdown_callbacks:
+        try:
+            callback()
+        except Exception as e:
+            print(f"Exception during shutdown callback: {e}")
+            
+
+    # okay to shutdown JVM
+    try:
+        jpype.shutdownJVM()
+    except Exception as e:
+        print(f"Exception during JVM shutdown: {e}")
 
 def jvm_started():
     """Return true iff a Java virtual machine (JVM) has been started."""
@@ -103,8 +132,21 @@ def when_jvm_starts(f):
         f()
     else:
         # Add function to the list of callbacks to invoke upon start_jvm().
-        global _callbacks
-        _callbacks.append(f)
+        global _startup_callbacks
+        _startup_callbacks.append(f)
+
+def when_jvm_stops(f):
+    """
+    Registers a function to be called when the JVM starts (or immediately).
+    This is useful to defer construction of Java-dependent data structures
+    until the JVM is known to be available. If the JVM has already been
+    started, the function executes immediately.
+
+    :param f: Function to invoke when scyjava.start_jvm() is called.
+    """
+    global _shutdown_callbacks
+    _shutdown_callbacks.append(f)
+
 
 # -- Utility functions --
 

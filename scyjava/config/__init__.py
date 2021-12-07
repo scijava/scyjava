@@ -20,7 +20,7 @@ def add_endpoints(*new_endpoints):
     DEPRECATED since v1.2.1
     Please modify the endpoints field directly instead.
     """
-    _logger.warn('Deprecated method call: scyjava.config.add_endpoints(). Please modify scyjava.config.endpoints directly instead.')
+    _logger.warning('Deprecated method call: scyjava.config.add_endpoints(). Please modify scyjava.config.endpoints directly instead.')
     global endpoints
     _logger.debug('Adding endpoints %s to %s', new_endpoints, endpoints)
     endpoints.extend(new_endpoints)
@@ -31,7 +31,7 @@ def get_endpoints():
     DEPRECATED since v1.2.1
     Please access the endpoints field directly instead.
     """
-    _logger.warn('Deprecated method call: scyjava.config.get_endpoints(). Please access scyjava.config.endpoints directly instead.')
+    _logger.warning('Deprecated method call: scyjava.config.get_endpoints(). Please access scyjava.config.endpoints directly instead.')
     global endpoints
     return endpoints
 

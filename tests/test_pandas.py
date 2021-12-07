@@ -4,7 +4,7 @@ import pandas as pd
 import unittest
 from scyjava import config, jimport, to_java
 
-config.add_endpoints('org.scijava:scijava-table')
+config.endpoints.append('org.scijava:scijava-table')
 config.add_option('-Djava.awt.headless=true')
 
 

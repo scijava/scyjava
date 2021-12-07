@@ -1,7 +1,7 @@
 import unittest
 from scyjava import config, jclass, jimport, to_java, to_python
 
-config.add_endpoints('org.scijava:scijava-table')
+config.endpoints.append('org.scijava:scijava-table')
 config.add_option('-Djava.awt.headless=true')
 
 def assert_same_table(table, df):

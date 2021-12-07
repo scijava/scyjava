@@ -36,7 +36,7 @@ for all the gritty details on how this wrapping works.
 >>> sys.version_info
 sys.version_info(major=3, minor=8, micro=5, releaselevel='final', serial=0)
 >>> from scyjava import config, jimport
->>> config.add_endpoints('org.python:jython-slim:2.7.2')
+>>> config.endpoints.append('org.python:jython-slim:2.7.2')
 >>> jython = jimport('org.python.util.jython')
 >>> jython.main([])
 Jython 2.7.2 (v2.7.2:925a3cc3b49d, Mar 21 2020, 10:12:24)
@@ -55,7 +55,7 @@ u'1.8.0_152-release'
 ```python
 >>> from scyjava import config, jimport
 >>> config.add_repositories({'scijava.public': 'https://maven.scijava.org/content/groups/public'})
->>> config.add_endpoints('net.imagej:imagej:2.1.0')
+>>> config.endpoints.append('net.imagej:imagej:2.1.0')
 >>> ImageJ = jimport('net.imagej.ImageJ')
 >>> ij = ImageJ()
 >>> formula = "10 * (Math.cos(0.3*p[0]) + Math.sin(0.3*p[1]))"

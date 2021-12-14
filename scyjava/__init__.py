@@ -106,6 +106,10 @@ def shutdown_jvm():
         except Exception as e:
             print(f"Exception during shutdown callback: {e}")
             
+    # clean up remaining awt windows
+    Window = jimport('java.awt.Window')
+    for w in Window.getWindows():
+        w.dispose()
 
     # okay to shutdown JVM
     try:

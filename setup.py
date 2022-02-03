@@ -8,7 +8,7 @@ with open(path.join(here, 'README.md')) as f:
 
 setup(
     name='scyjava',
-    python_requires='>=3',
+    python_requires='>=3.6',
     packages=find_packages(),
     version="1.4.2.dev0",
     author='Curtis Rueden, Philipp Hanslovsky, Edward Evans, Mark Hiner',

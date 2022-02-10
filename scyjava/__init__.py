@@ -175,11 +175,25 @@ def compare_version(version, java_class_version):
 
 # -- Type Conversion Utilities --
 
+# TODO: It would be cool to just use org.scijava.priority.Priority.
+# Unfortunately, we cannot do that without bringing in all of SJC.
+# Once SciJava 3 is mainstream, we could use a SciJava Priority module :)
+class Priority:
+    FIRST = 1E300
+    EXTREMELY_HIGH = 1E6
+    VERY_HIGH = 1E4
+    HIGH = 1E2
+    NORMAL = 0
+    LOW = -1E2
+    VERY_LOW = -1E4
+    EXTREMELY_LOW = -1E6
+    LAST = -1E300
 
 class Converter(NamedTuple):
     predicate: Callable[[Any], bool]
     converter: Callable[[Any], Any]
-    priority: float
+    # Corresponds with Priority.NORMAL
+    priority: float = 0
 
 
 def _convert(obj: Any, converters: typing.List[Converter]) -> Any:
@@ -296,6 +310,13 @@ java_converters : typing.List[Converter] = []
 
 
 def add_java_converter(predicate: Callable[[Any], bool], converter: Callable[[Any], Any], priority: float):
+    """
+    Adds a converter to the list used by to_java
+    :param predicate: A Callable identifying suitable data types for this converter
+    :param converter: A Callable able to convert a set of types
+    :priority: 
+
+    """
     c = Converter(predicate, converter, priority)
     _add_converter(c, java_converters)
 
@@ -325,91 +346,91 @@ def _stock_java_converters() -> typing.List[Converter]:
         Converter(
             predicate=lambda obj: True,
             converter=_raise_type_exception,
-            priority=-10001
+            priority=Priority.EXTREMELY_LOW - 1
         ),
         # NoneType converter
         Converter(
             predicate=lambda obj: obj is None,
             converter=lambda obj: None,
-            priority=10001
+            priority=Priority.EXTREMELY_HIGH + 1
         ),
         # Java identity converter
         Converter(
             predicate=isjava,
             converter=lambda obj: obj,
-            priority=10000
+            priority=Priority.EXTREMELY_HIGH
         ),
         # String converter
         Converter(
             predicate=lambda obj: isinstance(obj, str), 
             converter=lambda obj: String(obj.encode('utf-8'), 'utf-8'),
-            priority=0
+            priority=Priority.NORMAL
         ),
         # Boolean converter
         Converter(
             predicate=lambda obj: isinstance(obj, bool),
             converter=Boolean,
-            priority=0
+            priority=Priority.NORMAL
         ),
         # Integer converter
         Converter(
             predicate=lambda obj: isinstance(obj, int) and obj <= Integer.MAX_VALUE and obj >= Integer.MIN_VALUE,
             converter= Integer,
-            priority=0
+            priority=Priority.NORMAL
         ),
         # Long converter
         Converter(
             predicate=lambda obj: isinstance(obj, int) and obj <= Long.MAX_VALUE,
             converter=Long,
-            priority=-1
+            priority=Priority.NORMAL - 1
         ),
         # BigInteger converter
         Converter(
             predicate=lambda obj: isinstance(obj, int),
             converter=lambda obj: BigInteger(str(obj)),
-            priority=-2
+            priority=Priority.NORMAL - 2
         ),
         # Float converter
         Converter(
             predicate=lambda obj: isinstance(obj, float) and obj <= Float.MAX_VALUE and obj >= Float.MIN_VALUE,
             converter= Float,
-            priority=0
+            priority=Priority.NORMAL
         ),
         # Double converter
         Converter(
             predicate=lambda obj: isinstance(obj, float) and obj <= Double.MAX_VALUE and obj >= Float.MIN_VALUE,
             converter=Double,
-            priority=-1
+            priority=Priority.NORMAL - 1
         ),
         # BigDecimal converter
         Converter(
             predicate=lambda obj: isinstance(obj, float),
             converter=lambda obj: BigDecimal(str(obj)),
-            priority=-2
+            priority=Priority.NORMAL - 2
         ),
         # Pandas table converter
         Converter(
             predicate=lambda obj: type(obj).__name__ == 'DataFrame',
             converter=_pandas_to_table,
-            priority=1
+            priority=Priority.NORMAL + 1
         ),
         # Mapping converter
         Converter(
             predicate=lambda obj: isinstance(obj, collections.abc.Mapping),
             converter=convertMap,
-            priority=0
+            priority=Priority.NORMAL
         ),
         # Set converter
         Converter(
             predicate=lambda obj: isinstance(obj, collections.abc.Set),
             converter=convertSet,
-            priority=0
+            priority=Priority.NORMAL
         ),
         # Iterable converter
         Converter(
             predicate=lambda obj: isinstance(obj, collections.abc.Iterable),
             converter=convertIterable,
-            priority=-1
+            priority=Priority.NORMAL -1
         ),
     ]
 
@@ -623,151 +644,151 @@ def _stock_py_converters() -> typing.List:
         Converter(
             predicate=lambda obj: True,
             converter=_raise_type_exception,
-            priority=-10001
+            priority=Priority.EXTREMELY_LOW - 1
         ),
         # Java identity converter
         Converter(
             predicate=lambda obj: not isjava(obj),
             converter=lambda obj: obj,
-            priority=10000
+            priority=Priority.EXTREMELY_HIGH
         ),
         # JBoolean converter
         Converter(
             predicate=lambda obj: isinstance(obj, JBoolean),
             converter=bool,
-            priority=1
+            priority=Priority.NORMAL + 1
         ),
         # JInt/JLong/JShort converter
         Converter(
             predicate=lambda obj: isinstance(obj, (JInt, JLong, JShort)),
             converter=int,
-            priority=1
+            priority=Priority.NORMAL + 1
         ),
         # JDouble/JFloat converter
         Converter(
             predicate=lambda obj: isinstance(obj, (JDouble, JFloat)),
             converter=float,
-            priority=1
+            priority=Priority.NORMAL + 1
         ),
         # JChar converter
         Converter(
             predicate=lambda obj: isinstance(obj, JChar),
             converter=str,
-            priority=1
+            priority=Priority.NORMAL + 1
         ),
         # Boolean converter
         Converter(
             predicate=lambda obj: isinstance(obj, Boolean),
             converter=lambda obj: obj.booleanValue(),
-            priority=0
+            priority=Priority.NORMAL
         ),
         # Byte converter
         Converter(
             predicate=lambda obj: isinstance(obj, Byte),
             converter=lambda obj: obj.byteValue(),
-            priority=0
+            priority=Priority.NORMAL
         ),
         # Char converter
         Converter(
             predicate=lambda obj: isinstance(obj, Character),
             converter=lambda obj: obj.toString(),
-            priority=0
+            priority=Priority.NORMAL
         ),
         # Double converter
         Converter(
             predicate=lambda obj: isinstance(obj, Double),
             converter=lambda obj: obj.doubleValue(),
-            priority=0
+            priority=Priority.NORMAL
         ),
         # Float converter
         Converter(
             predicate=lambda obj: isinstance(obj, Float),
             converter=lambda obj: obj.floatValue(),
-            priority=0
+            priority=Priority.NORMAL
         ),
         # Integer converter
         Converter(
             predicate=lambda obj: isinstance(obj, Integer),
             converter=lambda obj: obj.intValue(),
-            priority=0
+            priority=Priority.NORMAL
         ),
         # Long converter
         Converter(
             predicate=lambda obj: isinstance(obj, Long),
             converter=lambda obj: obj.longValue(),
-            priority=0
+            priority=Priority.NORMAL
         ),
         # Short converter
         Converter(
             predicate=lambda obj: isinstance(obj, Short),
             converter=lambda obj: obj.shortValue(),
-            priority=0
+            priority=Priority.NORMAL
         ),
         # Void converter
         Converter(
             predicate=lambda obj: isinstance(obj, Void),
             converter=lambda obj: None,
-            priority=0
+            priority=Priority.NORMAL
         ),
         # String converter
         Converter(
             predicate=lambda obj: isinstance(obj, String), 
             converter=lambda obj: str(obj),
-            priority=0
+            priority=Priority.NORMAL
         ),
         # BigInteger converter
         Converter(
             predicate=lambda obj: isinstance(obj, BigInteger),
             converter=lambda obj: int(str(obj.toString())),
-            priority=0
+            priority=Priority.NORMAL
         ),
         # BigDecimal converter
         Converter(
             predicate=lambda obj: isinstance(obj, BigDecimal),
             converter=lambda obj: float(obj.toString),
-            priority=0
+            priority=Priority.NORMAL
         ),
         # SciJava Table converter
         Converter(
             predicate=_is_table,
             converter=_convert_table,
-            priority=0
+            priority=Priority.NORMAL
         ),
         # List converter
         Converter(
             predicate=lambda obj: isinstance(obj, List),
             converter=JavaList,
-            priority=0
+            priority=Priority.NORMAL
         ),
         # Map converter
         Converter(
             predicate=lambda obj: isinstance(obj, Map),
             converter=JavaMap,
-            priority=0
+            priority=Priority.NORMAL
         ),
         # Set converter
         Converter(
             predicate=lambda obj: isinstance(obj, Set),
             converter=JavaSet,
-            priority=0
+            priority=Priority.NORMAL
         ),
         # Collection converter
         Converter(
             predicate=lambda obj: isinstance(obj, Collection),
             converter=JavaCollection,
-            priority=-1
+            priority=Priority.NORMAL -1
         ),
         # Iterable converter
         Converter(
             predicate=lambda obj: isinstance(obj, Iterable),
             converter=JavaIterable,
-            priority=-1
+            priority=Priority.NORMAL -1
         ),
         # Iterator converter
         Converter(
             predicate=lambda obj: isinstance(obj, Iterator),
             converter=JavaIterator,
-            priority=-1
+            priority=Priority.NORMAL - 1
         ),
     ]
 

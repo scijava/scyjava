@@ -345,6 +345,176 @@ def _stock_java_converters() -> typing.List[Converter]:
     ]
 
 
+def _stock_py_converters() -> typing.List:
+    return [
+        # Other (Exceptional) converter
+        Converter(
+            predicate=lambda obj: True,
+            converter=_raise_type_exception,
+            priority=-10001
+        ),
+        # Java identity converter
+        Converter(
+            predicate=lambda obj: not isjava(obj),
+            converter=lambda obj: obj,
+            priority=10000
+        ),
+        # JBoolean converter
+        Converter(
+            predicate=lambda obj: isinstance(obj, JBoolean),
+            converter=bool,
+            priority=1
+        ),
+        # JInt/JLong/JShort converter
+        Converter(
+            predicate=lambda obj: isinstance(obj, (JInt, JLong, JShort)),
+            converter=int,
+            priority=1
+        ),
+        # JDouble/JFloat converter
+        Converter(
+            predicate=lambda obj: isinstance(obj, (JDouble, JFloat)),
+            converter=float,
+            priority=1
+        ),
+        # JChar converter
+        Converter(
+            predicate=lambda obj: isinstance(obj, JChar),
+            converter=str,
+            priority=1
+        ),
+        # Boolean converter
+        Converter(
+            predicate=lambda obj: isinstance(obj, Boolean),
+            converter=lambda obj: obj.booleanValue(),
+            priority=0
+        ),
+        # Byte converter
+        Converter(
+            predicate=lambda obj: isinstance(obj, Byte),
+            converter=lambda obj: obj.byteValue(),
+            priority=0
+        ),
+        # Char converter
+        Converter(
+            predicate=lambda obj: isinstance(obj, Character),
+            converter=lambda obj: obj.toString(),
+            priority=0
+        ),
+        # Double converter
+        Converter(
+            predicate=lambda obj: isinstance(obj, Double),
+            converter=lambda obj: obj.doubleValue(),
+            priority=0
+        ),
+        # Float converter
+        Converter(
+            predicate=lambda obj: isinstance(obj, Float),
+            converter=lambda obj: obj.floatValue(),
+            priority=0
+        ),
+        # Integer converter
+        Converter(
+            predicate=lambda obj: isinstance(obj, Integer),
+            converter=lambda obj: obj.intValue(),
+            priority=0
+        ),
+        # Long converter
+        Converter(
+            predicate=lambda obj: isinstance(obj, Long),
+            converter=lambda obj: obj.longValue(),
+            priority=0
+        ),
+        # Short converter
+        Converter(
+            predicate=lambda obj: isinstance(obj, Short),
+            converter=lambda obj: obj.shortValue(),
+            priority=0
+        ),
+        # Void converter
+        Converter(
+            predicate=lambda obj: isinstance(obj, Void),
+            converter=lambda obj: None,
+            priority=0
+        ),
+        # String converter
+        Converter(
+            predicate=lambda obj: isinstance(obj, String), 
+            converter=lambda obj: str(obj),
+            priority=0
+        ),
+        # BigInteger converter
+        Converter(
+            predicate=lambda obj: isinstance(obj, BigInteger),
+            converter=lambda obj: int(str(obj.toString())),
+            priority=0
+        ),
+        # BigDecimal converter
+        Converter(
+            predicate=lambda obj: isinstance(obj, BigDecimal),
+            converter=lambda obj: float(obj.toString),
+            priority=0
+        ),
+        # SciJava Table converter
+        Converter(
+            predicate=_is_table,
+            converter=_convert_table,
+            priority=0
+        ),
+        # List converter
+        Converter(
+            predicate=lambda obj: isinstance(obj, List),
+            converter=JavaList,
+            priority=0
+        ),
+        # Map converter
+        Converter(
+            predicate=lambda obj: isinstance(obj, Map),
+            converter=JavaMap,
+            priority=0
+        ),
+        # Set converter
+        Converter(
+            predicate=lambda obj: isinstance(obj, Set),
+            converter=JavaSet,
+            priority=0
+        ),
+        # Collection converter
+        Converter(
+            predicate=lambda obj: isinstance(obj, Collection),
+            converter=JavaCollection,
+            priority=-1
+        ),
+        # Iterable converter
+        Converter(
+            predicate=lambda obj: isinstance(obj, Iterable),
+            converter=JavaIterable,
+            priority=-1
+        ),
+        # Iterator converter
+        Converter(
+            predicate=lambda obj: isinstance(obj, Iterator),
+            converter=JavaIterator,
+            priority=-1
+        ),
+    ]
+
+
+def _is_table(obj: Any):
+    try:
+        return isinstance(obj, jimport('org.scijava.table.Table'))
+    except:
+        # No worries if scijava-table is not available.
+        pass
+
+def _convert_table(obj: Any):
+    try:
+            return _table_to_pandas(obj)
+    except:
+        # No worries if scijava-table is not available.
+        pass
+
+
 def _raise_type_exception(obj: Any):
     raise TypeError('Unsupported type: ' + str(type(obj)))
     
@@ -374,15 +544,6 @@ def convertIterable(obj: collections.abc.Iterable):
     return jlist
 
 
-def _stock_py_converters() -> typing.List[Converter]:
-    return [
-        ## String converter
-        Converter(
-            lambda obj: isinstance(obj, String), 
-            lambda obj: str(obj),
-            0),
-    ]
-
 # TODO: Consider priority aliases?
 java_converters : typing.List[Converter] = []
 when_jvm_starts(
@@ -394,7 +555,7 @@ when_jvm_starts(
     lambda : [_add_converter(c, py_converters) for c in _stock_py_converters()]
 )
 
-def to_java(obj: Any):
+def to_java(obj: Any) -> Any:
     """
     Recursively convert a Python object to a Java object.
     :param data: The Python object to convert.
@@ -411,11 +572,6 @@ def to_java(obj: Any):
     """
     start_jvm()
     return _convert(obj, java_converters)
-
-
-def convert_to_python(obj: Any):
-    start_jvm()
-    return _convert(obj, py_converters)
 
 
 def _convert(obj: Any, converters: typing.List[Converter]) -> Any:
@@ -599,7 +755,7 @@ class JavaSet(JavaCollection, collections.abc.MutableSet):
         return '{' + ', '.join(_jstr(v) for v in self) + '}'
 
 
-def to_python(data, gentle=False):
+def to_python(data: Any, gentle: bool =False) -> Any:
     """
     Recursively convert a Java object to a Python object.
     :param data: The Java object to convert.
@@ -621,68 +777,12 @@ def to_python(data, gentle=False):
                        and the gentle flag is not set.
     """
     start_jvm()
-
-    if not isjava(data):
-        return data
-
-    if isinstance(data, JBoolean):
-        return bool(data)
-    if isinstance(data, JInt) or isinstance(data, JLong) or isinstance(data, JShort):
-        return int(data)
-    if isinstance(data, JDouble) or isinstance(data, JFloat):
-        return float(data)
-    if isinstance(data, JChar):
-        return str(data)
-
-    if isinstance(data, Boolean):
-        return data.booleanValue()
-    if isinstance(data, Byte):
-        return data.byteValue()
-    if isinstance(data, Character):
-        return data.toString()
-    if isinstance(data, Double):
-        return data.doubleValue()
-    if isinstance(data, Float):
-        return data.floatValue()
-    if isinstance(data, Integer):
-        return data.intValue()
-    if isinstance(data, Long):
-        return data.longValue()
-    if isinstance(data, Short):
-        return data.shortValue()
-    if isinstance(data, Void):
-        return None
-
-    if isinstance(data, BigInteger):
-        return int(str(data.toString()))
-    if isinstance(data, BigDecimal):
-        return float(data.toString())
-    if isinstance(data, String):
-        return str(data)
-    
     try:
-        if isinstance(data, jimport('org.scijava.table.Table')):
-            return _table_to_pandas(data)
-    except:
-        # No worries if scijava-table is not available.
-        pass
+        return _convert(data, py_converters)
+    except TypeError as exc:
+        if gentle: return data
+        raise exc
 
-    if isinstance(data, List):
-        return JavaList(data)
-    if isinstance(data, Map):
-        return JavaMap(data)
-    if isinstance(data, Set):
-        return JavaSet(data)
-    if isinstance(data, Collection):
-        return JavaCollection(data)
-    if isinstance(data, Iterable):
-        return JavaIterable(data)
-    if isinstance(data, Iterator):
-        return JavaIterator(data)
-
-    if gentle:
-        return data
-    raise TypeError('Unsupported data type: ' + str(type(data)))
 
 
 def _import_pandas():

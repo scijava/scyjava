@@ -76,6 +76,23 @@ class TestConvert(unittest.TestCase):
         self.assertEqual(bi, pbi)
         self.assertEqual(str(bi), str(pbi))
 
+    def testFloat(self):
+        f = 5.
+        jf = to_java(f)
+        self.assertEqual(f, jf.floatValue())
+        pf = to_python(jf)
+        self.assertEqual(f, pf)
+        self.assertEqual(str(f), str(pf))
+
+    def testDouble(self):
+        Float = jimport('java.lang.Float')
+        d = Float.MAX_VALUE * 2
+        jd = to_java(d)
+        self.assertEqual(d, jd.doubleValue())
+        pd = to_python(jd)
+        self.assertEqual(d, pd)
+        self.assertEqual(str(d), str(pd))
+
     def testString(self):
         s = 'Hello world!'
         js = to_java(s)
@@ -206,6 +223,25 @@ class TestConvert(unittest.TestCase):
         assert len(pdict['set']) == 3
         assert type(pdict['object']) == Object
         self.assertEqual(pdict['foo'], 'bar')
+
+
+    def test_conversion_priority(self):
+        # Add a converter prioritized over the default converter
+        String = jimport('java.lang.String')
+        invader = 'Not Hello World'
+
+        from scyjava import add_java_converter
+        add_java_converter(
+            predicate=lambda obj: isinstance(obj, str),
+            converter=lambda obj: String(invader.encode('utf-8'), 'utf-8'),
+            priority=100
+        )
+
+        # Ensure that the conversion uses our new converter
+        s = 'Hello world!'
+        js = to_java(s)
+        for e, a in zip(invader, js.toCharArray()):
+            self.assertEqual(e, a)
 
 
 if __name__ == '__main__':

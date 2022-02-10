@@ -192,8 +192,7 @@ class Priority:
 class Converter(NamedTuple):
     predicate: Callable[[Any], bool]
     converter: Callable[[Any], Any]
-    # Corresponds with Priority.NORMAL
-    priority: float = 0
+    priority: float = Priority.NORMAL
 
 
 def _convert(obj: Any, converters: typing.List[Converter]) -> Any:
@@ -281,7 +280,7 @@ def _raise_type_exception(obj: Any):
     raise TypeError('Unsupported type: ' + str(type(obj)))
     
 
-def convertMap(obj: collections.abc.Mapping):
+def _convertMap(obj: collections.abc.Mapping):
     jmap = LinkedHashMap()
     for k, v in obj.items():
         jk = to_java(k)
@@ -290,7 +289,7 @@ def convertMap(obj: collections.abc.Mapping):
     return jmap
 
 
-def convertSet(obj: collections.abc.Set):
+def _convertSet(obj: collections.abc.Set):
     jset = LinkedHashSet()
     for item in obj:
         jitem = to_java(item)
@@ -298,7 +297,7 @@ def convertSet(obj: collections.abc.Set):
     return jset
 
 
-def convertIterable(obj: collections.abc.Iterable):
+def _convertIterable(obj: collections.abc.Iterable):
     jlist = ArrayList()
     for item in obj:
         jitem = to_java(item)
@@ -341,6 +340,11 @@ def to_java(obj: Any) -> Any:
 
 
 def _stock_java_converters() -> typing.List[Converter]:
+    """
+    Returns all python-to-java converters supported out of the box!
+    This should only be called after the JVM has been started!
+    :returns: A list of Converters
+    """
     return [
         # Other (Exceptional) converter
         Converter(
@@ -364,19 +368,16 @@ def _stock_java_converters() -> typing.List[Converter]:
         Converter(
             predicate=lambda obj: isinstance(obj, str), 
             converter=lambda obj: String(obj.encode('utf-8'), 'utf-8'),
-            priority=Priority.NORMAL
         ),
         # Boolean converter
         Converter(
             predicate=lambda obj: isinstance(obj, bool),
             converter=Boolean,
-            priority=Priority.NORMAL
         ),
         # Integer converter
         Converter(
             predicate=lambda obj: isinstance(obj, int) and obj <= Integer.MAX_VALUE and obj >= Integer.MIN_VALUE,
             converter= Integer,
-            priority=Priority.NORMAL
         ),
         # Long converter
         Converter(
@@ -394,7 +395,6 @@ def _stock_java_converters() -> typing.List[Converter]:
         Converter(
             predicate=lambda obj: isinstance(obj, float) and obj <= Float.MAX_VALUE and obj >= Float.MIN_VALUE,
             converter= Float,
-            priority=Priority.NORMAL
         ),
         # Double converter
         Converter(
@@ -417,19 +417,17 @@ def _stock_java_converters() -> typing.List[Converter]:
         # Mapping converter
         Converter(
             predicate=lambda obj: isinstance(obj, collections.abc.Mapping),
-            converter=convertMap,
-            priority=Priority.NORMAL
+            converter=_convertMap,
         ),
         # Set converter
         Converter(
             predicate=lambda obj: isinstance(obj, collections.abc.Set),
-            converter=convertSet,
-            priority=Priority.NORMAL
+            converter=_convertSet,
         ),
         # Iterable converter
         Converter(
             predicate=lambda obj: isinstance(obj, collections.abc.Iterable),
-            converter=convertIterable,
+            converter=_convertIterable,
             priority=Priority.NORMAL -1
         ),
     ]
@@ -605,6 +603,13 @@ py_converters : typing.List[Converter] = []
 
 
 def add_py_converter(predicate: Callable[[Any], bool], converter: Callable[[Any], Any], priority: float):
+    """
+    Adds a converter to the list used by to_python
+    :param predicate: A Callable identifying suitable data types for this converter
+    :param converter: A Callable able to convert a set of types
+    :priority: 
+
+    """
     c = Converter(predicate, converter, priority)
     _add_converter(c, py_converters)
 
@@ -639,6 +644,11 @@ def to_python(data: Any, gentle: bool =False) -> Any:
 
 
 def _stock_py_converters() -> typing.List:
+    """
+    Returns all java-to-python converters supported out of the box!
+    This should only be called after the JVM has been started!
+    :returns: A list of Converters
+    """
     return [
         # Other (Exceptional) converter
         Converter(
@@ -680,97 +690,81 @@ def _stock_py_converters() -> typing.List:
         Converter(
             predicate=lambda obj: isinstance(obj, Boolean),
             converter=lambda obj: obj.booleanValue(),
-            priority=Priority.NORMAL
         ),
         # Byte converter
         Converter(
             predicate=lambda obj: isinstance(obj, Byte),
             converter=lambda obj: obj.byteValue(),
-            priority=Priority.NORMAL
         ),
         # Char converter
         Converter(
             predicate=lambda obj: isinstance(obj, Character),
             converter=lambda obj: obj.toString(),
-            priority=Priority.NORMAL
         ),
         # Double converter
         Converter(
             predicate=lambda obj: isinstance(obj, Double),
             converter=lambda obj: obj.doubleValue(),
-            priority=Priority.NORMAL
         ),
         # Float converter
         Converter(
             predicate=lambda obj: isinstance(obj, Float),
             converter=lambda obj: obj.floatValue(),
-            priority=Priority.NORMAL
         ),
         # Integer converter
         Converter(
             predicate=lambda obj: isinstance(obj, Integer),
             converter=lambda obj: obj.intValue(),
-            priority=Priority.NORMAL
         ),
         # Long converter
         Converter(
             predicate=lambda obj: isinstance(obj, Long),
             converter=lambda obj: obj.longValue(),
-            priority=Priority.NORMAL
         ),
         # Short converter
         Converter(
             predicate=lambda obj: isinstance(obj, Short),
             converter=lambda obj: obj.shortValue(),
-            priority=Priority.NORMAL
         ),
         # Void converter
         Converter(
             predicate=lambda obj: isinstance(obj, Void),
             converter=lambda obj: None,
-            priority=Priority.NORMAL
         ),
         # String converter
         Converter(
             predicate=lambda obj: isinstance(obj, String), 
             converter=lambda obj: str(obj),
-            priority=Priority.NORMAL
         ),
         # BigInteger converter
         Converter(
             predicate=lambda obj: isinstance(obj, BigInteger),
             converter=lambda obj: int(str(obj.toString())),
-            priority=Priority.NORMAL
         ),
         # BigDecimal converter
         Converter(
             predicate=lambda obj: isinstance(obj, BigDecimal),
             converter=lambda obj: float(obj.toString),
-            priority=Priority.NORMAL
         ),
         # SciJava Table converter
         Converter(
             predicate=_is_table,
             converter=_convert_table,
-            priority=Priority.NORMAL
         ),
         # List converter
         Converter(
             predicate=lambda obj: isinstance(obj, List),
             converter=JavaList,
-            priority=Priority.NORMAL
         ),
         # Map converter
         Converter(
             predicate=lambda obj: isinstance(obj, Map),
             converter=JavaMap,
-            priority=Priority.NORMAL
         ),
         # Set converter
         Converter(
             predicate=lambda obj: isinstance(obj, Set),
             converter=JavaSet,
-            priority=Priority.NORMAL
         ),
         # Collection converter
         Converter(
@@ -798,7 +792,8 @@ when_jvm_starts(
 )
 
 
-def _is_table(obj: Any):
+def _is_table(obj: Any) -> bool:
+    """Checks if obj is a table"""
     try:
         return isinstance(obj, jimport('org.scijava.table.Table'))
     except:
@@ -807,6 +802,7 @@ def _is_table(obj: Any):
 
 
 def _convert_table(obj: Any):
+    """Converts obj to a table."""
     try:
             return _table_to_pandas(obj)
     except:

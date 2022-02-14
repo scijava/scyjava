@@ -1,5 +1,5 @@
 import unittest
-from scyjava import config, jclass, jimport, to_java, to_python
+from scyjava import Converter, config, jclass, jimport, to_java, to_python
 
 config.endpoints.append('org.scijava:scijava-table')
 config.add_option('-Djava.awt.headless=true')
@@ -232,9 +232,11 @@ class TestConvert(unittest.TestCase):
 
         from scyjava import add_java_converter
         add_java_converter(
-            predicate=lambda obj: isinstance(obj, str),
-            converter=lambda obj: String(invader.encode('utf-8'), 'utf-8'),
-            priority=100
+            Converter(
+                predicate=lambda obj: isinstance(obj, str),
+                converter=lambda obj: String(invader.encode('utf-8'), 'utf-8'),
+                priority=100
+            )
         )
 
         # Ensure that the conversion uses our new converter

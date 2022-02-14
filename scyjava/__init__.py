@@ -308,16 +308,12 @@ def _convertIterable(obj: collections.abc.Iterable):
 java_converters : typing.List[Converter] = []
 
 
-def add_java_converter(predicate: Callable[[Any], bool], converter: Callable[[Any], Any], priority: float):
+def add_java_converter(converter: Converter):
     """
     Adds a converter to the list used by to_java
-    :param predicate: A Callable identifying suitable data types for this converter
-    :param converter: A Callable able to convert a set of types
-    :priority: 
-
+    :param converter: A Converter going from python to java
     """
-    c = Converter(predicate, converter, priority)
-    _add_converter(c, java_converters)
+    _add_converter(converter, java_converters)
 
 
 def to_java(obj: Any) -> Any:
@@ -602,16 +598,12 @@ class JavaSet(JavaCollection, collections.abc.MutableSet):
 py_converters : typing.List[Converter] = []
 
 
-def add_py_converter(predicate: Callable[[Any], bool], converter: Callable[[Any], Any], priority: float):
+def add_py_converter(converter: Converter):
     """
     Adds a converter to the list used by to_python
-    :param predicate: A Callable identifying suitable data types for this converter
-    :param converter: A Callable able to convert a set of types
-    :priority: 
-
+    :param converter: A Converter from java to python
     """
-    c = Converter(predicate, converter, priority)
-    _add_converter(c, py_converters)
+    _add_converter(converter, py_converters)
 
 
 def to_python(data: Any, gentle: bool =False) -> Any:

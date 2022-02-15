@@ -776,6 +776,12 @@ def _stock_py_converters() -> typing.List:
             converter=JavaIterator,
             priority=Priority.NORMAL - 1
         ),
+        # JArray converter
+        Converter(
+            predicate=lambda obj: isinstance(obj, JArray),
+            converter=lambda obj:[to_python(o) for o in obj],
+            priority=Priority.VERY_LOW
+        ),
     ]
 
 

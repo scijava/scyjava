@@ -1,5 +1,7 @@
 import unittest
-from scyjava import Converter, config, jclass, jimport, to_java, to_python
+
+from jpype import JArray, JInt, JLong
+from scyjava import Converter, config, jclass, jimport, start_jvm, to_java, to_python
 
 config.endpoints.append('org.scijava:scijava-table')
 config.add_option('-Djava.awt.headless=true')
@@ -123,6 +125,14 @@ class TestConvert(unittest.TestCase):
         ps = to_python(js)
         self.assertEqual(s, ps)
         self.assertEqual(str(s), str(ps))
+
+    def testArray(self):
+        start_jvm()
+        arr = JArray(JInt)(4)
+        for i in range(len(arr)):
+            arr[i] = to_java(i)
+        py_arr = to_python(arr)
+        assert py_arr == [0, 1, 2, 3]
 
     def testDict(self):
         d = {

@@ -52,7 +52,7 @@ def jvm_version():
         raise RuntimeError("Cannot glean the default JVM path")
 
     p = Path(default_jvm_path)
-    if not p.is_dir():
+    if not p.exists():
         raise RuntimeError(f"Invalid default JVM path: {p}")
 
     java = None

@@ -5,6 +5,7 @@ import jpype
 import jpype.config
 import logging
 import os
+import re
 import scyjava.config
 import subprocess
 from pathlib import Path

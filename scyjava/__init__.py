@@ -2,10 +2,12 @@ import atexit
 import collections.abc
 import jgo
 import jpype
+import jpype.config
 import logging
 import os
 import scyjava.config
-import jpype.config
+import subprocess
+from pathlib import Path
 from jpype.types import *
 from _jpype import _JObject
 
@@ -16,6 +18,63 @@ _logger = logging.getLogger(__name__)
 
 _startup_callbacks = []
 _shutdown_callbacks = []
+
+
+def jvm_version():
+    """
+    Gets the version of the JVM as a tuple, with each dot-separated digit as one element.
+    Characters in the version string beyond only numbers and dots are ignored, in line
+    with the java.version system property.
+
+    Examples:
+    * OpenJDK 17.0.1 -> [17, 0, 1]
+    * OpenJDK 11.0.9.1-internal -> [11, 0, 9, 1]
+    * OpenJDK 1.8.0_312 -> [1, 8, 0]
+
+    If the JVM is already started, this function should return the equivalent of:
+       jimport('java.lang.System').getProperty('java.version').split('.')
+
+    In case the JVM is not started yet, a best effort is made to deduce the
+    version from the environment without actually starting up the JVM in-process.
+    """
+    jvm_version = jpype.getJVMVersion()
+    if jvm_version and jvm_version[0]:
+        # JPype already knew the version.
+        # JVM is probably already started.
+        # Or JPype got smarter since 1.3.0.
+        return jvm_version
+
+    # JPype was clueless, which means the JVM has probably not started yet.
+    # Let's look for a java executable, and ask it directly with 'java -version'.
+
+    default_jvm_path = jpype.getDefaultJVMPath()
+    if not default_jvm_path:
+        raise RuntimeError("Cannot glean the default JVM path")
+
+    p = Path(default_jvm_path)
+    if not p.is_dir():
+        raise RuntimeError(f"Invalid default JVM path: {p}")
+
+    java = None
+    for _ in range(3): # The bin folder is always <=3 levels up from libjvm.
+        p = p.parent
+        if p.name == 'lib':
+            java = p.parent / 'bin' / 'java'
+            if os.name == 'nt':
+                # Good ol' Windows! Nothing beats Windows.
+                java = java.with_suffix('.exe')
+            if not java.is_file():
+                raise RuntimeError(f"No ../bin/java found at: {p}")
+            break
+    if java is None:
+        raise RuntimeError(f"No java executable found inside: {p}")
+
+    version = subprocess.check_output([java, '-version'], stderr=subprocess.STDOUT).decode()
+    m = re.match('.*version "(([0-9]+\\.)+[0-9]+)', version)
+    if not m:
+        raise RuntimeError(f"Inscrutable java command output:\n{version}")
+
+    return tuple(map(int, m.group(1).split('.')))
 
 
 def start_jvm(options=scyjava.config.get_options()):

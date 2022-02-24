@@ -61,6 +61,10 @@ def jvm_version():
         p = p.parent
         if p.name == 'lib':
             java = p.parent / 'bin' / 'java'
+        elif p.name == 'bin':
+            java = p / 'java'
+
+        if java is not None:
             if os.name == 'nt':
                 # Good ol' Windows! Nothing beats Windows.
                 java = java.with_suffix('.exe')

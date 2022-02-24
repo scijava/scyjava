@@ -37,6 +37,7 @@ def jvm_version():
 
     In case the JVM is not started yet, a best effort is made to deduce the
     version from the environment without actually starting up the JVM in-process.
+    If the version cannot be deduced, a RuntimeError with the cause is raised.
     """
     jvm_version = jpype.getJVMVersion()
     if jvm_version and jvm_version[0]:

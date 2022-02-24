@@ -11,11 +11,19 @@ on:
       - master
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
+  build-cross-platform:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.8"]
 
     steps:
     - uses: actions/checkout@v2
+    - uses: conda-incubator/setup-miniconda@v2
+      with:
+        auto-update-conda: true
+        python-version: ${{ matrix.python-version }}
     - name: Add conda to system path
       run: |
         # $CONDA is an environment variable pointing to the root of the miniconda directory
@@ -35,6 +43,12 @@ jobs:
     - name: Test with pytest
       run: |
         pytest
-    - name: Run tests individually in separate processes
+    - name: Test Convert
       run: |
-        for t in tests/*.py; do python $t; done
+        python tests/test_convert.py
+    - name: Test JVM
+      run: |
+        python tests/test_jvm.py
+    - name: Test Pandas
+      run: |
+        python tests/test_pandas.py

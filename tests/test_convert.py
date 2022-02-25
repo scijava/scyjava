@@ -1,5 +1,7 @@
 import unittest
-from scyjava import config, jclass, jimport, to_java, to_python
+
+from jpype import JArray, JInt, JLong
+from scyjava import Converter, config, jclass, jimport, start_jvm, to_java, to_python
 
 config.endpoints.append('org.scijava:scijava-table')
 config.add_option('-Djava.awt.headless=true')
@@ -76,6 +78,23 @@ class TestConvert(unittest.TestCase):
         self.assertEqual(bi, pbi)
         self.assertEqual(str(bi), str(pbi))
 
+    def testFloat(self):
+        f = 5.
+        jf = to_java(f)
+        self.assertEqual(f, jf.floatValue())
+        pf = to_python(jf)
+        self.assertEqual(f, pf)
+        self.assertEqual(str(f), str(pf))
+
+    def testDouble(self):
+        Float = jimport('java.lang.Float')
+        d = Float.MAX_VALUE * 2
+        jd = to_java(d)
+        self.assertEqual(d, jd.doubleValue())
+        pd = to_python(jd)
+        self.assertEqual(d, pd)
+        self.assertEqual(str(d), str(pd))
+
     def testString(self):
         s = 'Hello world!'
         js = to_java(s)
@@ -106,6 +125,14 @@ class TestConvert(unittest.TestCase):
         ps = to_python(js)
         self.assertEqual(s, ps)
         self.assertEqual(str(s), str(ps))
+
+    def testArray(self):
+        start_jvm()
+        arr = JArray(JInt)(4)
+        for i in range(len(arr)):
+            arr[i] = to_java(i)
+        py_arr = to_python(arr)
+        assert py_arr == [0, 1, 2, 3]
 
     def testDict(self):
         d = {
@@ -206,6 +233,27 @@ class TestConvert(unittest.TestCase):
         assert len(pdict['set']) == 3
         assert type(pdict['object']) == Object
         self.assertEqual(pdict['foo'], 'bar')
+
+
+    def test_conversion_priority(self):
+        # Add a converter prioritized over the default converter
+        String = jimport('java.lang.String')
+        invader = 'Not Hello World'
+
+        from scyjava import add_java_converter
+        add_java_converter(
+            Converter(
+                predicate=lambda obj: isinstance(obj, str),
+                converter=lambda obj: String(invader.encode('utf-8'), 'utf-8'),
+                priority=100
+            )
+        )
+
+        # Ensure that the conversion uses our new converter
+        s = 'Hello world!'
+        js = to_java(s)
+        for e, a in zip(invader, js.toCharArray()):
+            self.assertEqual(e, a)
 
 
 if __name__ == '__main__':

@@ -16,6 +16,7 @@ class TestJVM(unittest.TestCase):
         self.assertTrue(len(before_version) >= 3)
         self.assertTrue(before_version[0] > 0)
 
+        scyjava.config.add_option('-Djava.awt.headless=true')
         scyjava.start_jvm()
 
         after_version = scyjava.jvm_version()

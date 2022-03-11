@@ -78,7 +78,7 @@ def jvm_version():
     if java is None:
         raise RuntimeError(f"No java executable found inside: {p}")
 
-    version = subprocess.check_output([java, '-version'], stderr=subprocess.STDOUT).decode()
+    version = subprocess.check_output([str(java), '-version'], stderr=subprocess.STDOUT).decode()
     m = re.match('.*version "(([0-9]+\\.)+[0-9]+)', version)
     if not m:
         raise RuntimeError(f"Inscrutable java command output:\n{version}")

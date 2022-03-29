@@ -232,7 +232,7 @@ def get_local(attr: str) -> Any:
     raise AttributeError(f"scyjava has no local {attr}, it must be set using scyjava.set_local()")
 
 def set_local(attr: str, value: Any) -> None:
-    setattr(_thread_locals, attr, )
+    setattr(_thread_locals, attr, value)
 
 def get_version(java_class):
     """Return the version of a Java class. """

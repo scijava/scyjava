@@ -12,6 +12,7 @@ import os
 import re
 import scyjava.config
 import subprocess
+import threading
 from pathlib import Path
 from jpype.types import *
 from _jpype import _JObject
@@ -222,6 +223,16 @@ def when_jvm_stops(f):
 
 
 # -- Utility functions --
+
+_thread_locals = threading.local()
+
+def get_local(attr: str) -> Any:
+    if hasattr(_thread_locals, attr):
+        return getattr(_thread_locals, attr)
+    raise AttributeError(f"scyjava has no local {attr}, it must be set using scyjava.set_local()")
+
+def set_local(attr: str, value: Any) -> None:
+    setattr(_thread_locals, attr, )
 
 def get_version(java_class):
     """Return the version of a Java class. """

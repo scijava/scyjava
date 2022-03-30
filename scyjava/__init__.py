@@ -1,5 +1,6 @@
 import atexit
 import collections.abc
+from functools import lru_cache
 import traceback
 from typing import Any, Callable, NamedTuple
 import typing
@@ -302,6 +303,7 @@ def jclass(data):
     raise TypeError('Cannot glean class from data of type: ' + str(type(data)))
 
 
+@lru_cache
 def jimport(class_name):
     """
     Import a class from Java to Python.

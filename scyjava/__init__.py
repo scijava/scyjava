@@ -303,7 +303,7 @@ def jclass(data):
     raise TypeError('Cannot glean class from data of type: ' + str(type(data)))
 
 
-@lru_cache
+@lru_cache(maxsize=None)
 def jimport(class_name):
     """
     Import a class from Java to Python.

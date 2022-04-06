@@ -52,3 +52,8 @@ jobs:
     - name: Test Pandas
       run: |
         python tests/test_pandas.py
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: psf/black@stable

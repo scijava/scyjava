@@ -9,5 +9,10 @@
 /.eggs/
 *egg-info/
 
-# vi
+# Vi
 *.swp
+
+# Unit test / coverage reports
+.coverage
+.coverage.*
+coverage.xml

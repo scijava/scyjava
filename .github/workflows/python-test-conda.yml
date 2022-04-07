@@ -12,11 +12,22 @@ on:
 
 jobs:
   build-cross-platform:
+    name: test ${{matrix.os}} - ${{matrix.python-version}}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.8"]
+        os: [
+          ubuntu-latest,
+          windows-latest,
+          macos-latest
+        ]
+        python-version: [
+          '3.6',
+          '3.7',
+          '3.8',
+          '3.9',
+          '3.10'
+        ]
 
     steps:
     - uses: actions/checkout@v2
@@ -36,22 +47,10 @@ jobs:
         mamba env update --file environment-test.yml --name base
     - name: Install current project in dev mode
       run: |
-        pip install -e .
-    - name: Install pytest
-      run: |
-        mamba install -c conda-forge pytest
-    - name: Test with pytest
-      run: |
-        pytest
-    - name: Test Convert
-      run: |
-        python tests/test_convert.py
-    - name: Test JVM
-      run: |
-        python tests/test_jvm.py
-    - name: Test Pandas
-      run: |
-        python tests/test_pandas.py
+        python -m pip install -e .
+    - name: Run test suite
+      run: python -m pytest -p no:faulthandler --color=yes
+
   lint:
     runs-on: ubuntu-latest
     steps:

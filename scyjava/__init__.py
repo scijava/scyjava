@@ -120,7 +120,8 @@ def start_jvm(options=scyjava.config.get_options()):
             cache_dir=scyjava.config.get_cache_dir(),
             manage_dependencies=scyjava.config.get_manage_deps(),
             repositories=repositories,
-            verbose=scyjava.config.get_verbose()
+            verbose=scyjava.config.get_verbose(),
+            shortcuts=scyjava.config.get_shortcuts(),
         )
         jpype.addClassPath(os.path.join(workspace, '*'))
 

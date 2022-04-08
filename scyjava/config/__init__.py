@@ -13,6 +13,7 @@ _manage_deps = True
 _cache_dir = pathlib.Path.home() / '.jgo'
 _m2_repo = pathlib.Path.home() / '.m2' / 'repository'
 _options = []
+_shortcuts = {}
 
 
 def add_endpoints(*new_endpoints):
@@ -160,3 +161,13 @@ def add_options(options):
 def get_options():
     global _options
     return _options
+
+
+def add_shortcut(k, v):
+    global _shortcuts
+    _shortcuts[k] = v
+
+
+def get_shortcuts():
+    global _shortcuts
+    return _shortcuts

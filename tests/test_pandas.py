@@ -4,8 +4,8 @@ import pandas as pd
 import unittest
 from scyjava import config, jimport, to_java
 
-config.endpoints.append('org.scijava:scijava-table')
-config.add_option('-Djava.awt.headless=true')
+config.endpoints.append("org.scijava:scijava-table")
+config.add_option("-Djava.awt.headless=true")
 
 
 def assert_same_table(table, df):
@@ -19,7 +19,6 @@ def assert_same_table(table, df):
 
 
 class TestPandas(unittest.TestCase):
-
     def testPandasToTable(self):
         # Float table.
         columns = ["header1", "header2", "header3", "header4", "header5"]
@@ -29,18 +28,18 @@ class TestPandas(unittest.TestCase):
         table = to_java(df)
 
         assert_same_table(table, df)
-        assert type(table) == jimport('org.scijava.table.DefaultFloatTable')
+        assert type(table) == jimport("org.scijava.table.DefaultFloatTable")
 
         # Int table.
         columns = ["header1", "header2", "header3", "header4", "header5"]
         array = np.random.random(size=(7, 5)) * 100
-        array = array.astype('int')
+        array = array.astype("int")
 
         df = pd.DataFrame(array, columns=columns)
         table = to_java(df)
 
         assert_same_table(table, df)
-        assert type(table) == jimport('org.scijava.table.DefaultIntTable')
+        assert type(table) == jimport("org.scijava.table.DefaultIntTable")
 
         # Bool table.
         columns = ["header1", "header2", "header3", "header4", "header5"]
@@ -50,7 +49,7 @@ class TestPandas(unittest.TestCase):
         table = to_java(df)
 
         assert_same_table(table, df)
-        assert type(table) == jimport('org.scijava.table.DefaultBoolTable')
+        assert type(table) == jimport("org.scijava.table.DefaultBoolTable")
 
         # Mixed table.
         columns = ["header1", "header2", "header3", "header4", "header5"]
@@ -59,18 +58,18 @@ class TestPandas(unittest.TestCase):
         df = pd.DataFrame(array, columns=columns)
 
         # Convert column 0 to integer
-        df.iloc[:, 0] = (df.iloc[:, 0] * 100).astype('int')
+        df.iloc[:, 0] = (df.iloc[:, 0] * 100).astype("int")
         # Convert column 1 to bool
         df.iloc[:, 1] = df.iloc[:, 1] > 0.5
         # Convert column 2 to string
-        df.iloc[:, 2] = df.iloc[:, 2].to_string(index=False).split('\n')
+        df.iloc[:, 2] = df.iloc[:, 2].to_string(index=False).split("\n")
 
         table = to_java(df)
 
         # Table types cannot be the same here, unless we want to cast.
         # assert_same_table(table, df)
-        assert type(table) == jimport('org.scijava.table.DefaultGenericTable')
+        assert type(table) == jimport("org.scijava.table.DefaultGenericTable")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

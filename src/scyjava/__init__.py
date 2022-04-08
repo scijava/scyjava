@@ -62,29 +62,31 @@ def jvm_version():
         raise RuntimeError(f"Invalid default JVM path: {p}")
 
     java = None
-    for _ in range(3): # The bin folder is always <=3 levels up from libjvm.
+    for _ in range(3):  # The bin folder is always <=3 levels up from libjvm.
         p = p.parent
-        if p.name == 'lib':
-            java = p.parent / 'bin' / 'java'
-        elif p.name == 'bin':
-            java = p / 'java'
+        if p.name == "lib":
+            java = p.parent / "bin" / "java"
+        elif p.name == "bin":
+            java = p / "java"
 
         if java is not None:
-            if os.name == 'nt':
+            if os.name == "nt":
                 # Good ol' Windows! Nothing beats Windows.
-                java = java.with_suffix('.exe')
+                java = java.with_suffix(".exe")
             if not java.is_file():
                 raise RuntimeError(f"No ../bin/java found at: {p}")
             break
     if java is None:
         raise RuntimeError(f"No java executable found inside: {p}")
 
-    version = subprocess.check_output([str(java), '-version'], stderr=subprocess.STDOUT).decode()
+    version = subprocess.check_output(
+        [str(java), "-version"], stderr=subprocess.STDOUT
+    ).decode()
     m = re.match('.*version "(([0-9]+\\.)+[0-9]+)', version)
     if not m:
         raise RuntimeError(f"Inscrutable java command output:\n{version}")
 
-    return tuple(map(int, m.group(1).split('.')))
+    return tuple(map(int, m.group(1).split(".")))
 
 
 def start_jvm(options=scyjava.config.get_options()):
@@ -100,7 +102,7 @@ def start_jvm(options=scyjava.config.get_options()):
     """
     # if JVM is already running -- break
     if jvm_started():
-        _logger.debug('The JVM is already running.')
+        _logger.debug("The JVM is already running.")
         return
 
     # retrieve endpoint and repositories from scyjava config
@@ -108,14 +110,14 @@ def start_jvm(options=scyjava.config.get_options()):
     repositories = scyjava.config.get_repositories()
 
     # use the logger to notify user that endpoints are being added
-    _logger.debug('Adding jars from endpoints {0}'.format(endpoints))
+    _logger.debug("Adding jars from endpoints {0}".format(endpoints))
 
     # get endpoints and add to JPype class path
     if len(endpoints) > 0:
         endpoints = endpoints[:1] + sorted(endpoints[1:])
-        _logger.debug('Using endpoints %s', endpoints)
+        _logger.debug("Using endpoints %s", endpoints)
         _, workspace = jgo.resolve_dependencies(
-            '+'.join(endpoints),
+            "+".join(endpoints),
             m2_repo=scyjava.config.get_m2_repo(),
             cache_dir=scyjava.config.get_cache_dir(),
             manage_dependencies=scyjava.config.get_manage_deps(),
@@ -123,7 +125,7 @@ def start_jvm(options=scyjava.config.get_options()):
             verbose=scyjava.config.get_verbose(),
             shortcuts=scyjava.config.get_shortcuts(),
         )
-        jpype.addClassPath(os.path.join(workspace, '*'))
+        jpype.addClassPath(os.path.join(workspace, "*"))
 
     # initialize JPype JVM
     jpype.startJVM(*options, interrupt=True)
@@ -134,38 +136,61 @@ def start_jvm(options=scyjava.config.get_options()):
     atexit.register(shutdown_jvm)
 
     # grab needed Java classes
-    global Boolean; Boolean = jimport('java.lang.Boolean')
-    global Byte; Byte = jimport('java.lang.Byte')
-    global Character; Character = jimport('java.lang.Character')
-    global Double; Double = jimport('java.lang.Double')
-    global Float; Float = jimport('java.lang.Float')
-    global Integer; Integer = jimport('java.lang.Integer')
-    global Iterable; Iterable = jimport('java.lang.Iterable')
-    global Long; Long = jimport('java.lang.Long')
-    global Object; Object = jimport('java.lang.Object')
-    global Short; Short = jimport('java.lang.Short')
-    global String; String = jimport('java.lang.String')
-    global Void; Void = jimport('java.lang.Void')
-    global BigDecimal; BigDecimal = jimport('java.math.BigDecimal')
-    global BigInteger; BigInteger = jimport('java.math.BigInteger')
-    global ArrayList; ArrayList = jimport('java.util.ArrayList')
-    global Collection; Collection = jimport('java.util.Collection')
-    global Iterator; Iterator = jimport('java.util.Iterator')
-    global LinkedHashMap; LinkedHashMap = jimport('java.util.LinkedHashMap')
-    global LinkedHashSet; LinkedHashSet = jimport('java.util.LinkedHashSet')
-    global List; List = jimport('java.util.List')
-    global Map; Map = jimport('java.util.Map')
-    global Set; Set = jimport('java.util.Set')
+    global Boolean
+    Boolean = jimport("java.lang.Boolean")
+    global Byte
+    Byte = jimport("java.lang.Byte")
+    global Character
+    Character = jimport("java.lang.Character")
+    global Double
+    Double = jimport("java.lang.Double")
+    global Float
+    Float = jimport("java.lang.Float")
+    global Integer
+    Integer = jimport("java.lang.Integer")
+    global Iterable
+    Iterable = jimport("java.lang.Iterable")
+    global Long
+    Long = jimport("java.lang.Long")
+    global Object
+    Object = jimport("java.lang.Object")
+    global Short
+    Short = jimport("java.lang.Short")
+    global String
+    String = jimport("java.lang.String")
+    global Void
+    Void = jimport("java.lang.Void")
+    global BigDecimal
+    BigDecimal = jimport("java.math.BigDecimal")
+    global BigInteger
+    BigInteger = jimport("java.math.BigInteger")
+    global ArrayList
+    ArrayList = jimport("java.util.ArrayList")
+    global Collection
+    Collection = jimport("java.util.Collection")
+    global Iterator
+    Iterator = jimport("java.util.Iterator")
+    global LinkedHashMap
+    LinkedHashMap = jimport("java.util.LinkedHashMap")
+    global LinkedHashSet
+    LinkedHashSet = jimport("java.util.LinkedHashSet")
+    global List
+    List = jimport("java.util.List")
+    global Map
+    Map = jimport("java.util.Map")
+    global Set
+    Set = jimport("java.util.Set")
 
     # invoke registered callback functions
     for callback in _startup_callbacks:
         callback()
 
+
 def shutdown_jvm():
     """Shutdown the JVM.
 
     Shutdown the JVM. Set the jpype .config.destroy_jvm flag to true
-    to ask JPype to destory the JVM itself. Note that enabling 
+    to ask JPype to destory the JVM itself. Note that enabling
     jpype.config.destroy_jvm can lead to delayed shutdown times while
     the JVM is waiting for threads to finish.
     """
@@ -175,9 +200,9 @@ def shutdown_jvm():
             callback()
         except Exception as e:
             print(f"Exception during shutdown callback: {e}")
-            
+
     # clean up remaining awt windows
-    Window = jimport('java.awt.Window')
+    Window = jimport("java.awt.Window")
     for w in Window.getWindows():
         w.dispose()
 
@@ -186,6 +211,7 @@ def shutdown_jvm():
         jpype.shutdownJVM()
     except Exception as e:
         print(f"Exception during JVM shutdown: {e}")
+
 
 def jvm_started():
     """Return true iff a Java virtual machine (JVM) has been started."""
@@ -209,6 +235,7 @@ def when_jvm_starts(f):
         global _startup_callbacks
         _startup_callbacks.append(f)
 
+
 def when_jvm_stops(f):
     """
     Registers a function to be called when the JVM starts (or immediately).
@@ -224,11 +251,13 @@ def when_jvm_stops(f):
 
 # -- Utility functions --
 
+
 def get_version(java_class):
-    """Return the version of a Java class. """
-    VersionUtils = jimport('org.scijava.util.VersionUtils')
+    """Return the version of a Java class."""
+    VersionUtils = jimport("org.scijava.util.VersionUtils")
     version = VersionUtils.getVersion(java_class)
     return version
+
 
 def compare_version(version, java_class_version):
     """
@@ -236,9 +265,10 @@ def compare_version(version, java_class_version):
     if the Java class version is higher than the specified version. False
     is returned if the specified version is higher than the Java class version.
     """
-    VersionUtils = jimport('org.scijava.util.VersionUtils')
+    VersionUtils = jimport("org.scijava.util.VersionUtils")
     comparison = VersionUtils.compare(version, java_class_version) < 0
     return comparison
+
 
 # -- Type Conversion Utilities --
 
@@ -246,15 +276,16 @@ def compare_version(version, java_class_version):
 # Unfortunately, we cannot do that without bringing in all of SJC.
 # Once SciJava 3 is mainstream, we could use a SciJava Priority module :)
 class Priority:
-    FIRST = 1E300
-    EXTREMELY_HIGH = 1E6
-    VERY_HIGH = 1E4
-    HIGH = 1E2
+    FIRST = 1e300
+    EXTREMELY_HIGH = 1e6
+    VERY_HIGH = 1e4
+    HIGH = 1e2
     NORMAL = 0
-    LOW = -1E2
-    VERY_LOW = -1E4
-    EXTREMELY_LOW = -1E6
-    LAST = -1E300
+    LOW = -1e2
+    VERY_LOW = -1e4
+    EXTREMELY_LOW = -1e6
+    LAST = -1e300
+
 
 class Converter(NamedTuple):
     predicate: Callable[[Any], bool]
@@ -264,7 +295,7 @@ class Converter(NamedTuple):
 
 def _convert(obj: Any, converters: typing.List[Converter]) -> Any:
     suitable_converters = filter(lambda c: c.predicate(obj), converters)
-    prioritized = max(suitable_converters, key = lambda c: c.priority)
+    prioritized = max(suitable_converters, key=lambda c: c.priority)
     return prioritized.converter(obj)
 
 
@@ -276,6 +307,7 @@ def _add_converter(converter: Converter, converters: typing.List[Converter]):
 
 # Adapted from code posted by vslotman on GitHub:
 # https://github.com/kivy/pyjnius/issues/217#issue-145981070
+
 
 def isjava(data):
     """Return whether the given data object is a Java object."""
@@ -301,7 +333,7 @@ def jclass(data):
         return data.getClass()
     if isinstance(data, str):
         return jclass(jimport(data))
-    raise TypeError('Cannot glean class from data of type: ' + str(type(data)))
+    raise TypeError("Cannot glean class from data of type: " + str(type(data)))
 
 
 @lru_cache(maxsize=None)
@@ -335,18 +367,18 @@ def jstacktrace(exc):
     if no stack trace could be extracted.
     """
     try:
-        StringWriter = jimport('java.io.StringWriter')
-        PrintWriter = jimport('java.io.PrintWriter')
+        StringWriter = jimport("java.io.StringWriter")
+        PrintWriter = jimport("java.io.PrintWriter")
         sw = StringWriter()
         exc.printStackTrace(PrintWriter(sw, True))
         return sw.toString()
     except:
-        return ''
+        return ""
 
 
 def _raise_type_exception(obj: Any):
-    raise TypeError('Unsupported type: ' + str(type(obj)))
-    
+    raise TypeError("Unsupported type: " + str(type(obj)))
+
 
 def _convertMap(obj: collections.abc.Mapping):
     jmap = LinkedHashMap()
@@ -373,7 +405,7 @@ def _convertIterable(obj: collections.abc.Iterable):
     return jlist
 
 
-java_converters : typing.List[Converter] = []
+java_converters: typing.List[Converter] = []
 
 
 def add_java_converter(converter: Converter):
@@ -414,24 +446,24 @@ def _stock_java_converters() -> typing.List[Converter]:
         Converter(
             predicate=lambda obj: True,
             converter=_raise_type_exception,
-            priority=Priority.EXTREMELY_LOW - 1
+            priority=Priority.EXTREMELY_LOW - 1,
         ),
         # NoneType converter
         Converter(
             predicate=lambda obj: obj is None,
             converter=lambda obj: None,
-            priority=Priority.EXTREMELY_HIGH + 1
+            priority=Priority.EXTREMELY_HIGH + 1,
         ),
         # Java identity converter
         Converter(
             predicate=isjava,
             converter=lambda obj: obj,
-            priority=Priority.EXTREMELY_HIGH
+            priority=Priority.EXTREMELY_HIGH,
         ),
         # String converter
         Converter(
-            predicate=lambda obj: isinstance(obj, str), 
-            converter=lambda obj: String(obj.encode('utf-8'), 'utf-8'),
+            predicate=lambda obj: isinstance(obj, str),
+            converter=lambda obj: String(obj.encode("utf-8"), "utf-8"),
         ),
         # Boolean converter
         Converter(
@@ -440,43 +472,49 @@ def _stock_java_converters() -> typing.List[Converter]:
         ),
         # Integer converter
         Converter(
-            predicate=lambda obj: isinstance(obj, int) and obj <= Integer.MAX_VALUE and obj >= Integer.MIN_VALUE,
-            converter= Integer,
+            predicate=lambda obj: isinstance(obj, int)
+            and obj <= Integer.MAX_VALUE
+            and obj >= Integer.MIN_VALUE,
+            converter=Integer,
         ),
         # Long converter
         Converter(
             predicate=lambda obj: isinstance(obj, int) and obj <= Long.MAX_VALUE,
             converter=Long,
-            priority=Priority.NORMAL - 1
+            priority=Priority.NORMAL - 1,
         ),
         # BigInteger converter
         Converter(
             predicate=lambda obj: isinstance(obj, int),
             converter=lambda obj: BigInteger(str(obj)),
-            priority=Priority.NORMAL - 2
+            priority=Priority.NORMAL - 2,
         ),
         # Float converter
         Converter(
-            predicate=lambda obj: isinstance(obj, float) and obj <= Float.MAX_VALUE and obj >= Float.MIN_VALUE,
-            converter= Float,
+            predicate=lambda obj: isinstance(obj, float)
+            and obj <= Float.MAX_VALUE
+            and obj >= Float.MIN_VALUE,
+            converter=Float,
         ),
         # Double converter
         Converter(
-            predicate=lambda obj: isinstance(obj, float) and obj <= Double.MAX_VALUE and obj >= Float.MIN_VALUE,
+            predicate=lambda obj: isinstance(obj, float)
+            and obj <= Double.MAX_VALUE
+            and obj >= Float.MIN_VALUE,
             converter=Double,
-            priority=Priority.NORMAL - 1
+            priority=Priority.NORMAL - 1,
         ),
         # BigDecimal converter
         Converter(
             predicate=lambda obj: isinstance(obj, float),
             converter=lambda obj: BigDecimal(str(obj)),
-            priority=Priority.NORMAL - 2
+            priority=Priority.NORMAL - 2,
         ),
         # Pandas table converter
         Converter(
-            predicate=lambda obj: type(obj).__name__ == 'DataFrame',
+            predicate=lambda obj: type(obj).__name__ == "DataFrame",
             converter=_pandas_to_table,
-            priority=Priority.NORMAL + 1
+            priority=Priority.NORMAL + 1,
         ),
         # Mapping converter
         Converter(
@@ -492,13 +530,13 @@ def _stock_java_converters() -> typing.List[Converter]:
         Converter(
             predicate=lambda obj: isinstance(obj, collections.abc.Iterable),
             converter=_convertIterable,
-            priority=Priority.NORMAL -1
+            priority=Priority.NORMAL - 1,
         ),
     ]
 
 
 when_jvm_starts(
-    lambda : [_add_converter(c, java_converters) for c in _stock_java_converters()]
+    lambda: [_add_converter(c, java_converters) for c in _stock_java_converters()]
 )
 
 
@@ -509,15 +547,17 @@ def _jstr(data):
     if isinstance(data, JavaObject):
         return str(data)
     # NB: We want Python strings to render in single quotes.
-    return '{!r}'.format(data)
+    return "{!r}".format(data)
 
 
-class JavaObject():
+class JavaObject:
     def __init__(self, jobj, intended_class=None):
         if intended_class is None:
             intended_class = Object
         if not isinstance(jobj, intended_class):
-            raise TypeError('Not a ' + intended_class.getName() + ': ' + jclass(jobj).getName())
+            raise TypeError(
+                "Not a " + intended_class.getName() + ": " + jclass(jobj).getName()
+            )
         self.jobj = jobj
 
     def __str__(self):
@@ -532,7 +572,7 @@ class JavaIterable(JavaObject, collections.abc.Iterable):
         return to_python(self.jobj.iterator())
 
     def __str__(self):
-        return '[' + ', '.join(_jstr(v) for v in self) + ']'
+        return "[" + ", ".join(_jstr(v) for v in self) + "]"
 
 
 class JavaCollection(JavaIterable, collections.abc.Collection):
@@ -630,7 +670,9 @@ class JavaMap(JavaObject, collections.abc.MutableMapping):
             return False
 
     def __str__(self):
-        return '{' + ', '.join(_jstr(k) + ': ' + _jstr(v) for k,v in self.items()) + '}'
+        return (
+            "{" + ", ".join(_jstr(k) + ": " + _jstr(v) for k, v in self.items()) + "}"
+        )
 
 
 class JavaSet(JavaCollection, collections.abc.MutableSet):
@@ -660,10 +702,10 @@ class JavaSet(JavaCollection, collections.abc.MutableSet):
             return False
 
     def __str__(self):
-        return '{' + ', '.join(_jstr(v) for v in self) + '}'
+        return "{" + ", ".join(_jstr(v) for v in self) + "}"
 
 
-py_converters : typing.List[Converter] = []
+py_converters: typing.List[Converter] = []
 
 
 def add_py_converter(converter: Converter):
@@ -674,7 +716,7 @@ def add_py_converter(converter: Converter):
     _add_converter(converter, py_converters)
 
 
-def to_python(data: Any, gentle: bool =False) -> Any:
+def to_python(data: Any, gentle: bool = False) -> Any:
     """
     Recursively convert a Java object to a Python object.
     :param data: The Java object to convert.
@@ -699,7 +741,8 @@ def to_python(data: Any, gentle: bool =False) -> Any:
     try:
         return _convert(data, py_converters)
     except TypeError as exc:
-        if gentle: return data
+        if gentle:
+            return data
         raise exc
 
 
@@ -714,37 +757,37 @@ def _stock_py_converters() -> typing.List:
         Converter(
             predicate=lambda obj: True,
             converter=_raise_type_exception,
-            priority=Priority.EXTREMELY_LOW - 1
+            priority=Priority.EXTREMELY_LOW - 1,
         ),
         # Java identity converter
         Converter(
             predicate=lambda obj: not isjava(obj),
             converter=lambda obj: obj,
-            priority=Priority.EXTREMELY_HIGH
+            priority=Priority.EXTREMELY_HIGH,
         ),
         # JBoolean converter
         Converter(
             predicate=lambda obj: isinstance(obj, JBoolean),
             converter=bool,
-            priority=Priority.NORMAL + 1
+            priority=Priority.NORMAL + 1,
         ),
         # JInt/JLong/JShort converter
         Converter(
             predicate=lambda obj: isinstance(obj, (JInt, JLong, JShort)),
             converter=int,
-            priority=Priority.NORMAL + 1
+            priority=Priority.NORMAL + 1,
         ),
         # JDouble/JFloat converter
         Converter(
             predicate=lambda obj: isinstance(obj, (JDouble, JFloat)),
             converter=float,
-            priority=Priority.NORMAL + 1
+            priority=Priority.NORMAL + 1,
         ),
         # JChar converter
         Converter(
             predicate=lambda obj: isinstance(obj, JChar),
             converter=str,
-            priority=Priority.NORMAL + 1
+            priority=Priority.NORMAL + 1,
         ),
         # Boolean converter
         Converter(
@@ -793,7 +836,7 @@ def _stock_py_converters() -> typing.List:
         ),
         # String converter
         Converter(
-            predicate=lambda obj: isinstance(obj, String), 
+            predicate=lambda obj: isinstance(obj, String),
             converter=lambda obj: str(obj),
         ),
         # BigInteger converter
@@ -830,38 +873,38 @@ def _stock_py_converters() -> typing.List:
         Converter(
             predicate=lambda obj: isinstance(obj, Collection),
             converter=JavaCollection,
-            priority=Priority.NORMAL -1
+            priority=Priority.NORMAL - 1,
         ),
         # Iterable converter
         Converter(
             predicate=lambda obj: isinstance(obj, Iterable),
             converter=JavaIterable,
-            priority=Priority.NORMAL -1
+            priority=Priority.NORMAL - 1,
         ),
         # Iterator converter
         Converter(
             predicate=lambda obj: isinstance(obj, Iterator),
             converter=JavaIterator,
-            priority=Priority.NORMAL - 1
+            priority=Priority.NORMAL - 1,
         ),
         # JArray converter
         Converter(
             predicate=lambda obj: isinstance(obj, JArray),
-            converter=lambda obj:[to_python(o) for o in obj],
-            priority=Priority.VERY_LOW
+            converter=lambda obj: [to_python(o) for o in obj],
+            priority=Priority.VERY_LOW,
         ),
     ]
 
 
 when_jvm_starts(
-    lambda : [_add_converter(c, py_converters) for c in _stock_py_converters()]
+    lambda: [_add_converter(c, py_converters) for c in _stock_py_converters()]
 )
 
 
 def _is_table(obj: Any) -> bool:
     """Checks if obj is a table"""
     try:
-        return isinstance(obj, jimport('org.scijava.table.Table'))
+        return isinstance(obj, jimport("org.scijava.table.Table"))
     except:
         # No worries if scijava-table is not available.
         pass
@@ -870,7 +913,7 @@ def _is_table(obj: Any) -> bool:
 def _convert_table(obj: Any):
     """Converts obj to a table."""
     try:
-            return _table_to_pandas(obj)
+        return _table_to_pandas(obj)
     except:
         # No worries if scijava-table is not available.
         pass
@@ -879,6 +922,7 @@ def _convert_table(obj: Any):
 def _import_pandas():
     try:
         import pandas as pd
+
         return pd
     except ImportError:
         msg = "The Pandas library is missing (http://pandas.pydata.org/). "
@@ -893,7 +937,7 @@ def _table_to_pandas(table):
     headers = []
     for i, column in enumerate(table.toArray()):
         data.append(column.toArray())
-        headers.append(str(table.getColumnHeader(i)))   
+        headers.append(str(table.getColumnHeader(i)))
     df = pd.DataFrame(data).T
     df.columns = headers
     return df
@@ -903,15 +947,15 @@ def _pandas_to_table(df):
     pd = _import_pandas()
 
     if len(df.dtypes.unique()) > 1:
-        TableClass = jimport('org.scijava.table.DefaultGenericTable')
+        TableClass = jimport("org.scijava.table.DefaultGenericTable")
     else:
         table_type = df.dtypes.unique()[0]
-        if table_type.name.startswith('float'):
-            TableClass = jimport('org.scijava.table.DefaultFloatTable')
-        elif table_type.name.startswith('int'):
-            TableClass = jimport('org.scijava.table.DefaultIntTable')
-        elif table_type.name.startswith('bool'):
-            TableClass = jimport('org.scijava.table.DefaultBoolTable')
+        if table_type.name.startswith("float"):
+            TableClass = jimport("org.scijava.table.DefaultFloatTable")
+        elif table_type.name.startswith("int"):
+            TableClass = jimport("org.scijava.table.DefaultIntTable")
+        elif table_type.name.startswith("bool"):
+            TableClass = jimport("org.scijava.table.DefaultBoolTable")
         else:
             msg = "The type '{}' is not supported.".format(table_type.name)
             raise Exception(msg)

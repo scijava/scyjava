@@ -1,6 +1,18 @@
-*.swp
-/.eggs/
+# Byte-compiled / optimized / DLL files
+*__pycache__/
+*.py[cod]
+
+# Distribution / packaging
 /build/
 /dist/
-/scyjava.egg-info/
-__pycache__/
+/eggs/
+/.eggs/
+*egg-info/
+
+# Vi
+*.swp
+
+# Unit test / coverage reports
+.coverage
+.coverage.*
+coverage.xml

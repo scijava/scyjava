@@ -128,6 +128,7 @@ def start_jvm(options=scyjava.config.get_options()):
         jpype.addClassPath(os.path.join(workspace, "*"))
 
     # initialize JPype JVM
+    _logger.debug("Starting JVM")
     jpype.startJVM(*options, interrupt=True)
 
     # replace JPype/JVM shutdown handling with our own

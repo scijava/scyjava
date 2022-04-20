@@ -129,22 +129,25 @@ def start_jvm(options=scyjava.config.get_options()):
         jpype.addClassPath(os.path.join(workspace, "*"))
 
     # HACK: Try to set JAVA_HOME if it isn't already.
-    if 'JAVA_HOME' not in os.environ \
-            or not os.environ['JAVA_HOME'] \
-            or not os.path.isdir(os.environ['JAVA_HOME']):
+    if (
+        "JAVA_HOME" not in os.environ
+        or not os.environ["JAVA_HOME"]
+        or not os.path.isdir(os.environ["JAVA_HOME"])
+    ):
 
         _logger.debug("JAVA_HOME not set. Will try to infer it from sys.path.")
 
-        libjvm_win = Path('Library') / 'jre' / 'bin' / 'server' / 'jvm.dll'
-        libjvm_macos = Path('lib') / 'server' / 'libjvm.dylib'
-        libjvm_linux = Path('lib') / 'server' / 'libjvm.so'
+        libjvm_win = Path("Library") / "jre" / "bin" / "server" / "jvm.dll"
+        libjvm_macos = Path("lib") / "server" / "libjvm.dylib"
+        libjvm_linux = Path("lib") / "server" / "libjvm.so"
         libjvm_paths = {
-            libjvm_win:   Path('Library'),
+            libjvm_win: Path("Library"),
             libjvm_macos: Path(),
             libjvm_linux: Path(),
         }
         for p in sys.path:
-            if not p.endswith('site-packages'): continue
+            if not p.endswith("site-packages"):
+                continue
             # e.g. $CONDA_PREFIX/lib/python3.10/site-packages -> $CONDA_PREFIX
             # But we want it to work outside of Conda as well, theoretically.
             base = Path(p).parent.parent.parent
@@ -152,7 +155,7 @@ def start_jvm(options=scyjava.config.get_options()):
                 if (base / libjvm_path).exists():
                     java_home = str((base / java_home_path).resolve())
                     _logger.debug(f"Detected JAVA_HOME: %s", java_home)
-                    os.environ['JAVA_HOME'] = java_home
+                    os.environ["JAVA_HOME"] = java_home
                     break
 
     # initialize JPype JVM

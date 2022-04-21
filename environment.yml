@@ -1,8 +1,24 @@
+# Use this file to construct an environment for working
+# with scyjava in a runtime setting
+#
+#   mamba env create
+#   conda activate scyjava
+#
+# It includes the dependencies needed for using scyjava but not tools
+# for developer-related actions like running automated tests (pytest),
+# linting the code (black), and generating the API documentation (sphinx).
+# If you want an environment including these tools, use dev-environment.yml.
+
 name: scyjava
 channels:
   - conda-forge
   - defaults
 dependencies:
+  # Project dependencies
   - jpype1 >= 1.3.0
   - jgo
-  - scyjava
+  - openjdk=8
+  # Project from source
+  - pip
+  - pip:
+    - -e .

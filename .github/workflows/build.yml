@@ -28,28 +28,32 @@ jobs:
           '3.9',
           '3.10'
         ]
+        # Breaks due to https://github.com/jpype-project/jpype/issues/1009
+        # Should be included once the fix is released
+        exclude:
+          - os: windows-latest
+            python-version: "3.10"
 
     steps:
     - uses: actions/checkout@v2
-    - uses: conda-incubator/setup-miniconda@v2
+
+    - uses: actions/setup-python@v3
       with:
-        auto-update-conda: true
-        python-version: ${{ matrix.python-version }}
-    - name: Add conda to system path
+        python-version: ${{matrix.python-version}}
+
+    - uses: actions/setup-java@v3
+      with:
+        java-version: '8'
+        distribution: 'zulu'
+
+    - name: Install ScyJava
       run: |
-        # $CONDA is an environment variable pointing to the root of the miniconda directory
-        echo $CONDA/bin >> $GITHUB_PATH
-    - name: Install mamba
+        python -m pip install --upgrade pip
+        python -m pip install -e '.[dev]'
+
+    - name: Test ScyJava
       run: |
-        conda install -c conda-forge mamba
-    - name: Install dependencies
-      run: |
-        mamba env update --file environment-test.yml --name base
-    - name: Install current project in dev mode
-      run: |
-        python -m pip install -e .
-    - name: Run test suite
-      run: python -m pytest -p no:faulthandler --color=yes
+        python -m pytest -p no:faulthandler --color=yes
 
   lint:
     runs-on: ubuntu-latest
@@ -74,7 +78,7 @@ jobs:
           conda install -c conda-forge mamba
       - name: Install dependencies
         run: |
-          mamba env update --file environment-test.yml --name base
+          mamba env update --file dev-environment.yml --name base
       - name: Install current project in dev mode
         run: |
           pip install -e .

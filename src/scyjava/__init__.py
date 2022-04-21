@@ -14,10 +14,71 @@ import scyjava.config
 import subprocess
 import sys
 from pathlib import Path
+from typing import Dict
 from jpype.types import *
 from _jpype import _JObject
 
 _logger = logging.getLogger(__name__)
+
+# Set of module properties
+_MODULE_PROPERTIES: Dict[str, Callable] = {}
+
+
+def module_property(func: Callable[[], Any]) -> Callable[[], Any]:
+    """
+    Turns a function into a property of this module
+    Functions decorated with this property must have a
+    leading underscore!
+    :param func: The function to turn into a property
+    """
+    if func.__name__[0] != "_":
+        raise ValueError(
+            f"""Function {func.__name__} must have
+            a leading underscore in its name
+            to become a module property!"""
+        )
+    name = func.__name__[1:]
+    _MODULE_PROPERTIES[name] = func
+    return func
+
+
+def __getattr__(name):
+    """
+    Runs as a fallback when this module does not have an
+    attribute.
+    :param name: The name of the attribute being searched for.
+    """
+    if name in _MODULE_PROPERTIES:
+        return _MODULE_PROPERTIES[name]()
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
+
+
+@module_property
+@lru_cache(maxsize=None)
+def ___version__():
+    # First pass: use the version output by setuptools_scm
+    try:
+        import scyjava.version
+
+        return scyjava.version.version
+    except ImportError:
+        pass
+    # Second pass: use importlib.metadata
+    try:
+        from importlib.metadata import version, PackageNotFoundError
+
+        return version("scyjava")
+    except ImportError or PackageNotFoundError:
+        pass
+    # Third pass: use pkg_resources
+    try:
+        from pkg_resources import get_distribution, DistributionNotFound
+
+        return get_distribution("scyjava").version
+    except DistributionNotFound:
+        pass
+    # Fourth pass: Give up
+    return "Cannot determine version! Ensure pkg_resources is installed!"
 
 
 # -- JVM setup --

@@ -9,6 +9,9 @@
 /.eggs/
 *egg-info/
 
+# setuptools_scm
+src/scyjava/_version.py
+
 # Vi
 *.swp
 

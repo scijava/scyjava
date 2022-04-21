@@ -23,7 +23,7 @@ _logger = logging.getLogger(__name__)
 _MODULE_PROPERTIES: Dict[str, Callable] = {}
 
 
-def module_property(func: Callable[[], Any]) -> Callable[[], Any]:
+def module_property(func: Callable[[], Any], cache=True) -> Callable[[], Any]:
     """
     Turns a function into a property of this module
     Functions decorated with this property must have a
@@ -37,6 +37,8 @@ def module_property(func: Callable[[], Any]) -> Callable[[], Any]:
             to become a module property!"""
         )
     name = func.__name__[1:]
+    if cache:
+        func = (lru_cache(maxsize=None))(func)
     _MODULE_PROPERTIES[name] = func
     return func
 
@@ -53,7 +55,6 @@ def __getattr__(name):
 
 
 @module_property
-@lru_cache(maxsize=None)
 def ___version__():
     # First pass: use the version output by setuptools_scm
     try:

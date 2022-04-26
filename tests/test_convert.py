@@ -1,18 +1,9 @@
-from jpype import JArray, JInt, JLong
+from jpype import JArray, JInt
+
 from scyjava import Converter, config, jclass, jimport, start_jvm, to_java, to_python
 
 config.endpoints.append("org.scijava:scijava-table")
 config.add_option("-Djava.awt.headless=true")
-
-
-def assert_same_table(table, df):
-    assert len(table.toArray()) == df.shape[1]
-    assert len(table.toArray()[0].toArray()) == df.shape[0]
-
-    for i, column in enumerate(table.toArray()):
-        npt.assert_array_almost_equal(df.iloc[:, i].values, column.toArray())
-
-        assert table.getColumnHeader(i) == df.columns[i]
 
 
 class TestConvert(object):
@@ -21,35 +12,35 @@ class TestConvert(object):
         Tests class detection from Java objects.
         """
         int_class = jclass(to_java(5))
-        "java.lang.Integer" == int_class.getName()
+        assert "java.lang.Integer" == int_class.getName()
 
         long_class = jclass(to_java(4000000001))
-        "java.lang.Long" == long_class.getName()
+        assert "java.lang.Long" == long_class.getName()
 
         bigint_class = jclass(to_java(9879999999999999789))
-        "java.math.BigInteger" == bigint_class.getName()
+        assert "java.math.BigInteger" == bigint_class.getName()
 
         string_class = jclass(to_java("foobar"))
-        "java.lang.String" == string_class.getName()
+        assert "java.lang.String" == string_class.getName()
 
         list_class = jclass(to_java([1, 2, 3]))
         assert "java.util.ArrayList" == list_class.getName()
 
         map_class = jclass(to_java({"a": "b"}))
-        "java.util.LinkedHashMap" == map_class.getName()
+        assert "java.util.LinkedHashMap" == map_class.getName()
 
-        "java.util.Map" == jclass("java.util.Map").getName()
+        assert "java.util.Map" == jclass("java.util.Map").getName()
 
     def testBoolean(self):
         jt = to_java(True)
-        assert True == jt.booleanValue()
+        assert jt.booleanValue()
         pt = to_python(jt)
-        assert True == pt
+        assert pt
         assert "True" == str(pt)
         jf = to_java(False)
-        assert False == jf.booleanValue()
+        assert not jf.booleanValue()
         pf = to_python(jf)
-        assert False == pf
+        assert not pf
         assert "False" == str(pf)
 
     def testInteger(self):
@@ -61,12 +52,12 @@ class TestConvert(object):
         assert str(i) == str(pi)
 
     def testLong(self):
-        l = 4000000001
-        jl = to_java(l)
-        assert l == jl.longValue()
-        pl = to_python(jl)
-        assert l == pl
-        assert str(l) == str(pl)
+        long = 4000000001
+        jlong = to_java(long)
+        assert long == jlong.longValue()
+        plong = to_python(jlong)
+        assert long == plong
+        assert str(long) == str(plong)
 
     def testBigInteger(self):
         bi = 9879999999999999789
@@ -103,16 +94,16 @@ class TestConvert(object):
         assert str(s) == str(ps)
 
     def testList(self):
-        l = "The quick brown fox jumps over the lazy dogs".split()
-        jl = to_java(l)
-        for e, a in zip(l, jl):
+        list = "The quick brown fox jumps over the lazy dogs".split()
+        jlist = to_java(list)
+        for e, a in zip(list, jlist):
             assert e == to_python(a)
-        pl = to_python(jl)
-        assert l == pl
-        assert str(l) == str(pl)
-        assert pl[1] == "quick"
-        pl[7] = "silly"
-        assert "The quick brown fox jumps over the silly dogs" == " ".join(pl)
+        plist = to_python(jlist)
+        assert list == plist
+        assert str(list) == str(plist)
+        assert plist[1] == "quick"
+        plist[7] = "silly"
+        assert "The quick brown fox jumps over the silly dogs" == " ".join(plist)
 
     def testSet(self):
         s = set(["orange", "apple", "pineapple", "plum"])
@@ -161,36 +152,36 @@ class TestConvert(object):
         assert str(d) == str(pd)
 
     def testMixed(self):
-        d = {"a": "b", "c": "d"}
-        l = ["e", "f", "g", "h"]
-        s = set(["i", "j", "k"])
+        test_dict = {"a": "b", "c": "d"}
+        test_list = ["e", "f", "g", "h"]
+        test_set = set(["i", "j", "k"])
 
         # mixed types in a dictionary
-        md = {"d": d, "l": l, "s": s, "str": "hello"}
-        jmd = to_java(md)
-        assert len(md) == jmd.size()
-        for k, v in md.items():
-            jk = to_java(k)
-            jmd.containsKey(jk)
-            assert v == to_python(jmd.get(jk))
-        pmd = to_python(jmd)
-        assert md == pmd
-        assert str(md) == str(pmd)
+        mixed_dict = {"d": test_dict, "l": test_list, "s": test_set, "str": "hello"}
+        j_mixed_dict = to_java(mixed_dict)
+        assert len(mixed_dict) == j_mixed_dict.size()
+        for k, v in mixed_dict.items():
+            j_k = to_java(k)
+            j_mixed_dict.containsKey(j_k)
+            assert v == to_python(j_mixed_dict.get(j_k))
+        p_mixed_dict = to_python(j_mixed_dict)
+        assert mixed_dict == p_mixed_dict
+        assert str(mixed_dict) == str(p_mixed_dict)
 
         # mixed types in a list
-        ml = [d, l, s, "hello"]
-        jml = to_java(ml)
-        for e, a in zip(ml, jml):
+        mixed_list = [test_dict, test_list, test_set, "hello"]
+        j_mixed_list = to_java(mixed_list)
+        for e, a in zip(mixed_list, j_mixed_list):
             assert e == to_python(a)
-        pml = to_python(jml)
-        assert ml == pml
-        assert str(ml) == str(pml)
+        p_mixed_list = to_python(j_mixed_list)
+        assert mixed_list == p_mixed_list
+        assert str(mixed_list) == str(p_mixed_list)
 
     def testNone(self):
         d = {"key": None, None: "value", "foo": "bar"}
         jd = to_java(d)
         assert 3 == jd.size()
-        assert None == jd.get("key")
+        assert None is jd.get("key")
         assert "value" == jd.get(None)
         assert "bar" == jd.get("foo")
         pd = to_python(jd)
@@ -200,11 +191,11 @@ class TestConvert(object):
         Object = jimport("java.lang.Object")
         unknown_thing = Object()
         converted_thing = to_python(unknown_thing, gentle=True)
-        assert type(converted_thing) == Object
+        assert isinstance(converted_thing, Object)
         bad_conversion = None
         try:
             bad_conversion = to_python(unknown_thing)
-        except:
+        except BaseException:
             # NB: Failure is expected here.
             pass
         assert bad_conversion is None
@@ -224,14 +215,13 @@ class TestConvert(object):
 
         # Convert it back to Python.
         pdict = to_python(jmap)
-        l = pdict["list"]
         assert pdict["list"][0] == "a"
-        assert type(pdict["list"][1]) == Object
+        assert isinstance(pdict["list"][1], Object)
         assert pdict["list"][2] == 1
         assert "x" in pdict["set"]
         assert 2 in pdict["set"]
         assert len(pdict["set"]) == 3
-        assert type(pdict["object"]) == Object
+        assert isinstance(pdict["object"], Object)
         assert pdict["foo"] == "bar"
 
     def test_conversion_priority(self):

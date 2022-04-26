@@ -1,6 +1,7 @@
 import os
-import pytest
 import sys
+
+import pytest
 
 setuptools_file = os.path.join(os.getcwd(), "src", "scyjava", "version.py")
 
@@ -60,7 +61,8 @@ def test_version_pkg_resources():
     sys.modules["scyjava.version"] = None
     # Remove importlib.metadata
     sys.modules["importlib.metadata"] = None
-    # Ensure scyjava.__version__ matches pkg_resources.get_distribution().version
+    # Ensure scyjava.__version__ matches
+    # pkg_resources.get_distribution().version
     from pkg_resources import get_distribution
 
     assert _scyjava_version() == get_distribution("scyjava").version

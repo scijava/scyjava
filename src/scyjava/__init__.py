@@ -75,7 +75,7 @@ def ___version__():
         from pkg_resources import get_distribution, DistributionNotFound
 
         return get_distribution("scyjava").version
-    except DistributionNotFound:
+    except ImportError:
         pass
     # Fourth pass: Give up
     return "Cannot determine version! Ensure pkg_resources is installed!"

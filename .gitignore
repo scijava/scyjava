@@ -15,6 +15,9 @@ src/scyjava/version.py
 # Vi
 *.swp
 
+# VSCode
+.vscode
+
 # Unit test / coverage reports
 .coverage
 .coverage.*

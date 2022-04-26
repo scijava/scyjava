@@ -20,8 +20,10 @@ dependencies:
   - numpy
   - pandas
   # Developer tools
+  - autopep8
   - black
   - build
+  - flake8
   - pytest
   - pytest-cov
   - setuptools-scm >= 6.2

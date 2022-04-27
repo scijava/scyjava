@@ -879,7 +879,7 @@ def _stock_py_converters() -> typing.List:
         # BigDecimal converter
         Converter(
             predicate=lambda obj: isinstance(obj, BigDecimal),
-            converter=lambda obj: float(obj.toString),
+            converter=lambda obj: float(str(obj.toString())),
         ),
         # SciJava Table converter
         Converter(

@@ -167,7 +167,10 @@ def jvm_version():
     return tuple(map(int, m.group(1).split(".")))
 
 
-def start_jvm(options=scyjava.config.get_options()):
+_config_options = scyjava.config.get_options()
+
+
+def start_jvm(options=_config_options):
     """
     Explicitly connect to the Java virtual machine (JVM). Only one JVM can
     be active; does nothing if the JVM has already been started. Calling

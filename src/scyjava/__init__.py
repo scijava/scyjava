@@ -29,10 +29,10 @@ from _jpype import _JObject
 _logger = logging.getLogger(__name__)
 
 # Set of module properties
-_MODULE_PROPERTIES: Dict[str, Callable] = {}
+_CONSTANTS: Dict[str, Callable] = {}
 
 
-def module_property(func: Callable[[], Any], cache=True) -> Callable[[], Any]:
+def constant(func: Callable[[], Any], cache=True) -> Callable[[], Any]:
     """
     Turns a function into a property of this module
     Functions decorated with this property must have a
@@ -48,7 +48,7 @@ def module_property(func: Callable[[], Any], cache=True) -> Callable[[], Any]:
     name = func.__name__[1:]
     if cache:
         func = (lru_cache(maxsize=None))(func)
-    _MODULE_PROPERTIES[name] = func
+    _CONSTANTS[name] = func
     return func
 
 
@@ -58,12 +58,12 @@ def __getattr__(name):
     attribute.
     :param name: The name of the attribute being searched for.
     """
-    if name in _MODULE_PROPERTIES:
-        return _MODULE_PROPERTIES[name]()
+    if name in _CONSTANTS:
+        return _CONSTANTS[name]()
     raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 
-@module_property
+@constant
 def ___version__():
     # First pass: use the version output by setuptools_scm
     try:

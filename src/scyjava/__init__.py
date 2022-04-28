@@ -1087,7 +1087,7 @@ def _pandas_to_table(df):
     for c, column_name in enumerate(df.columns):
         table.setColumnHeader(c, column_name)
 
-    for i, (index, row) in enumerate(df.iterrows()):
+    for i, (_, row) in enumerate(df.iterrows()):
         for c, value in enumerate(row):
             header = df.columns[c]
             table.set(header, i, to_java(value))

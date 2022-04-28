@@ -139,7 +139,7 @@ def find_jars(directory):
     :return: a list of JAR files
     """
     jars = []
-    for root, dirs, files in os.walk(directory):
+    for root, _, files in os.walk(directory):
         for f in files:
             if f.lower().endswith(".jar"):
                 path = os.path.join(root, f)

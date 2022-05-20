@@ -7,7 +7,7 @@ channels:
 dependencies:
   - pytest
   - pytest-cov
-  - jpype1
+  - jpype1 >= 1.4.0
   - jgo
   - numpy
   - pandas

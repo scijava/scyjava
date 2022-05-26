@@ -22,3 +22,7 @@ src/scyjava/version.py
 .coverage
 .coverage.*
 coverage.xml
+
+# IDEA
+.idea/
+*.iml

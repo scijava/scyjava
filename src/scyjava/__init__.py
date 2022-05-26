@@ -503,10 +503,6 @@ def to_java(obj: Any) -> Any:
     return _convert(obj, java_converters)
 
 
-def _is_a_long(obj) -> bool:
-    return isinstance(obj, int) and obj <= Long.MAX_VALUE
-
-
 def _stock_java_converters() -> typing.List[Converter]:
     """
     Returns all python-to-java converters supported out of the box!
@@ -545,13 +541,13 @@ def _stock_java_converters() -> typing.List[Converter]:
         # Integer converter
         Converter(
             predicate=lambda obj: isinstance(obj, int)
-            and obj <= Integer.MAX_VALUE
-            and obj >= Integer.MIN_VALUE,
+            and Integer.MIN_VALUE <= obj <= Integer.MAX_VALUE,
             converter=Integer,
         ),
         # Long converter
         Converter(
-            predicate=_is_a_long,
+            predicate=lambda obj: isinstance(obj, int)
+            and Long.MIN_VALUE <= obj <= Long.MAX_VALUE,
             converter=Long,
             priority=Priority.NORMAL - 1,
         ),
@@ -564,15 +560,13 @@ def _stock_java_converters() -> typing.List[Converter]:
         # Float converter
         Converter(
             predicate=lambda obj: isinstance(obj, float)
-            and obj <= Float.MAX_VALUE
-            and obj >= Float.MIN_VALUE,
+            and Float.MIN_VALUE <= obj <= Float.MAX_VALUE,
             converter=Float,
         ),
         # Double converter
         Converter(
             predicate=lambda obj: isinstance(obj, float)
-            and obj <= Double.MAX_VALUE
-            and obj >= Float.MIN_VALUE,
+            and Double.MAX_VALUE <= obj <= Double.MAX_VALUE,
             converter=Double,
             priority=Priority.NORMAL - 1,
         ),

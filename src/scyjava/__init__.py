@@ -247,51 +247,7 @@ def start_jvm(options=_config_options):
     jpype.config.free_resources = False
     atexit.register(shutdown_jvm)
 
-    # grab needed Java classes
-    global Boolean
-    Boolean = jimport("java.lang.Boolean")
-    global Byte
-    Byte = jimport("java.lang.Byte")
-    global Character
-    Character = jimport("java.lang.Character")
-    global Double
-    Double = jimport("java.lang.Double")
-    global Float
-    Float = jimport("java.lang.Float")
-    global Integer
-    Integer = jimport("java.lang.Integer")
-    global Iterable
-    Iterable = jimport("java.lang.Iterable")
-    global Long
-    Long = jimport("java.lang.Long")
-    global Object
-    Object = jimport("java.lang.Object")
-    global Short
-    Short = jimport("java.lang.Short")
-    global String
-    String = jimport("java.lang.String")
-    global Void
-    Void = jimport("java.lang.Void")
-    global BigDecimal
-    BigDecimal = jimport("java.math.BigDecimal")
-    global BigInteger
-    BigInteger = jimport("java.math.BigInteger")
-    global ArrayList
-    ArrayList = jimport("java.util.ArrayList")
-    global Collection
-    Collection = jimport("java.util.Collection")
-    global Iterator
-    Iterator = jimport("java.util.Iterator")
-    global LinkedHashMap
-    LinkedHashMap = jimport("java.util.LinkedHashMap")
-    global LinkedHashSet
-    LinkedHashSet = jimport("java.util.LinkedHashSet")
-    global List
-    List = jimport("java.util.List")
-    global Map
-    Map = jimport("java.util.Map")
-    global Set
-    Set = jimport("java.util.Set")
+    _import_java_classes()
 
     # invoke registered callback functions
     for callback in _startup_callbacks:
@@ -1041,6 +997,57 @@ def _convert_table(obj: Any):
     except BaseException:
         # No worries if scijava-table is not available.
         pass
+
+
+def _import_java_classes():
+    global Boolean
+    global Byte
+    global Character
+    global Double
+    global Float
+    global Integer
+    global Iterable
+    global Long
+    global Object
+    global Short
+    global String
+    global Void
+    global BigDecimal
+    global BigInteger
+    global ArrayList
+    global Collection
+    global Iterator
+    global LinkedHashMap
+    global LinkedHashSet
+    global List
+    global Map
+    global Set
+
+    _logger.debug('Importing Java classes...')
+
+    # grab needed Java classes
+    Boolean = jimport("java.lang.Boolean")
+    Byte = jimport("java.lang.Byte")
+    Character = jimport("java.lang.Character")
+    Double = jimport("java.lang.Double")
+    Float = jimport("java.lang.Float")
+    Integer = jimport("java.lang.Integer")
+    Iterable = jimport("java.lang.Iterable")
+    Long = jimport("java.lang.Long")
+    Object = jimport("java.lang.Object")
+    Short = jimport("java.lang.Short")
+    String = jimport("java.lang.String")
+    Void = jimport("java.lang.Void")
+    BigDecimal = jimport("java.math.BigDecimal")
+    BigInteger = jimport("java.math.BigInteger")
+    ArrayList = jimport("java.util.ArrayList")
+    Collection = jimport("java.util.Collection")
+    Iterator = jimport("java.util.Iterator")
+    LinkedHashMap = jimport("java.util.LinkedHashMap")
+    LinkedHashSet = jimport("java.util.LinkedHashSet")
+    List = jimport("java.util.List")
+    Map = jimport("java.util.Map")
+    Set = jimport("java.util.Set")
 
 
 def _import_pandas():

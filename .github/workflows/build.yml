@@ -97,8 +97,7 @@ jobs:
           mamba-version: "*"
       - name: Test scyjava
         run: |
-          python -m pytest tests/ -p no:faulthandler --cov-report=xml --cov=.
+          ./test.sh --cov-report=xml --cov=.
       # We could do this in its own action, but we'd have to setup the environment again.
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v2
-        

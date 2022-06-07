@@ -9,6 +9,7 @@ import re
 import subprocess
 import sys
 from functools import lru_cache
+from importlib import import_module
 from pathlib import Path
 from typing import Callable, Sequence
 
@@ -96,11 +97,18 @@ def jvm_version() -> str:
          .getProperty('java.version')
          .split('.')
 
-    In case the JVM is not started yet,a best effort is made to deduce
+    In case the JVM is not started yet, a best effort is made to deduce
     the version from the environment without actually starting up the
     JVM in-process. If the version cannot be deduced, a RuntimeError
     with the cause is raised.
     """
+    if mode == Mode.JEP:
+        System = jimport("java.lang.System")
+        version = str(System.getProperty("java.version"))
+        return tuple(map(int, version.split(".")))
+
+    assert mode == Mode.JPYPE
+
     jvm_version = jpype.getJVMVersion()
     if jvm_version and jvm_version[0]:
         # JPype already knew the version.
@@ -109,8 +117,7 @@ def jvm_version() -> str:
         return jvm_version
 
     # JPype was clueless, which means the JVM has probably not started yet.
-    # Let's look for a java executable, and ask it directly with 'java
-    # -version'.
+    # Let's look for a java executable, and ask via 'java -version'.
 
     default_jvm_path = jpype.getDefaultJVMPath()
     if not default_jvm_path:
@@ -138,12 +145,12 @@ def jvm_version() -> str:
     if java is None:
         raise RuntimeError(f"No java executable found inside: {p}")
 
-    version = subprocess.check_output(
+    output = subprocess.check_output(
         [str(java), "-version"], stderr=subprocess.STDOUT
     ).decode()
-    m = re.match('.*version "(([0-9]+\\.)+[0-9]+)', version)
+    m = re.match('.*version "(([0-9]+\\.)+[0-9]+)', output)
     if not m:
-        raise RuntimeError(f"Inscrutable java command output:\n{version}")
+        raise RuntimeError(f"Inscrutable java command output:\n{output}")
 
     return tuple(map(int, m.group(1).split(".")))
 
@@ -163,6 +170,8 @@ def start_jvm(options=None) -> None:
     if jvm_started():
         _logger.debug("The JVM is already running.")
         return
+
+    assert mode == Mode.JPYPE
 
     # retrieve endpoint and repositories from scyjava config
     endpoints = scyjava.config.endpoints
@@ -250,9 +259,16 @@ def shutdown_jvm() -> None:
 
     Note that if the JVM is not already running, then this function does
     nothing! In particular, shutdown hooks are skipped in this situation.
+
+    :raises RuntimeError: if this method is called while in Jep mode.
     """
     if not jvm_started():
         return
+
+    if mode == Mode.JEP:
+        raise RuntimeError("Cannot shut down the JVM in Jep mode.")
+
+    assert mode == Mode.JPYPE
 
     # invoke registered shutdown callback functions
     for callback in _shutdown_callbacks:
@@ -276,6 +292,11 @@ def shutdown_jvm() -> None:
 
 def jvm_started() -> bool:
     """Return true iff a Java virtual machine (JVM) has been started."""
+    if mode == Mode.JEP:
+        return True
+
+    assert mode == Mode.JPYPE
+
     return jpype.isJVMStarted()
 
 
@@ -347,6 +368,10 @@ def when_jvm_stops(f) -> None:
 
 def isjava(data) -> bool:
     """Return whether the given data object is a Java object."""
+    if mode == Mode.JEP:
+        return jinstance(data, "java.lang.Object")
+
+    assert mode == Mode.JPYPE
     return isinstance(data, jpype.JClass) or isinstance(data, jpype.JObject)
 
 
@@ -364,6 +389,12 @@ def jimport(class_name: str):
     :returns: A pointer to the class, which can be used to
               e.g. instantiate objects of that class.
     """
+    if mode == Mode.JEP:
+        module_path = class_name.rsplit(".", 1)
+        module = import_module(module_path[0], module_path[1])
+        return getattr(module, module_path[1])
+
+    assert mode == Mode.JPYPE
     start_jvm()
     return jpype.JClass(class_name)
 
@@ -461,25 +492,35 @@ def jarray(kind, lengths: Sequence):
         lengths = [lengths]
     arraytype = kind
 
-    start_jvm()
+    if mode == Mode.JEP:
+        import jep  # noqa: F401
 
-    # build up the array type
-    kinds = {
-        "b": jpype.JByte,
-        "c": jpype.JChar,
-        "d": jpype.JDouble,
-        "f": jpype.JFloat,
-        "i": jpype.JInt,
-        "j": jpype.JLong,
-        "s": jpype.JShort,
-        "z": jpype.JBoolean,
-    }
-    if arraytype in kinds:
-        arraytype = kinds[arraytype]
-    for _ in range(len(lengths)):
-        arraytype = jpype.JArray(arraytype)
-    # instantiate the n-dimensional array
-    arr = arraytype(lengths[0])
+        # build up the array type
+        for _ in range(len(lengths) - 1):
+            arraytype = jep.jarray(0, arraytype)
+        # instantiate the n-dimensional array
+        arr = jep.jarray(lengths[0], arraytype)
+
+    elif mode == Mode.JPYPE:
+        start_jvm()
+
+        # build up the array type
+        kinds = {
+            "b": jpype.JByte,
+            "c": jpype.JChar,
+            "d": jpype.JDouble,
+            "f": jpype.JFloat,
+            "i": jpype.JInt,
+            "j": jpype.JLong,
+            "s": jpype.JShort,
+            "z": jpype.JBoolean,
+        }
+        if arraytype in kinds:
+            arraytype = kinds[arraytype]
+        for _ in range(len(lengths)):
+            arraytype = jpype.JArray(arraytype)
+        # instantiate the n-dimensional array
+        arr = arraytype(lengths[0])
 
     if len(lengths) > 1:
         for i in range(len(arr)):

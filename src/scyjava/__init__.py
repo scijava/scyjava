@@ -1004,7 +1004,7 @@ def _import_java_classes():
     global Map
     global Set
 
-    _logger.debug('Importing Java classes...')
+    _logger.debug("Importing Java classes...")
 
     # grab needed Java classes
     Boolean = jimport("java.lang.Boolean")
@@ -1090,6 +1090,7 @@ def _pandas_to_table(df):
 # Python is started from inside the JVM -- then these functions execute the
 # callbacks immediately, which means the involved functions must be defined and
 # functional at this point.
+
 
 def _initialize_converters():
     for converter in _stock_java_converters():

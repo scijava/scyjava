@@ -29,7 +29,8 @@ from _jpype import _JObject
 _logger = logging.getLogger(__name__)
 
 # Set of module properties
-_CONSTANTS: Dict[str, Callable] = {}
+# Properties are keyed on their module NAME, with values being dictionaries of constants and their mappings.
+_CONSTANTS: Dict[str, Dict[str, Callable]] = {}
 
 
 def constant(func: Callable[[], Any], cache=True) -> Callable[[], Any]:

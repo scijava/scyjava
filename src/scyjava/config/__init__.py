@@ -22,7 +22,8 @@ def add_endpoints(*new_endpoints):
     Please modify the endpoints field directly instead.
     """
     _logger.warning(
-        "Deprecated method call: scyjava.config.add_endpoints(). Please modify scyjava.config.endpoints directly instead."
+        "Deprecated method call: scyjava.config.add_endpoints(). "
+        "Please modify scyjava.config.endpoints directly instead."
     )
     global endpoints
     _logger.debug("Adding endpoints %s to %s", new_endpoints, endpoints)
@@ -35,7 +36,8 @@ def get_endpoints():
     Please access the endpoints field directly instead.
     """
     _logger.warning(
-        "Deprecated method call: scyjava.config.get_endpoints(). Please access scyjava.config.endpoints directly instead."
+        "Deprecated method call: scyjava.config.get_endpoints(). "
+        "Please access scyjava.config.endpoints directly instead."
     )
     global endpoints
     return endpoints
@@ -137,7 +139,7 @@ def find_jars(directory):
     :return: a list of JAR files
     """
     jars = []
-    for root, dirs, files in os.walk(directory):
+    for root, _, files in os.walk(directory):
         for f in files:
             if f.lower().endswith(".jar"):
                 path = os.path.join(root, f)

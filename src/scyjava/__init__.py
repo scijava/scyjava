@@ -1,7 +1,6 @@
 import atexit
 import collections.abc
 from functools import lru_cache
-import traceback
 from typing import Any, Callable, NamedTuple
 import typing
 import jgo
@@ -14,10 +13,81 @@ import scyjava.config
 import subprocess
 import sys
 from pathlib import Path
-from jpype.types import *
+from typing import Dict
+from jpype.types import (
+    JArray,
+    JBoolean,
+    JChar,
+    JDouble,
+    JFloat,
+    JInt,
+    JLong,
+    JShort,
+)
 from _jpype import _JObject
 
 _logger = logging.getLogger(__name__)
+
+# Set of module properties
+_CONSTANTS: Dict[str, Callable] = {}
+
+
+def constant(func: Callable[[], Any], cache=True) -> Callable[[], Any]:
+    """
+    Turns a function into a property of this module
+    Functions decorated with this property must have a
+    leading underscore!
+    :param func: The function to turn into a property
+    """
+    if func.__name__[0] != "_":
+        raise ValueError(
+            f"""Function {func.__name__} must have
+            a leading underscore in its name
+            to become a module property!"""
+        )
+    name = func.__name__[1:]
+    if cache:
+        func = (lru_cache(maxsize=None))(func)
+    _CONSTANTS[name] = func
+    return func
+
+
+def __getattr__(name):
+    """
+    Runs as a fallback when this module does not have an
+    attribute.
+    :param name: The name of the attribute being searched for.
+    """
+    if name in _CONSTANTS:
+        return _CONSTANTS[name]()
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
+
+
+@constant
+def ___version__():
+    # First pass: use the version output by setuptools_scm
+    try:
+        import scyjava.version
+
+        return scyjava.version.version
+    except ImportError:
+        pass
+    # Second pass: use importlib.metadata
+    try:
+        from importlib.metadata import version, PackageNotFoundError
+
+        return version("scyjava")
+    except ImportError or PackageNotFoundError:
+        pass
+    # Third pass: use pkg_resources
+    try:
+        from pkg_resources import get_distribution
+
+        return get_distribution("scyjava").version
+    except ImportError:
+        pass
+    # Fourth pass: Give up
+    return "Cannot determine version! Ensure pkg_resources is installed!"
 
 
 # -- JVM setup --
@@ -28,8 +98,10 @@ _shutdown_callbacks = []
 
 def jvm_version():
     """
-    Gets the version of the JVM as a tuple, with each dot-separated digit as one element.
-    Characters in the version string beyond only numbers and dots are ignored, in line
+    Gets the version of the JVM as a tuple,
+    with each dot-separated digit as one element.
+    Characters in the version string beyond only
+    numbers and dots are ignored, in line
     with the java.version system property.
 
     Examples:
@@ -37,12 +109,16 @@ def jvm_version():
     * OpenJDK 11.0.9.1-internal -> [11, 0, 9, 1]
     * OpenJDK 1.8.0_312 -> [1, 8, 0]
 
-    If the JVM is already started, this function should return the equivalent of:
-       jimport('java.lang.System').getProperty('java.version').split('.')
+    If the JVM is already started,
+    this function should return the equivalent of:
+       jimport('java.lang.System')
+         .getProperty('java.version')
+         .split('.')
 
-    In case the JVM is not started yet, a best effort is made to deduce the
-    version from the environment without actually starting up the JVM in-process.
-    If the version cannot be deduced, a RuntimeError with the cause is raised.
+    In case the JVM is not started yet,a best effort is made to deduce
+    the version from the environment without actually starting up the
+    JVM in-process. If the version cannot be deduced, a RuntimeError
+    with the cause is raised.
     """
     jvm_version = jpype.getJVMVersion()
     if jvm_version and jvm_version[0]:
@@ -52,7 +128,8 @@ def jvm_version():
         return jvm_version
 
     # JPype was clueless, which means the JVM has probably not started yet.
-    # Let's look for a java executable, and ask it directly with 'java -version'.
+    # Let's look for a java executable, and ask it directly with 'java
+    # -version'.
 
     default_jvm_path = jpype.getDefaultJVMPath()
     if not default_jvm_path:
@@ -90,7 +167,10 @@ def jvm_version():
     return tuple(map(int, m.group(1).split(".")))
 
 
-def start_jvm(options=scyjava.config.get_options()):
+_config_options = scyjava.config.get_options()
+
+
+def start_jvm(options=_config_options):
     """
     Explicitly connect to the Java virtual machine (JVM). Only one JVM can
     be active; does nothing if the JVM has already been started. Calling
@@ -154,7 +234,7 @@ def start_jvm(options=scyjava.config.get_options()):
             for libjvm_path, java_home_path in libjvm_paths.items():
                 if (base / libjvm_path).exists():
                     java_home = str((base / java_home_path).resolve())
-                    _logger.debug(f"Detected JAVA_HOME: %s", java_home)
+                    _logger.debug(f"Detected JAVA_HOME: {java_home}")
                     os.environ["JAVA_HOME"] = java_home
                     break
 
@@ -404,7 +484,7 @@ def jstacktrace(exc):
         sw = StringWriter()
         exc.printStackTrace(PrintWriter(sw, True))
         return sw.toString()
-    except:
+    except BaseException:
         return ""
 
 
@@ -467,6 +547,10 @@ def to_java(obj: Any) -> Any:
     return _convert(obj, java_converters)
 
 
+def _is_a_long(obj) -> bool:
+    return isinstance(obj, int) and obj <= Long.MAX_VALUE
+
+
 def _stock_java_converters() -> typing.List[Converter]:
     """
     Returns all python-to-java converters supported out of the box!
@@ -511,7 +595,7 @@ def _stock_java_converters() -> typing.List[Converter]:
         ),
         # Long converter
         Converter(
-            predicate=lambda obj: isinstance(obj, int) and obj <= Long.MAX_VALUE,
+            predicate=_is_a_long,
             converter=Long,
             priority=Priority.NORMAL - 1,
         ),
@@ -567,9 +651,12 @@ def _stock_java_converters() -> typing.List[Converter]:
     ]
 
 
-when_jvm_starts(
-    lambda: [_add_converter(c, java_converters) for c in _stock_java_converters()]
-)
+def _initialize_converters():
+    for converter in _stock_java_converters():
+        _add_converter(converter, java_converters)
+
+
+when_jvm_starts(_initialize_converters)
 
 
 # -- Java to Python --
@@ -588,7 +675,7 @@ class JavaObject:
             intended_class = Object
         if not isinstance(jobj, intended_class):
             raise TypeError(
-                "Not a " + intended_class.getName() + ": " + jclass(jobj).getName()
+                f"Not a {intended_class.getName()}: {jclass(jobj).getName()}"
             )
         self.jobj = jobj
 
@@ -652,7 +739,8 @@ class JavaList(JavaCollection, collections.abc.MutableSequence):
         return to_python(self.jobj.get(key), gentle=True)
 
     def __setitem__(self, key, value):
-        # NB: List.set(int, Object) returns inserted element, so be gentle here.
+        # NB: List.set(int, Object) returns inserted element, so be gentle
+        # here.
         return to_python(self.jobj.set(key, to_java(value)), gentle=True)
 
     def __delitem__(self, key):
@@ -660,7 +748,8 @@ class JavaList(JavaCollection, collections.abc.MutableSequence):
         return to_python(self.jobj.remove(to_java(key)))
 
     def insert(self, index, object):
-        # NB: List.set(int, Object) returns inserted element, so be gentle here.
+        # NB: List.set(int, Object) returns inserted element, so be gentle
+        # here.
         return to_python(self.jobj.set(index, to_java(object)), gentle=True)
 
 
@@ -674,8 +763,10 @@ class JavaMap(JavaObject, collections.abc.MutableMapping):
         return to_python(self.jobj.get(to_java(key)), gentle=True)
 
     def __setitem__(self, key, value):
-        # NB: Map.put(Object, Object) returns inserted value, so be gentle here.
-        return to_python(self.jobj.put(to_java(key), to_java(value)), gentle=True)
+        # NB: Map.put(Object, Object) returns inserted value, so be gentle
+        # here.
+        put_return: bool = self.jobj.put(to_java(key), to_java(value))
+        return to_python(put_return, gentle=True)
 
     def __delitem__(self, key):
         # NB: Map.remove(Object) returns the removed key, so be gentle here.
@@ -695,16 +786,17 @@ class JavaMap(JavaObject, collections.abc.MutableMapping):
             if len(self) != len(other):
                 return False
             for k in self:
-                if not k in other or self[k] != other[k]:
+                if k not in other or self[k] != other[k]:
                     return False
             return True
         except TypeError:
             return False
 
     def __str__(self):
-        return (
-            "{" + ", ".join(_jstr(k) + ": " + _jstr(v) for k, v in self.items()) + "}"
-        )
+        def item_str(k, v):
+            return _jstr(k) + ": " + _jstr(v)
+
+        return "{" + ", ".join(item_str(k, v) for k, v in self.items()) + "}"
 
 
 class JavaSet(JavaCollection, collections.abc.MutableSet):
@@ -727,7 +819,7 @@ class JavaSet(JavaCollection, collections.abc.MutableSet):
             if len(self) != len(other):
                 return False
             for k in self:
-                if not k in other:
+                if k not in other:
                     return False
             return True
         except TypeError:
@@ -937,7 +1029,7 @@ def _is_table(obj: Any) -> bool:
     """Checks if obj is a table"""
     try:
         return isinstance(obj, jimport("org.scijava.table.Table"))
-    except:
+    except BaseException:
         # No worries if scijava-table is not available.
         pass
 
@@ -946,7 +1038,7 @@ def _convert_table(obj: Any):
     """Converts obj to a table."""
     try:
         return _table_to_pandas(obj)
-    except:
+    except BaseException:
         # No worries if scijava-table is not available.
         pass
 
@@ -976,8 +1068,6 @@ def _table_to_pandas(table):
 
 
 def _pandas_to_table(df):
-    pd = _import_pandas()
-
     if len(df.dtypes.unique()) > 1:
         TableClass = jimport("org.scijava.table.DefaultGenericTable")
     else:
@@ -997,7 +1087,7 @@ def _pandas_to_table(df):
     for c, column_name in enumerate(df.columns):
         table.setColumnHeader(c, column_name)
 
-    for i, (index, row) in enumerate(df.iterrows()):
+    for i, (_, row) in enumerate(df.iterrows()):
         for c, value in enumerate(row):
             header = df.columns[c]
             table.set(header, i, to_java(value))

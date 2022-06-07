@@ -1,7 +1,7 @@
 import numpy as np
 import numpy.testing as npt
 import pandas as pd
-import unittest
+
 from scyjava import config, jimport, to_java
 
 config.endpoints.append("org.scijava:scijava-table")
@@ -18,7 +18,7 @@ def assert_same_table(table, df):
         assert table.getColumnHeader(i) == df.columns[i]
 
 
-class TestPandas(unittest.TestCase):
+class TestPandas(object):
     def testPandasToTable(self):
         # Float table.
         columns = ["header1", "header2", "header3", "header4", "header5"]
@@ -28,7 +28,8 @@ class TestPandas(unittest.TestCase):
         table = to_java(df)
 
         assert_same_table(table, df)
-        assert type(table) == jimport("org.scijava.table.DefaultFloatTable")
+        DefaultFloatTable = jimport("org.scijava.table.DefaultFloatTable")
+        assert isinstance(table, DefaultFloatTable)
 
         # Int table.
         columns = ["header1", "header2", "header3", "header4", "header5"]
@@ -39,7 +40,8 @@ class TestPandas(unittest.TestCase):
         table = to_java(df)
 
         assert_same_table(table, df)
-        assert type(table) == jimport("org.scijava.table.DefaultIntTable")
+        DefaultIntTable = jimport("org.scijava.table.DefaultIntTable")
+        assert isinstance(table, DefaultIntTable)
 
         # Bool table.
         columns = ["header1", "header2", "header3", "header4", "header5"]
@@ -49,7 +51,8 @@ class TestPandas(unittest.TestCase):
         table = to_java(df)
 
         assert_same_table(table, df)
-        assert type(table) == jimport("org.scijava.table.DefaultBoolTable")
+        DefaultBoolTable = jimport("org.scijava.table.DefaultBoolTable")
+        assert isinstance(table, DefaultBoolTable)
 
         # Mixed table.
         columns = ["header1", "header2", "header3", "header4", "header5"]
@@ -68,8 +71,5 @@ class TestPandas(unittest.TestCase):
 
         # Table types cannot be the same here, unless we want to cast.
         # assert_same_table(table, df)
-        assert type(table) == jimport("org.scijava.table.DefaultGenericTable")
-
-
-if __name__ == "__main__":
-    unittest.main()
+        DefaultGenericTable = jimport("org.scijava.table.DefaultGenericTable")
+        assert isinstance(table, DefaultGenericTable)

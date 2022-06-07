@@ -1,2 +1,0 @@
-# include these directories
-recursive-include tests *.py

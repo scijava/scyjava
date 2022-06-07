@@ -601,14 +601,6 @@ def _stock_java_converters() -> typing.List[Converter]:
     ]
 
 
-def _initialize_converters():
-    for converter in _stock_java_converters():
-        _add_converter(converter, java_converters)
-
-
-when_jvm_starts(_initialize_converters)
-
-
 # -- Java to Python --
 
 
@@ -970,11 +962,6 @@ def _stock_py_converters() -> typing.List:
     ]
 
 
-when_jvm_starts(
-    lambda: [_add_converter(c, py_converters) for c in _stock_py_converters()]
-)
-
-
 def _is_table(obj: Any) -> bool:
     """Checks if obj is a table"""
     try:
@@ -1094,3 +1081,21 @@ def _pandas_to_table(df):
             table.set(header, i, to_java(value))
 
     return table
+
+
+# -- JVM startup callbacks --
+
+# NB: These must be performed last, because if this class is imported after the
+# JVM is already running -- for example, if we are running in Jep mode, where
+# Python is started from inside the JVM -- then these functions execute the
+# callbacks immediately, which means the involved functions must be defined and
+# functional at this point.
+
+def _initialize_converters():
+    for converter in _stock_java_converters():
+        _add_converter(converter, java_converters)
+    for converter in _stock_py_converters():
+        _add_converter(converter, py_converters)
+
+
+when_jvm_starts(_initialize_converters)

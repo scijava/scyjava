@@ -10,7 +10,17 @@ from typing import Any, Callable, Dict, List, NamedTuple
 
 from jpype import JBoolean, JByte, JChar, JDouble, JFloat, JInt, JLong, JShort
 
-from ._java import JavaClasses, is_jarray, isjava, jclass, jimport, jinstance, start_jvm
+from ._java import (
+    JavaClasses,
+    Mode,
+    is_jarray,
+    isjava,
+    jclass,
+    jimport,
+    jinstance,
+    mode,
+    start_jvm,
+)
 
 
 # NB: We cannot use org.scijava.priority.Priority or other Java-side class
@@ -527,30 +537,6 @@ def _stock_py_converters() -> List:
             converter=lambda obj: obj,
             priority=Priority.EXTREMELY_HIGH,
         ),
-        # JBoolean -> bool
-        Converter(
-            predicate=lambda obj: isinstance(obj, JBoolean),
-            converter=bool,
-            priority=Priority.NORMAL + 1,
-        ),
-        # JByte/JInt/JLong/JShort -> int
-        Converter(
-            predicate=lambda obj: isinstance(obj, (JByte, JInt, JLong, JShort)),
-            converter=int,
-            priority=Priority.NORMAL + 1,
-        ),
-        # JDouble/JFloat -> float
-        Converter(
-            predicate=lambda obj: isinstance(obj, (JDouble, JFloat)),
-            converter=float,
-            priority=Priority.NORMAL + 1,
-        ),
-        # JChar -> str
-        Converter(
-            predicate=lambda obj: isinstance(obj, JChar),
-            converter=str,
-            priority=Priority.NORMAL + 1,
-        ),
         # java.lang.Boolean -> bool
         Converter(
             predicate=lambda obj: jinstance(obj, _jc.Boolean),
@@ -652,16 +638,6 @@ def _stock_py_converters() -> List:
             priority=Priority.VERY_LOW,
         ),
     ]
-
-    if _import_numpy(required=False):
-        # primitive array -> numpy.ndarray
-        converters.append(
-            Converter(
-                predicate=_supports_jarray_to_ndarray,
-                converter=_jarray_to_ndarray,
-            )
-        )
-
     if _import_pandas(required=False):
         # org.scijava.table.Table -> pandas.DataFrame
         converters.append(
@@ -669,6 +645,44 @@ def _stock_py_converters() -> List:
                 predicate=_is_table, converter=_convert_table, priority=Priority.HIGH
             )
         )
+
+    if mode == Mode.JPYPE:
+        converters.extend(
+            [
+                # JBoolean -> bool
+                Converter(
+                    predicate=lambda obj: isinstance(obj, JBoolean),
+                    converter=bool,
+                    priority=Priority.NORMAL + 1,
+                ),
+                # JByte/JInt/JLong/JShort -> int
+                Converter(
+                    predicate=lambda obj: isinstance(obj, (JByte, JInt, JLong, JShort)),
+                    converter=int,
+                    priority=Priority.NORMAL + 1,
+                ),
+                # JDouble/JFloat -> float
+                Converter(
+                    predicate=lambda obj: isinstance(obj, (JDouble, JFloat)),
+                    converter=float,
+                    priority=Priority.NORMAL + 1,
+                ),
+                # JChar -> str
+                Converter(
+                    predicate=lambda obj: isinstance(obj, JChar),
+                    converter=str,
+                    priority=Priority.NORMAL + 1,
+                ),
+            ]
+        )
+        if _import_numpy(required=False):
+            # primitive array -> numpy.ndarray
+            converters.append(
+                Converter(
+                    predicate=_supports_jarray_to_ndarray,
+                    converter=_jarray_to_ndarray,
+                )
+            )
 
     return converters
 

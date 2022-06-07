@@ -73,8 +73,6 @@ jobs:
         run: |
           python -m flake8 tests
 
-
-
   conda-dev-test:
     name: Conda Setup & Code Coverage
     runs-on: ubuntu-latest
@@ -91,13 +89,13 @@ jobs:
           auto-update-conda: true
           python-version: 3.9
           environment-file: dev-environment.yml
-          # Activate imglyb-dev environment
-          activate-environment: imglyb-dev
+          # Activate scyjava-dev environment
+          activate-environment: scyjava-dev
           auto-activate-base: false
           # Use mamba for faster setup
           use-mamba: true
           mamba-version: "*"
-      - name: Test imglyb
+      - name: Test scyjava
         run: |
           python -m pytest tests/ -p no:faulthandler --cov-report=xml --cov=.
       # We could do this in its own action, but we'd have to setup the environment again.

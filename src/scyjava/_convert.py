@@ -290,8 +290,7 @@ class JavaList(JavaCollection, collections.abc.MutableSequence):
         return to_python(self.jobj.get(key), gentle=True)
 
     def __setitem__(self, key, value):
-        # NB: List.set(int, Object) returns inserted element, so be gentle
-        # here.
+        # NB: List.set(int, Object) returns inserted element; be gentle here.
         return to_python(self.jobj.set(key, to_java(value)), gentle=True)
 
     def __delitem__(self, key):
@@ -299,8 +298,7 @@ class JavaList(JavaCollection, collections.abc.MutableSequence):
         return to_python(self.jobj.remove(to_java(key)))
 
     def insert(self, index, object):
-        # NB: List.set(int, Object) returns inserted element, so be gentle
-        # here.
+        # NB: List.set(int, Object) returns inserted element; be gentle here.
         return to_python(self.jobj.set(index, to_java(object)), gentle=True)
 
 
@@ -314,13 +312,12 @@ class JavaMap(JavaObject, collections.abc.MutableMapping):
         return to_python(self.jobj.get(to_java(key)), gentle=True)
 
     def __setitem__(self, key, value):
-        # NB: Map.put(Object, Object) returns inserted value, so be gentle
-        # here.
+        # NB: Map.put(Object, Object) returns inserted value; be gentle here.
         put_return: bool = self.jobj.put(to_java(key), to_java(value))
         return to_python(put_return, gentle=True)
 
     def __delitem__(self, key):
-        # NB: Map.remove(Object) returns the removed key, so be gentle here.
+        # NB: Map.remove(Object) returns the removed key; be gentle here.
         return to_python(self.jobj.remove(to_java(key)), gentle=True)
 
     def keys(self):

@@ -17,6 +17,7 @@ import jpype.config
 from jgo import jgo
 
 import scyjava.config
+from scyjava.config import Mode, mode
 
 _logger = logging.getLogger(__name__)
 
@@ -400,6 +401,10 @@ def jinstance(obj, jtype) -> bool:
     if isinstance(jtype, str):
         jtype = jimport(jtype)
 
+    if mode == Mode.JEP:
+        return isinstance(obj, jtype.__pytype__)
+
+    assert mode == Mode.JPYPE
     return isinstance(obj, jtype)
 
 

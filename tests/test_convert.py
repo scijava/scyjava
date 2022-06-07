@@ -277,7 +277,7 @@ class TestConvert(object):
         Object = jimport("java.lang.Object")
         unknown_thing = Object()
         converted_thing = to_python(unknown_thing, gentle=True)
-        assert isinstance(converted_thing, Object)
+        assert jinstance(converted_thing, Object)
         bad_conversion = None
         try:
             bad_conversion = to_python(unknown_thing)
@@ -302,12 +302,12 @@ class TestConvert(object):
         # Convert it back to Python.
         pdict = to_python(jmap)
         assert pdict["list"][0] == "a"
-        assert isinstance(pdict["list"][1], Object)
+        assert jinstance(pdict["list"][1], Object)
         assert pdict["list"][2] == 1
         assert "x" in pdict["set"]
         assert 2 in pdict["set"]
         assert len(pdict["set"]) == 3
-        assert isinstance(pdict["object"], Object)
+        assert jinstance(pdict["object"], Object)
         assert pdict["foo"] == "bar"
 
     def test_conversion_priority(self):

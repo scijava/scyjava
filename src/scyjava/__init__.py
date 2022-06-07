@@ -340,9 +340,9 @@ def compare_version(version, java_class_version):
 
 # -- Type Conversion Utilities --
 
-# TODO: It would be cool to just use org.scijava.priority.Priority.
-# Unfortunately, we cannot do that without bringing in all of SJC.
-# Once SciJava 3 is mainstream, we could use a SciJava Priority module :)
+# NB: We cannot use org.scijava.priority.Priority or other Java-side class
+# here because we don't want to impose Java-side dependencies, and we don't
+# want to require Java to be started before reasoning about priorities.
 class Priority:
     FIRST = 1e300
     EXTREMELY_HIGH = 1e6

@@ -52,7 +52,7 @@ jobs:
 
     - name: Test ScyJava
       run: |
-        python -m pytest -p no:faulthandler --color=yes
+        ./test.sh --color=yes
 
   lint:
     runs-on: ubuntu-latest

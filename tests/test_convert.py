@@ -2,6 +2,8 @@ import math
 from os import getcwd
 from pathlib import Path
 
+import pytest
+
 from scyjava import (
     Converter,
     add_java_converter,
@@ -14,6 +16,7 @@ from scyjava import (
     to_java,
     to_python,
 )
+from scyjava.config import Mode, mode
 
 config.endpoints.append("org.scijava:scijava-table")
 config.add_option("-Djava.awt.headless=true")
@@ -24,6 +27,9 @@ class TestConvert(object):
         """
         Tests class detection from Java objects.
         """
+        if mode == Mode.JEP:
+            pytest.skip("The jclass function does not work yet in Jep mode.")
+
         int_class = jclass(to_java(5))
         assert "java.lang.Integer" == int_class.getName()
 

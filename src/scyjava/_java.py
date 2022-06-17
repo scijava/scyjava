@@ -403,21 +403,45 @@ def jclass(data):
     """
     Obtain a Java class object.
 
-    :param data: The object from which to glean the class.
     Supported types include:
-    A. Name of a class to look up, analogous to
-    Class.forName("java.lang.String");
-    B. A jpype.JClass object analogous to String.class;
-    C. A jpype.JObject instance analogous to o.getClass().
+
+    A. Name of a class to look up -- e.g. "java.lang.String" --
+       which returns the equivalent of Class.forName("java.lang.String").
+
+    B. A static-style class reference -- e.g. String --
+       which returns the equivalent of String.class.
+
+    C. A Java object -- e.g. foo --
+       which returns the equivalent of foo.getClass().
+
+    Note that if you pass a java.lang.Class object, you will get back Class.class,
+    i.e. the Java class for the Class class. :-)
+
+    :param data: The object from which to glean the class.
     :returns: A java.lang.Class object, suitable for use with reflection.
     :raises TypeError: if the argument is not one of the aforementioned types.
     """
-    if isinstance(data, jpype.JClass):
-        return data.class_
-    if isinstance(data, jpype.JObject):
-        return data.getClass()
     if isinstance(data, str):
+        # Name of a class -- case (A) above.
         return jclass(jimport(data))
+
+    if mode == Mode.JPYPE:
+        start_jvm()
+        if isinstance(data, jpype.JClass):
+            # JPype object representing a static-style class -- case (B) above.
+            return data.class_
+    elif mode == Mode.JEP:
+        if str(type(data)) == "<class 'jep.PyJClass'>":
+            # Jep object representing a static-style class -- case (B) above.
+            raise ValueError(
+                "Jep does not support Java class objects "
+                + "-- see https://github.com/ninia/jep/issues/405"
+            )
+
+    # A Java object -- case (C) above.
+    if jinstance(data, "java.lang.Object"):
+        return data.getClass()
+
     raise TypeError("Cannot glean class from data of type: " + str(type(data)))
 
 

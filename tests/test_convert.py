@@ -4,8 +4,10 @@ from pathlib import Path
 
 from scyjava import (
     Converter,
+    add_java_converter,
     config,
     jarray,
+    java_converters,
     jclass,
     jimport,
     jinstance,
@@ -313,18 +315,17 @@ class TestConvert(object):
         String = jimport("java.lang.String")
         invader = "Not Hello World"
 
-        from scyjava import add_java_converter
-
-        add_java_converter(
-            Converter(
-                predicate=lambda obj: isinstance(obj, str),
-                converter=lambda obj: String(invader.encode("utf-8"), "utf-8"),
-                priority=100,
-            )
+        bad_converter = Converter(
+            predicate=lambda obj: isinstance(obj, str),
+            converter=lambda obj: String(invader.encode("utf-8"), "utf-8"),
+            priority=100,
         )
+        add_java_converter(bad_converter)
 
         # Ensure that the conversion uses our new converter
         s = "Hello world!"
         js = to_java(s)
         for e, a in zip(invader, js.toCharArray()):
             assert e == a
+
+        java_converters.remove(bad_converter)

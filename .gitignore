@@ -10,7 +10,7 @@
 *egg-info/
 
 # setuptools_scm
-src/scyjava/version.py
+/src/*/_version.py
 
 # Vi
 *.swp

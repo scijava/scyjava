@@ -3,7 +3,7 @@ import sys
 
 import pytest
 
-setuptools_file = os.path.join(os.getcwd(), "src", "scyjava", "version.py")
+setuptools_file = os.path.join(os.getcwd(), "src", "scyjava", "_version.py")
 
 
 def _scyjava_version():
@@ -24,7 +24,7 @@ def test_version_file():
     # Get the version from setuptools_scm
     from setuptools_scm import get_version
 
-    setuptools_version = get_version(write_to="src/scyjava/version.py")
+    setuptools_version = get_version(write_to="src/scyjava/_version.py")
     # Ensure that the version was written to file
     assert os.path.isfile(setuptools_file)
     # Ensure that scyjava.__version__ matches this.

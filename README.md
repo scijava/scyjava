@@ -1,4 +1,4 @@
-[![build status](https://github.com/scijava/scyjava/actions/workflows/python-test-conda.yml/badge.svg)](https://github.com/scijava/scyjava/actions/workflows/python-test-conda.yml) [![codecov](https://codecov.io/gh/scijava/scyjava/branch/master/graph/badge.svg?token=NLK3ADZUCU)](https://codecov.io/gh/scijava/scyjava)
+[![build status](https://github.com/scijava/scyjava/actions/workflows/build.yml/badge.svg)](https://github.com/scijava/scyjava/actions/workflows/build.yml) [![codecov](https://codecov.io/gh/scijava/scyjava/branch/master/graph/badge.svg?token=NLK3ADZUCU)](https://codecov.io/gh/scijava/scyjava)
 
 Supercharged Java access from Python.
 

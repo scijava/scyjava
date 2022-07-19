@@ -1,4 +1,4 @@
-from jpype import JArray, JInt
+from jpype import JArray, JByte, JInt
 
 from scyjava import Converter, config, jclass, jimport, start_jvm, to_java, to_python
 
@@ -42,6 +42,15 @@ class TestConvert(object):
         pf = to_python(jf)
         assert not pf
         assert "False" == str(pf)
+
+    def testByte(self):
+        # NB we can't (yet) convert TO Bytes, since there is not (yet)
+        # a great type to convert FROM. We convert python ints to Integers
+        i = 5
+        ji = JByte(i)
+        pi = to_python(ji)
+        assert i == pi
+        assert str(i) == str(pi)
 
     def testInteger(self):
         i = 5

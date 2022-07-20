@@ -17,6 +17,7 @@ from typing import Dict
 from jpype.types import (
     JArray,
     JBoolean,
+    JByte,
     JChar,
     JDouble,
     JFloat,
@@ -839,7 +840,7 @@ def _stock_py_converters() -> typing.List:
         ),
         # JInt/JLong/JShort converter
         Converter(
-            predicate=lambda obj: isinstance(obj, (JInt, JLong, JShort)),
+            predicate=lambda obj: isinstance(obj, (JByte, JInt, JLong, JShort)),
             converter=int,
             priority=Priority.NORMAL + 1,
         ),

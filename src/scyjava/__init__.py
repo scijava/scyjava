@@ -1,31 +1,23 @@
 import atexit
 import collections.abc
-from functools import lru_cache
-from typing import Any, Callable, NamedTuple
-import typing
-import jgo
-import jpype
-import jpype.config
 import logging
 import os
 import re
-import scyjava.config
 import subprocess
 import sys
+import typing
+from functools import lru_cache
 from pathlib import Path
-from typing import Dict
-from jpype.types import (
-    JArray,
-    JBoolean,
-    JByte,
-    JChar,
-    JDouble,
-    JFloat,
-    JInt,
-    JLong,
-    JShort,
-)
+from typing import Any, Callable, Dict, NamedTuple
+
+import jgo
+import jpype
+import jpype.config
 from _jpype import _JObject
+from jpype.types import (JArray, JBoolean, JByte, JChar, JDouble, JFloat, JInt,
+                         JLong, JShort)
+
+import scyjava.config
 
 _logger = logging.getLogger(__name__)
 
@@ -75,7 +67,7 @@ def ___version__():
         pass
     # Second pass: use importlib.metadata
     try:
-        from importlib.metadata import version, PackageNotFoundError
+        from importlib.metadata import PackageNotFoundError, version
 
         return version("scyjava")
     except ImportError or PackageNotFoundError:

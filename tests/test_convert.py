@@ -1,6 +1,7 @@
 from jpype import JArray, JByte, JInt
 
-from scyjava import Converter, config, jclass, jimport, start_jvm, to_java, to_python
+from scyjava import (Converter, config, jclass, jimport, start_jvm, to_java,
+                     to_python)
 
 config.endpoints.append("org.scijava:scijava-table")
 config.add_option("-Djava.awt.headless=true")

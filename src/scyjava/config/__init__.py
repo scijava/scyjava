@@ -1,6 +1,7 @@
 import logging
 import os
 import pathlib
+
 import jpype
 from jgo import maven_scijava_repository
 

@@ -1051,6 +1051,8 @@ def _table_to_pandas(table):
     for i, column in enumerate(table.toArray()):
         data.append(column.toArray())
         headers.append(str(table.getColumnHeader(i)))
+    for j in range(len(data)):
+        data[j] = to_python(data[j])
     df = pd.DataFrame(data).T
     df.columns = headers
     return df

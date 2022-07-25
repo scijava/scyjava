@@ -14,8 +14,17 @@ import jgo
 import jpype
 import jpype.config
 from _jpype import _JObject
-from jpype.types import (JArray, JBoolean, JByte, JChar, JDouble, JFloat, JInt,
-                         JLong, JShort)
+from jpype.types import (
+    JArray,
+    JBoolean,
+    JByte,
+    JChar,
+    JDouble,
+    JFloat,
+    JInt,
+    JLong,
+    JShort,
+)
 
 import scyjava.config
 

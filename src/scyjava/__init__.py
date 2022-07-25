@@ -323,21 +323,45 @@ def when_jvm_stops(f):
 
 
 def get_version(java_class):
-    """Return the version of a Java class."""
+    """
+    Return the version of a Java class.
+    Requires org.scijava:scijava-common on the classpath.
+
+    The version string is extracted from the given class's associated JAR
+    artifact (if any), either the embedded Maven POM if the project was built
+    with Maven, or the JAR manifest's Specification-Version value if it exists.
+
+    See org.scijava.VersionUtils.getVersion(Class) for further details.
+    """
     VersionUtils = jimport("org.scijava.util.VersionUtils")
     version = VersionUtils.getVersion(java_class)
     return version
 
 
-def compare_version(version, java_class_version):
+def is_version_at_least(actual_version, minimum_version):
     """
-    Return a boolean on a version comparison. True is returned
-    if the Java class version is higher than the specified version. False
-    is returned if the specified version is higher than the Java class version.
+    Return a boolean on a version comparison.
+    Requires org.scijava:scijava-common on the classpath.
+
+    Returns True if the given actual version is greater than or
+    equal to the specified minimum version, or False otherwise.
+
+    See org.scijava.VersionUtils.compare(String, String) for further details.
     """
     VersionUtils = jimport("org.scijava.util.VersionUtils")
-    comparison = VersionUtils.compare(version, java_class_version) < 0
-    return comparison
+    return VersionUtils.compare(actual_version, minimum_version) >= 0
+
+
+def compare_version(version, java_class_version):
+    """
+    This function is deprecated. Use is_version_at_least instead.
+    """
+    _logger.warning(
+        "The compare_version function is deprecated. Use is_version_at_least instead."
+    )
+    return version != java_class_version and is_version_at_least(
+        java_class_version, version
+    )
 
 
 # -- Type Conversion Utilities --

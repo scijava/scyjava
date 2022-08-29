@@ -150,6 +150,54 @@ True
 >>> help(scyjava)
 ...
 FUNCTIONS
+    add_java_converter(converter: scyjava.Converter)
+        Adds a converter to the list used by to_java
+        :param converter: A Converter going from python to java
+
+    add_py_converter(converter: scyjava.Converter)
+        Adds a converter to the list used by to_python
+        :param converter: A Converter from java to python
+
+    constant(func: Callable[[], Any], cache=True) -> Callable[[], Any]
+        Turns a function into a property of this module
+        Functions decorated with this property must have a
+        leading underscore!
+        :param func: The function to turn into a property
+
+    get_version(java_class)
+        Return the version of a Java class.
+        Requires org.scijava:scijava-common on the classpath.
+
+        The version string is extracted from the given class's associated JAR
+        artifact (if any), either the embedded Maven POM if the project was built
+        with Maven, or the JAR manifest's Specification-Version value if it exists.
+
+        See org.scijava.VersionUtils.getVersion(Class) for further details.
+
+    is_awt_initialized()
+        Return true iff the AWT subsystem has been initialized.
+
+        Java starts up its AWT subsystem automatically and implicitly, as
+        soon as an action is performed requiring it -- for example, if you
+        jimport a java.awt or javax.swing class. This can lead to deadlocks
+        on macOS if you are not running in headless mode and did not invoke
+        those actions via the jpype.setupGuiEnvironment wrapper function;
+        see the Troubleshooting section below for details.
+
+    is_jvm_headless()
+        Return true iff Java is running in headless mode.
+
+        :raises RuntimeException: If the JVM has not started yet.
+
+    is_version_at_least(actual_version, minimum_version)
+        Return a boolean on a version comparison.
+        Requires org.scijava:scijava-common on the classpath.
+
+        Returns True if the given actual version is greater than or
+        equal to the specified minimum version, or False otherwise.
+
+        See org.scijava.VersionUtils.compare(String, String) for further details.
+
     isjava(data)
         Return whether the given data object is a Java object.
 
@@ -177,7 +225,7 @@ FUNCTIONS
 
         Example of usage:
 
-            from scyjava import jimport
+            from scyjava import jimport, jstacktrace
             try:
                 Integer = jimport('java.lang.Integer')
                 nan = Integer.parseInt('not a number')
@@ -191,6 +239,48 @@ FUNCTIONS
     jvm_started()
         Return true iff a Java virtual machine (JVM) has been started.
 
+    jvm_version()
+        Gets the version of the JVM as a tuple,
+        with each dot-separated digit as one element.
+        Characters in the version string beyond only
+        numbers and dots are ignored, in line
+        with the java.version system property.
+
+        Examples:
+        * OpenJDK 17.0.1 -> [17, 0, 1]
+        * OpenJDK 11.0.9.1-internal -> [11, 0, 9, 1]
+        * OpenJDK 1.8.0_312 -> [1, 8, 0]
+
+        If the JVM is already started,
+        this function should return the equivalent of:
+           jimport('java.lang.System')
+             .getProperty('java.version')
+             .split('.')
+
+        In case the JVM is not started yet,a best effort is made to deduce
+        the version from the environment without actually starting up the
+        JVM in-process. If the version cannot be deduced, a RuntimeError
+        with the cause is raised.
+
+    shutdown_jvm()
+        Shutdown the JVM.
+
+        This function makes a best effort to clean up Java resources first.
+        In particular, shutdown hooks registered with scyjava.when_jvm_stops
+        are sequentially invoked.
+
+        Then, if the AWT subsystem has started, all AWT windows (as identified
+        by the java.awt.Window.getWindows() method) are disposed to reduce the
+        risk of GUI resources delaying JVM shutdown.
+
+        Finally, the jpype.shutdownJVM() function is called. Note that you can
+        set the jpype.config.destroy_jvm flag to request JPype to destroy the
+        JVM explicitly, although setting this flag can lead to delayed shutdown
+        times while the JVM is waiting for threads to finish.
+
+        Note that if the JVM is not already running, then this function does
+        nothing! In particular, shutdown hooks are skipped in this situation.
+
     start_jvm(options=[])
         Explicitly connect to the Java virtual machine (JVM). Only one JVM can
         be active; does nothing if the JVM has already been started. Calling
@@ -201,7 +291,7 @@ FUNCTIONS
         :param options: List of options to pass to the JVM. For example:
                         ['-Djava.awt.headless=true', '-Xmx4g']
 
-    to_java(data)
+    to_java(obj: Any) -> Any
         Recursively convert a Python object to a Java object.
         :param data: The Python object to convert.
         Supported types include:
@@ -215,7 +305,7 @@ FUNCTIONS
         :returns: A corresponding Java object with the same contents.
         :raises TypeError: if the argument is not one of the aforementioned types.
 
-    to_python(data, gentle=False)
+    to_python(data: Any, gentle: bool = False) -> Any
         Recursively convert a Java object to a Python object.
         :param data: The Java object to convert.
         :param gentle: If set, and the type cannot be converted, leaves
@@ -242,6 +332,15 @@ FUNCTIONS
         started, the function executes immediately.
 
         :param f: Function to invoke when scyjava.start_jvm() is called.
+
+    when_jvm_stops(f)
+        Registers a function to be called just before the JVM shuts down.
+        This is useful to perform cleanup of Java-dependent data structures.
+
+        Note that if the JVM is not already running when shutdown_jvm is
+        called, then these registered callback functions will be skipped!
+
+        :param f: Function to invoke when scyjava.shutdown_jvm() is called.
 ```
 
 ## Troubleshooting

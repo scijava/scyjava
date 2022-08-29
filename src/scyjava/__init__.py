@@ -271,7 +271,13 @@ def shutdown_jvm():
     set the jpype.config.destroy_jvm flag to request JPype to destroy the
     JVM explicitly, although setting this flag can lead to delayed shutdown
     times while the JVM is waiting for threads to finish.
+
+    Note that if the JVM is not already running, then this function does
+    nothing! In particular, shutdown hooks are skipped in this situation.
     """
+    if not jvm_started():
+        return
+
     # invoke registered shutdown callback functions
     for callback in _shutdown_callbacks:
         try:
@@ -331,6 +337,9 @@ def when_jvm_stops(f):
     """
     Registers a function to be called just before the JVM shuts down.
     This is useful to perform cleanup of Java-dependent data structures.
+
+    Note that if the JVM is not already running when shutdown_jvm is
+    called, then these registered callback functions will be skipped!
 
     :param f: Function to invoke when scyjava.shutdown_jvm() is called.
     """

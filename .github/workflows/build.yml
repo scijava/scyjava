@@ -47,7 +47,7 @@ jobs:
 
     - name: Test ScyJava
       run: |
-        ./test.sh --color=yes
+        bin/test.sh --color=yes
 
   lint:
     runs-on: ubuntu-latest
@@ -92,7 +92,7 @@ jobs:
           mamba-version: "*"
       - name: Test scyjava
         run: |
-          ./test.sh --cov-report=xml --cov=.
+          bin/test.sh --cov-report=xml --cov=.
       # We could do this in its own action, but we'd have to setup the environment again.
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v2

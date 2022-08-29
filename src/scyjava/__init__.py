@@ -296,6 +296,19 @@ def jvm_started():
     return jpype.isJVMStarted()
 
 
+def is_jvm_headless():
+    """
+    Return true iff Java is running in headless mode.
+
+    :raises RuntimeError: If the JVM has not started yet.
+    """
+    if not jvm_started():
+        raise RuntimeError("JVM has not started yet!")
+
+    GraphicsEnvironment = scyjava.jimport("java.awt.GraphicsEnvironment")
+    return GraphicsEnvironment.isHeadless()
+
+
 def when_jvm_starts(f):
     """
     Registers a function to be called when the JVM starts (or immediately).

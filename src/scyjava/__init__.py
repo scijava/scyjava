@@ -308,12 +308,10 @@ def when_jvm_starts(f):
 
 def when_jvm_stops(f):
     """
-    Registers a function to be called when the JVM starts (or immediately).
-    This is useful to defer construction of Java-dependent data structures
-    until the JVM is known to be available. If the JVM has already been
-    started, the function executes immediately.
+    Registers a function to be called just before the JVM shuts down.
+    This is useful to perform cleanup of Java-dependent data structures.
 
-    :param f: Function to invoke when scyjava.start_jvm() is called.
+    :param f: Function to invoke when scyjava.shutdown_jvm() is called.
     """
     global _shutdown_callbacks
     _shutdown_callbacks.append(f)

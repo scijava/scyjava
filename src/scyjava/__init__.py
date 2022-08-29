@@ -259,10 +259,18 @@ def start_jvm(options=_config_options):
 def shutdown_jvm():
     """Shutdown the JVM.
 
-    Shutdown the JVM. Set the jpype .config.destroy_jvm flag to true
-    to ask JPype to destory the JVM itself. Note that enabling
-    jpype.config.destroy_jvm can lead to delayed shutdown times while
-    the JVM is waiting for threads to finish.
+    This function makes a best effort to clean up Java resources first.
+    In particular, shutdown hooks registered with scyjava.when_jvm_stops
+    are sequentially invoked.
+
+    Then, all AWT windows (as identified
+    by the java.awt.Window.getWindows() method) are disposed to reduce the
+    risk of GUI resources delaying JVM shutdown.
+
+    Finally, the jpype.shutdownJVM() function is called. Note that you can
+    set the jpype.config.destroy_jvm flag to request JPype to destroy the
+    JVM explicitly, although setting this flag can lead to delayed shutdown
+    times while the JVM is waiting for threads to finish.
     """
     # invoke registered shutdown callback functions
     for callback in _shutdown_callbacks:

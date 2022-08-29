@@ -54,6 +54,7 @@ u'1.8.0_152-release'
 
 ```python
 >>> from scyjava import config, jimport
+>>> config.add_option('-Djava.awt.headless=true')
 >>> config.add_repositories({'scijava.public': 'https://maven.scijava.org/content/groups/public'})
 >>> config.endpoints.append('net.imagej:imagej:2.1.0')
 >>> ImageJ = jimport('net.imagej.ImageJ')
@@ -241,3 +242,35 @@ FUNCTIONS
 
         :param f: Function to invoke when scyjava.start_jvm() is called.
 ```
+
+## Troubleshooting
+
+On macOS, attempting to use AWT/Swing from Python will cause a hang,
+unless you do one of two things:
+
+1.  Start Java in headless mode:
+
+    ```python
+    from scyjava import config, jimport
+    config.add_option('-Djava.awt.headless=true')
+    ```
+
+    In which case, you'll get `java.awt.HeadlessException` instead of a
+    hang when you attempt to do something graphical, e.g. create a window.
+
+2.  Or install [PyObjC](https://pyobjc.readthedocs.io/), specifically the
+    `pyobjc-core` and `pyobjc-framework-cocoa` packages from conda-forge,
+    or `pyobjc` from PyPI; and then do your AWT-related things inside of
+    a `jpype.setupGuiEnvironment` call on the main Python thread:
+
+    ```python
+    import jpype, scyjava
+    scyjava.start_jvm()
+    def hello():
+        JOptionPane = scyjava.jimport('javax.swing.JOptionPane')
+        JOptionPane.showMessageDialog(None, "Hello world")
+    jpype.setupGuiEnvironment(hello)
+    ```
+
+    In which case, the `setupGuiEnvironment` call will block the main Python
+    thread forever.

@@ -263,7 +263,7 @@ def shutdown_jvm():
     In particular, shutdown hooks registered with scyjava.when_jvm_stops
     are sequentially invoked.
 
-    Then, all AWT windows (as identified
+    Then, if the AWT subsystem has started, all AWT windows (as identified
     by the java.awt.Window.getWindows() method) are disposed to reduce the
     risk of GUI resources delaying JVM shutdown.
 
@@ -285,10 +285,11 @@ def shutdown_jvm():
         except Exception as e:
             print(f"Exception during shutdown callback: {e}")
 
-    # clean up remaining awt windows
-    Window = jimport("java.awt.Window")
-    for w in Window.getWindows():
-        w.dispose()
+    # dispose AWT resources if applicable
+    if is_awt_initialized():
+        Window = jimport("java.awt.Window")
+        for w in Window.getWindows():
+            w.dispose()
 
     # okay to shutdown JVM
     try:
@@ -313,6 +314,24 @@ def is_jvm_headless():
 
     GraphicsEnvironment = scyjava.jimport("java.awt.GraphicsEnvironment")
     return GraphicsEnvironment.isHeadless()
+
+
+def is_awt_initialized():
+    """
+    Return true iff the AWT subsystem has been initialized.
+
+    Java starts up its AWT subsystem automatically and implicitly, as
+    soon as an action is performed requiring it -- for example, if you
+    jimport a java.awt or javax.swing class. This can lead to deadlocks
+    on macOS if you are not running in headless mode and did not invoke
+    those actions via the jpype.setupGuiEnvironment wrapper function;
+    see the Troubleshooting section of the scyjava README for details.
+    """
+    if not jvm_started():
+        return False
+    Thread = scyjava.jimport("java.lang.Thread")
+    threads = Thread.getAllStackTraces().keySet()
+    return any(t.getName().startsWith("AWT-") for t in threads)
 
 
 def when_jvm_starts(f):

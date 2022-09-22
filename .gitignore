@@ -9,9 +9,6 @@
 /.eggs/
 *egg-info/
 
-# setuptools_scm
-/src/*/_version.py
-
 # Vi
 *.swp
 

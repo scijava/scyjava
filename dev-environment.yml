@@ -27,7 +27,7 @@ dependencies:
   - flake8
   - pytest
   - pytest-cov
-  - setuptools-scm >= 6.2
+  - toml
   # Project from source
   - pip
   - pip:

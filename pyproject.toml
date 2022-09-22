@@ -4,6 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "scyjava"
+version = "1.5.2.dev0"
 authors = [
     {name = "Curtis Rueden", email = "ctrueden@wisc.edu"},
     {name = "Philipp Hanslovsky"},
@@ -38,8 +39,6 @@ dependencies = [
     "jpype1 >= 1.3.0",
     "jgo",
 ]
-dynamic = ["version"]
-
 
 [project.urls]
 Homepage = "https://github.com/scijava/scyjava"
@@ -58,7 +57,7 @@ dev = [
     "pytest-cov",
     "numpy",
     "pandas",
-    "setuptools-scm >= 6.2",
+    "toml",
 ]
 
 [tool.setuptools]
@@ -69,5 +68,3 @@ include-package-data = false
 [tool.setuptools.packages.find]
 where = ["src"]
 namespaces = false
-
-[tool.setuptools_scm]

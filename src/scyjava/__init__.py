@@ -25,8 +25,13 @@ from jpype.types import (
     JLong,
     JShort,
 )
+from scyjava._version import _find_version
 
 import scyjava.config
+
+
+__version__ = _find_version()
+
 
 _logger = logging.getLogger(__name__)
 
@@ -63,33 +68,6 @@ def __getattr__(name):
     if name in _CONSTANTS:
         return _CONSTANTS[name]()
     raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
-
-
-@constant
-def ___version__():
-    # First pass: use the version output by setuptools_scm
-    try:
-        import scyjava.version
-
-        return scyjava.version.version
-    except ImportError:
-        pass
-    # Second pass: use importlib.metadata
-    try:
-        from importlib.metadata import PackageNotFoundError, version
-
-        return version("scyjava")
-    except ImportError or PackageNotFoundError:
-        pass
-    # Third pass: use pkg_resources
-    try:
-        from pkg_resources import get_distribution
-
-        return get_distribution("scyjava").version
-    except ImportError:
-        pass
-    # Fourth pass: Give up
-    return "Cannot determine version! Ensure pkg_resources is installed!"
 
 
 # -- JVM setup --

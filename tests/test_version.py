@@ -1,51 +1,38 @@
-import os
 import sys
+import toml
 
+from pathlib import Path
 import pytest
+import scyjava
+from scyjava import get_version
 
-setuptools_file = os.path.join(os.getcwd(), "src", "scyjava", "_version.py")
 
-
-def _scyjava_version():
+def _expected_version():
     """
-    Get ScyJava's version.
+    Get the project version from pyproject.toml.
     """
-    import scyjava
-
-    # It's important that we clear the cache here,
-    # so that we can test different behaviors.
-    scyjava.___version__.cache_clear()
-    # Get the version
-    return scyjava.__version__
+    pyproject = toml.load(Path(__file__).parents[1] / "pyproject.toml")
+    return pyproject["project"]["version"]
 
 
-def test_version_file():
-    """Ensures that, ideally, the version from setuptools_scm is used"""
-    # Get the version from setuptools_scm
-    from setuptools_scm import get_version
-
-    setuptools_version = get_version(write_to="src/scyjava/_version.py")
-    # Ensure that the version was written to file
-    assert os.path.isfile(setuptools_file)
-    # Ensure that scyjava.__version__ matches this.
-    assert _scyjava_version() == setuptools_version
-    # Cleanup - remove file
-    os.remove(setuptools_file)
-    assert not os.path.isfile(setuptools_file)
+def test_version_dunder():
+    """
+    Ensure that the dunder variable matches _expected_version.
+    """
+    assert _expected_version() == scyjava.__version__
 
 
 @pytest.mark.skipif(sys.version_info < (3, 8), reason="Requires Python >= 3.8")
 def test_version_importlib():
     """
-    Ensures that, with scyjava.version.version unavailable,
-    importlib.metadata is used next WITH python 3.8+
+    Ensure that, with scyjava.version.version unavailable,
+    importlib.metadata is used next WITH python 3.8+.
     """
     # Remove scyjava.version
     sys.modules["scyjava.version"] = None
     # Ensure scyjava.__version__ matches importlib.metadata.version()
-    from importlib.metadata import version
 
-    assert _scyjava_version() == version("scyjava")
+    assert _expected_version() == get_version("scyjava")
 
 
 @pytest.mark.skipif(
@@ -53,34 +40,29 @@ def test_version_importlib():
 )
 def test_version_pkg_resources():
     """
-    Ensures that, with scyjava.version.version AND
+    Ensure that, with scyjava.version.version AND
     importlib.metadata unavailable,
     pkg_resources is used next.
     """
-    # Remove scyjava.version
-    sys.modules["scyjava.version"] = None
     # Remove importlib.metadata
     sys.modules["importlib.metadata"] = None
     # Ensure scyjava.__version__ matches
     # pkg_resources.get_distribution().version
-    from pkg_resources import get_distribution
 
-    assert _scyjava_version() == get_distribution("scyjava").version
+    assert _expected_version() == get_version("scyjava")
 
 
-def test_version_unvailable():
+def test_version_unavailable():
     """
-    Ensures that no version is returned if none of these
-    strategies works.
+    Ensure that an exception is raised if none of these strategies works.
     """
-    # Remove scyjava.version
-    sys.modules["scyjava.version"] = None
     # Remove importlib.metadata
     sys.modules["importlib.metadata"] = None
     # Remove pkg_resources
     sys.modules["pkg_resources"] = None
-    # Ensure scyjava.__version__ is an error message.
+    # Ensure scyjava.__version__ raises an exception.
+    with pytest.raises(RuntimeError) as e_info:
+        get_version("scyjava")
     assert (
-        _scyjava_version()
-        == "Cannot determine version! Ensure pkg_resources is installed!"
-    )
+        "RuntimeError: Cannot determine version! Is pkg_resources installed?"
+    ) == e_info.exconly()

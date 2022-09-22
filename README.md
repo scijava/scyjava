@@ -164,9 +164,13 @@ FUNCTIONS
         leading underscore!
         :param func: The function to turn into a property
 
-    get_version(java_class)
-        Return the version of a Java class.
-        Requires org.scijava:scijava-common on the classpath.
+    get_version(java_class_or_python_package)
+        Return the version of a Java class or Python package.
+
+        For Python packages, uses importlib.metadata.version if available
+        (Python 3.8+), with pkg_resources.get_distribution as a fallback.
+
+        For Java classes, requires org.scijava:scijava-common on the classpath.
 
         The version string is extracted from the given class's associated JAR
         artifact (if any), either the embedded Maven POM if the project was built
@@ -182,12 +186,12 @@ FUNCTIONS
         jimport a java.awt or javax.swing class. This can lead to deadlocks
         on macOS if you are not running in headless mode and did not invoke
         those actions via the jpype.setupGuiEnvironment wrapper function;
-        see the Troubleshooting section below for details.
+        see the Troubleshooting section of the scyjava README for details.
 
     is_jvm_headless()
         Return true iff Java is running in headless mode.
 
-        :raises RuntimeException: If the JVM has not started yet.
+        :raises RuntimeError: If the JVM has not started yet.
 
     is_version_at_least(actual_version, minimum_version)
         Return a boolean on a version comparison.

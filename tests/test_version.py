@@ -4,7 +4,7 @@ import toml
 from pathlib import Path
 import pytest
 import scyjava
-from scyjava._version import _find_version
+from scyjava import get_version
 
 
 def _expected_version():
@@ -32,7 +32,7 @@ def test_version_importlib():
     sys.modules["scyjava.version"] = None
     # Ensure scyjava.__version__ matches importlib.metadata.version()
 
-    assert _expected_version() == _find_version()
+    assert _expected_version() == get_version("scyjava")
 
 
 @pytest.mark.skipif(
@@ -49,20 +49,20 @@ def test_version_pkg_resources():
     # Ensure scyjava.__version__ matches
     # pkg_resources.get_distribution().version
 
-    assert _expected_version() == _find_version()
+    assert _expected_version() == get_version("scyjava")
 
 
 def test_version_unavailable():
     """
-    Ensure that no version is returned if none of these
-    strategies works.
+    Ensure that an exception is raised if none of these strategies works.
     """
     # Remove importlib.metadata
     sys.modules["importlib.metadata"] = None
     # Remove pkg_resources
     sys.modules["pkg_resources"] = None
-    # Ensure scyjava.__version__ is an error message.
+    # Ensure scyjava.__version__ raises an exception.
+    with pytest.raises(RuntimeError) as e_info:
+        get_version("scyjava")
     assert (
-        "Cannot determine version! Ensure pkg_resources is installed!"
-        == _find_version()
-    )
+        "RuntimeError: Cannot determine version! Is pkg_resources installed?"
+    ) == e_info.exconly()

@@ -7,6 +7,7 @@ import subprocess
 import sys
 import typing
 from functools import lru_cache
+from importlib.util import find_spec
 from pathlib import Path
 from typing import Any, Callable, Dict, NamedTuple
 
@@ -25,12 +26,7 @@ from jpype.types import (
     JLong,
     JShort,
 )
-from scyjava._version import _find_version
-
 import scyjava.config
-
-
-__version__ = _find_version()
 
 
 _logger = logging.getLogger(__name__)
@@ -347,10 +343,14 @@ def when_jvm_stops(f):
 # -- Utility functions --
 
 
-def get_version(java_class):
+def get_version(java_class_or_python_package):
     """
-    Return the version of a Java class.
-    Requires org.scijava:scijava-common on the classpath.
+    Return the version of a Java class or Python package.
+
+    For Python package, uses importlib.metadata.version if available
+    (Python 3.8+), with pkg_resources.get_distribution as a fallback.
+
+    For Java classes, requires org.scijava:scijava-common on the classpath.
 
     The version string is extracted from the given class's associated JAR
     artifact (if any), either the embedded Maven POM if the project was built
@@ -358,9 +358,27 @@ def get_version(java_class):
 
     See org.scijava.VersionUtils.getVersion(Class) for further details.
     """
-    VersionUtils = jimport("org.scijava.util.VersionUtils")
-    version = VersionUtils.getVersion(java_class)
-    return version
+
+    if isjava(java_class_or_python_package):
+        # Assume we were given a Java class object.
+        VersionUtils = jimport("org.scijava.util.VersionUtils")
+        return str(VersionUtils.getVersion(java_class_or_python_package))
+
+    # Assume we were given a Python package name.
+
+    if find_spec("importlib.metadata"):
+        # Fastest, but requires Python 3.8+.
+        from importlib.metadata import version
+
+        return version(java_class_or_python_package)
+
+    if find_spec("pkg_resources"):
+        # Slower, but works on Python 3.7.
+        from pkg_resources import get_distribution
+
+        return get_distribution(java_class_or_python_package).version
+
+    raise RuntimeError("Cannot determine version! Is pkg_resources installed?")
 
 
 def is_version_at_least(actual_version, minimum_version):
@@ -1134,6 +1152,9 @@ def _pandas_to_table(df):
             table.set(header, i, to_java(value))
 
     return table
+
+
+__version__ = get_version("scyjava")
 
 
 # -- JVM startup callbacks --

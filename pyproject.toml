@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "scyjava"
-version = "1.5.2.dev0"
+version = "1.6.0.dev0"
 authors = [
     {name = "Curtis Rueden", email = "ctrueden@wisc.edu"},
     {name = "Philipp Hanslovsky"},

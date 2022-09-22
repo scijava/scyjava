@@ -7,9 +7,9 @@ import scyjava
 from scyjava._version import _find_version
 
 
-def _scyjava_version():
+def _expected_version():
     """
-    Get ScyJava's version.
+    Get the project version from pyproject.toml.
     """
     pyproject = toml.load(Path(__file__).parents[1] / "pyproject.toml")
     return pyproject["project"]["version"]
@@ -17,22 +17,22 @@ def _scyjava_version():
 
 def test_version_dunder():
     """
-    Ensures that the dunder variable matches _scyjava_version
+    Ensure that the dunder variable matches _expected_version.
     """
-    assert scyjava.__version__ == _scyjava_version()
+    assert _expected_version() == scyjava.__version__
 
 
 @pytest.mark.skipif(sys.version_info < (3, 8), reason="Requires Python >= 3.8")
 def test_version_importlib():
     """
-    Ensures that, with scyjava.version.version unavailable,
-    importlib.metadata is used next WITH python 3.8+
+    Ensure that, with scyjava.version.version unavailable,
+    importlib.metadata is used next WITH python 3.8+.
     """
     # Remove scyjava.version
     sys.modules["scyjava.version"] = None
     # Ensure scyjava.__version__ matches importlib.metadata.version()
 
-    assert _scyjava_version() == _find_version()
+    assert _expected_version() == _find_version()
 
 
 @pytest.mark.skipif(
@@ -40,7 +40,7 @@ def test_version_importlib():
 )
 def test_version_pkg_resources():
     """
-    Ensures that, with scyjava.version.version AND
+    Ensure that, with scyjava.version.version AND
     importlib.metadata unavailable,
     pkg_resources is used next.
     """
@@ -49,12 +49,12 @@ def test_version_pkg_resources():
     # Ensure scyjava.__version__ matches
     # pkg_resources.get_distribution().version
 
-    assert _scyjava_version() == _find_version()
+    assert _expected_version() == _find_version()
 
 
-def test_version_unvailable():
+def test_version_unavailable():
     """
-    Ensures that no version is returned if none of these
+    Ensure that no version is returned if none of these
     strategies works.
     """
     # Remove importlib.metadata

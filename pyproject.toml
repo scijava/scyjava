@@ -47,7 +47,7 @@ Documentation = "https://github.com/scijava/scyjava/blob/master/README.md"
 "Source Code" = "https://github.com/scijava/scyjava"
 
 [project.optional-dependencies]
-# Ensure any changes to this list are also added to environment-test.yml!
+# Ensure any changes to this list are also added to dev-environment.yml!
 dev = [
     "autopep8",
     "black",
@@ -62,7 +62,7 @@ dev = [
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-# Ensure any changes to this list are also added to environment.yml AND environment-test.yml!
+# Ensure any changes to this list are also added to environment.yml AND dev-environment.yml!
 include-package-data = false
 
 [tool.setuptools.packages.find]

@@ -4,6 +4,7 @@ The scyjava conversion subsystem, and built-in conversion functions.
 
 import collections
 import typing
+from pathlib import Path
 from typing import Any, Callable, NamedTuple
 
 from jpype import JArray, JBoolean, JByte, JChar, JDouble, JFloat, JInt, JLong, JShort
@@ -177,6 +178,12 @@ def _stock_java_converters() -> typing.List[Converter]:
             predicate=lambda obj: isinstance(obj, float),
             converter=lambda obj: _jc.BigDecimal(str(obj)),
             priority=Priority.NORMAL - 2,
+        ),
+        # pathlib.Path -> java.nio.file.Path
+        Converter(
+            predicate=lambda obj: isinstance(obj, Path),
+            converter=lambda obj: _jc.Paths.get(str(obj)),
+            priority=Priority.NORMAL + 1,
         ),
         # Pandas table converter
         Converter(
@@ -548,6 +555,12 @@ def _stock_py_converters() -> typing.List:
             converter=JavaIterator,
             priority=Priority.NORMAL - 1,
         ),
+        # java.nio.file.Path -> pathlib.Path
+        Converter(
+            predicate=lambda obj: isinstance(obj, _jc.Path),
+            converter=lambda obj: Path(str(obj)),
+            priority=Priority.NORMAL + 1,
+        ),
         # JArray -> list
         Converter(
             predicate=lambda obj: isinstance(obj, JArray),
@@ -757,6 +770,10 @@ class _JavaClasses(JavaClasses):
     def BigDecimal(self):    return "java.math.BigDecimal"     # noqa: E272
     @JavaClasses.java_import
     def BigInteger(self):    return "java.math.BigInteger"     # noqa: E272
+    @JavaClasses.java_import
+    def Path(self):          return "java.nio.file.Path"       # noqa: E272
+    @JavaClasses.java_import
+    def Paths(self):         return "java.nio.file.Paths"      # noqa: E272
     @JavaClasses.java_import
     def ArrayList(self):     return "java.util.ArrayList"      # noqa: E272
     @JavaClasses.java_import

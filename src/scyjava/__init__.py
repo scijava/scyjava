@@ -157,7 +157,7 @@ def add_java_converter(converter: Converter):
 def to_java(obj: Any) -> Any:
     """
     Recursively convert a Python object to a Java object.
-    :param data: The Python object to convert.
+
     Supported types include:
     * str -> String
     * bool -> Boolean
@@ -166,6 +166,8 @@ def to_java(obj: Any) -> Any:
     * dict -> LinkedHashMap
     * set -> LinkedHashSet
     * list -> ArrayList
+
+    :param data: The Python object to convert.
     :returns: A corresponding Java object with the same contents.
     :raises TypeError: if the argument is not one of the aforementioned types.
     """
@@ -455,9 +457,7 @@ def add_py_converter(converter: Converter):
 def to_python(data: Any, gentle: bool = False) -> Any:
     """
     Recursively convert a Java object to a Python object.
-    :param data: The Java object to convert.
-    :param gentle: If set, and the type cannot be converted, leaves
-                   the data alone rather than raising a TypeError.
+
     Supported types include:
     * String, Character -> str
     * Boolean -> bool
@@ -469,6 +469,10 @@ def to_python(data: Any, gentle: bool = False) -> Any:
     * Collection -> collections.abc.Collection
     * Iterable -> collections.abc.Iterable
     * Iterator -> collections.abc.Iterator
+
+    :param data: The Java object to convert.
+    :param gentle: If set, and the type cannot be converted, leaves
+                   the data alone rather than raising a TypeError.
     :returns: A corresponding Python object with the same contents.
     :raises TypeError: if the argument is not one of the aforementioned types,
                        and the gentle flag is not set.

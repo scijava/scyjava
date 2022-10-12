@@ -108,10 +108,6 @@ def _convert(obj: Any, converters: typing.List[Converter]) -> Any:
     return prioritized.converter(obj)
 
 
-def _add_converter(converter: Converter, converters: typing.List[Converter]):
-    converters.append(converter)
-
-
 # -- Python to Java --
 
 # Adapted from code posted by vslotman on GitHub:
@@ -155,7 +151,7 @@ def add_java_converter(converter: Converter):
     Adds a converter to the list used by to_java
     :param converter: A Converter going from python to java
     """
-    _add_converter(converter, java_converters)
+    java_converters.append(converter)
 
 
 def to_java(obj: Any) -> Any:
@@ -453,7 +449,7 @@ def add_py_converter(converter: Converter):
     Adds a converter to the list used by to_python
     :param converter: A Converter from java to python
     """
-    _add_converter(converter, py_converters)
+    py_converters.append(converter)
 
 
 def to_python(data: Any, gentle: bool = False) -> Any:
@@ -774,9 +770,9 @@ __version__ = get_version("scyjava")
 
 def _initialize_converters():
     for converter in _stock_java_converters():
-        _add_converter(converter, java_converters)
+        add_java_converter(converter)
     for converter in _stock_py_converters():
-        _add_converter(converter, py_converters)
+        add_py_converter(converter)
 
 
 when_jvm_starts(_initialize_converters)

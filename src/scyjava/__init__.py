@@ -14,7 +14,6 @@ from typing import Any, Callable, Dict, NamedTuple
 import jgo
 import jpype
 import jpype.config
-from _jpype import _JObject
 from jpype.types import (
     JArray,
     JBoolean,
@@ -499,7 +498,7 @@ def _add_converter(converter: Converter, converters: typing.List[Converter]):
 
 def isjava(data):
     """Return whether the given data object is a Java object."""
-    return isinstance(data, jpype.JClass) or isinstance(data, _JObject)
+    return isinstance(data, jpype.JClass) or isinstance(data, jpype.JObject)
 
 
 def jclass(data):
@@ -511,13 +510,13 @@ def jclass(data):
     A. Name of a class to look up, analogous to
     Class.forName("java.lang.String");
     B. A jpype.JClass object analogous to String.class;
-    C. A _jpype._JObject instance analogous to o.getClass().
+    C. A jpype.JObject instance analogous to o.getClass().
     :returns: A java.lang.Class object, suitable for use with reflection.
     :raises TypeError: if the argument is not one of the aforementioned types.
     """
     if isinstance(data, jpype.JClass):
         return data.class_
-    if isinstance(data, _JObject):
+    if isinstance(data, jpype.JObject):
         return data.getClass()
     if isinstance(data, str):
         return jclass(jimport(data))

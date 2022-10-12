@@ -1,3 +1,71 @@
+"""
+Supercharged Java access from Python, built on JPype and jgo.
+
+Use Java classes from Python:
+
+    >>> from scyjava import jimport
+    >>> System = jimport('java.lang.System')
+    >>> System.getProperty('java.version')
+    '1.8.0_252'
+
+Use Maven artifacts from remote repositories:
+
+    >>> from scyjava import config, jimport
+    >>> config.add_option('-Djava.awt.headless=true')
+    >>> config.add_repositories({
+    ... 'scijava.public': 'https://maven.scijava.org/content/groups/public',
+    ... })
+    >>> config.endpoints.append('net.imagej:imagej:2.1.0')
+    >>> ImageJ = jimport('net.imagej.ImageJ')
+    >>> ij = ImageJ()
+    >>> formula = "10 * (Math.cos(0.3*p[0]) + Math.sin(0.3*p[1]))"
+    >>> ArrayImgs = jimport('net.imglib2.img.array.ArrayImgs')
+    >>> blank = ArrayImgs.floats(64, 16)
+    >>> sinusoid = ij.op().image().equation(blank, formula)
+    >>> print(ij.op().image().ascii(sinusoid))
+    ,,,--+oo******oo+--,,,,,--+oo******o++--,,,,,--+oo******o++--,,,
+    ...,--+ooo**oo++--,....,,--+ooo**oo++-,,....,,--+ooo**oo++-,,...
+     ...,--++oooo++--,... ...,--++oooo++--,... ...,--++oooo++-,,...
+       ..,--++++++--,..     ..,--++o+++--,..     .,,--++o+++--,..
+       ..,,-++++++-,,.      ..,,-++++++-,,.      ..,--++++++-,,.
+        .,,--++++--,,.       .,,--++++--,,.       .,,--++++--,..
+        .,,--++++--,,.       .,,-+++++--,,.       .,,-+++++--,,.
+       ..,--++++++--,..     ..,--++++++--,..     ..,--++++++-,,..
+      ..,,-++oooo++-,,..   ..,,-++oooo++-,,..   ..,,-++ooo+++-,,..
+    ...,,-++oooooo++-,,.....,,-++oooooo++-,,.....,,-++oooooo+--,,...
+    .,,,-++oo****oo++-,,,.,,,-++oo****oo+--,,,.,,,-++oo****oo+--,,,.
+    ,,--++o***OO**oo++-,,,,--++o***OO**oo+--,,,,--++o***OO**oo+--,,,
+    ---++o**OOOOOO**o++-----++o**OOOOOO*oo++-----++o**OOOOOO*oo++---
+    --++oo*OO####OO*oo++---++oo*OO####OO*oo++---++o**OO####OO*oo++--
+    +++oo*OO######O**oo+++++oo*OO######O**oo+++++oo*OO######O**oo+++
+    +++oo*OO######OO*oo+++++oo*OO######OO*oo+++++oo*OO######OO*oo+++
+
+Convert Java collections to Python:
+
+    >>> from scyjava import jimport
+    >>> HashSet = jimport('java.util.HashSet')
+    >>> moves = set(('jump', 'duck', 'dodge'))
+    >>> fish = set(('walleye', 'pike', 'trout'))
+    >>> jbirds = HashSet()
+    >>> for bird in ('duck', 'goose', 'swan'): jbirds.add(bird)
+    >>> from scyjava import to_python as j2p
+    >>> j2p(jbirds).isdisjoint(moves)
+    False
+    >>> j2p(jbirds).isdisjoint(fish)
+    True
+
+Convert Python collections to Java:
+
+    >>> from scyjava import jimport
+    >>> HashSet = jimport('java.util.HashSet')
+    >>> jset = HashSet()
+    >>> pset = set((1, 2, 3))
+    >>> from scyjava import to_java as p2j
+    >>> jset.addAll(p2j(pset))
+    True
+    >>> jset.toString()
+    '[1, 2, 3]'
+"""
 import logging
 from functools import lru_cache
 from typing import Any, Callable, Dict

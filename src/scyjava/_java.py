@@ -1,6 +1,7 @@
 """
 Utility functions for working with the Java and JVM.
 """
+
 import atexit
 import logging
 import os

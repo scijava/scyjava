@@ -1,3 +1,8 @@
+"""
+Utility functions for working with and reasoning about arrays.
+"""
+
+
 def is_arraylike(arr):
     """
     Return True iff the object is arraylike: possessing

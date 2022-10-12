@@ -1,3 +1,7 @@
+"""
+Utility functions for working with and reasoning about software component versions.
+"""
+
 import logging
 from importlib.util import find_spec
 

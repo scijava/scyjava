@@ -565,11 +565,6 @@ def _stock_py_converters() -> typing.List:
             predicate=lambda obj: isinstance(obj, _jc.Short),
             converter=lambda obj: obj.shortValue(),
         ),
-        # Void converter
-        Converter(
-            predicate=lambda obj: isinstance(obj, _jc.Void),
-            converter=lambda obj: None,
-        ),
         # String converter
         Converter(
             predicate=lambda obj: isinstance(obj, _jc.String),
@@ -674,8 +669,6 @@ class _JavaClasses(JavaClasses):
     def Short(self):         return "java.lang.Short"          # noqa: E272
     @JavaClasses.java_import
     def String(self):        return "java.lang.String"         # noqa: E272
-    @JavaClasses.java_import
-    def Void(self):          return "java.lang.Void"           # noqa: E272
     @JavaClasses.java_import
     def BigDecimal(self):    return "java.math.BigDecimal"     # noqa: E272
     @JavaClasses.java_import

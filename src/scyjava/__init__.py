@@ -26,8 +26,8 @@ from jpype.types import (
     JLong,
     JShort,
 )
-import scyjava.config
 
+import scyjava.config
 
 _logger = logging.getLogger(__name__)
 

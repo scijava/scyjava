@@ -53,6 +53,7 @@ dev = [
     "black",
     "build",
     "flake8",
+    "isort",
     "pytest",
     "pytest-cov",
     "numpy",
@@ -68,3 +69,6 @@ include-package-data = false
 [tool.setuptools.packages.find]
 where = ["src"]
 namespaces = false
+
+[tool.isort]
+profile = "black"

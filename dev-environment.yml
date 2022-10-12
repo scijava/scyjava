@@ -25,6 +25,7 @@ dependencies:
   - black
   - build
   - flake8
+  - isort
   - pytest
   - pytest-cov
   - toml

@@ -569,7 +569,7 @@ def _stock_py_converters() -> typing.List:
 
 
 def _is_table(obj: Any) -> bool:
-    """Checks if obj is a table"""
+    """Check if obj is a table."""
     try:
         return isinstance(obj, jimport("org.scijava.table.Table"))
     except BaseException:
@@ -578,7 +578,7 @@ def _is_table(obj: Any) -> bool:
 
 
 def _convert_table(obj: Any):
-    """Converts obj to a table."""
+    """Convert obj to a table."""
     try:
         return _table_to_pandas(obj)
     except BaseException:

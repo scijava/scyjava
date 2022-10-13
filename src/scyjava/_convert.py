@@ -119,61 +119,61 @@ def _stock_java_converters() -> typing.List[Converter]:
             converter=_raise_type_exception,
             priority=Priority.EXTREMELY_LOW - 1,
         ),
-        # NoneType converter
+        # None -> None
         Converter(
             predicate=lambda obj: obj is None,
             converter=lambda obj: None,
             priority=Priority.EXTREMELY_HIGH + 1,
         ),
-        # Java identity converter
+        # Java object identity
         Converter(
             predicate=isjava,
             converter=lambda obj: obj,
             priority=Priority.EXTREMELY_HIGH,
         ),
-        # String converter
+        # str -> java.lang.String
         Converter(
             predicate=lambda obj: isinstance(obj, str),
             converter=lambda obj: _jc.String(obj.encode("utf-8"), "utf-8"),
         ),
-        # Boolean converter
+        # bool -> java.lang.Boolean
         Converter(
             predicate=lambda obj: isinstance(obj, bool),
             converter=_jc.Boolean,
         ),
-        # Integer converter
+        # int -> java.lang.Integer
         Converter(
             predicate=lambda obj: isinstance(obj, int)
             and _jc.Integer.MIN_VALUE <= obj <= _jc.Integer.MAX_VALUE,
             converter=_jc.Integer,
         ),
-        # Long converter
+        # int -> java.lang.Long
         Converter(
             predicate=lambda obj: isinstance(obj, int)
             and _jc.Long.MIN_VALUE <= obj <= _jc.Long.MAX_VALUE,
             converter=_jc.Long,
             priority=Priority.NORMAL - 1,
         ),
-        # BigInteger converter
+        # int -> java.math.BigInteger
         Converter(
             predicate=lambda obj: isinstance(obj, int),
             converter=lambda obj: _jc.BigInteger(str(obj)),
             priority=Priority.NORMAL - 2,
         ),
-        # Float converter
+        # float -> java.lang.Float
         Converter(
             predicate=lambda obj: isinstance(obj, float)
             and _jc.Float.MIN_VALUE <= obj <= _jc.Float.MAX_VALUE,
             converter=_jc.Float,
         ),
-        # Double converter
+        # float -> java.lang.Double
         Converter(
             predicate=lambda obj: isinstance(obj, float)
             and _jc.Double.MAX_VALUE <= obj <= _jc.Double.MAX_VALUE,
             converter=_jc.Double,
             priority=Priority.NORMAL - 1,
         ),
-        # BigDecimal converter
+        # float -> java.math.BigDecimal
         Converter(
             predicate=lambda obj: isinstance(obj, float),
             converter=lambda obj: _jc.BigDecimal(str(obj)),
@@ -185,23 +185,23 @@ def _stock_java_converters() -> typing.List[Converter]:
             converter=lambda obj: _jc.Paths.get(str(obj)),
             priority=Priority.NORMAL + 1,
         ),
-        # Pandas table converter
+        # pandas.DataFrame -> org.scijava.table.Table
         Converter(
             predicate=lambda obj: type(obj).__name__ == "DataFrame",
             converter=_pandas_to_table,
             priority=Priority.NORMAL + 1,
         ),
-        # Mapping converter
+        # collections.abc.Mapping -> java.util.Map
         Converter(
             predicate=lambda obj: isinstance(obj, collections.abc.Mapping),
             converter=_convertMap,
         ),
-        # Set converter
+        # collections.abc.Set -> java.util.Set
         Converter(
             predicate=lambda obj: isinstance(obj, collections.abc.Set),
             converter=_convertSet,
         ),
-        # Iterable converter
+        # collections.abc.Iterable -> java.util.Iterable
         Converter(
             predicate=lambda obj: isinstance(obj, collections.abc.Iterable),
             converter=_convertIterable,
@@ -437,7 +437,7 @@ def _stock_py_converters() -> typing.List:
             converter=_raise_type_exception,
             priority=Priority.EXTREMELY_LOW - 1,
         ),
-        # Java identity converter
+        # Python object identity
         Converter(
             predicate=lambda obj: not isjava(obj),
             converter=lambda obj: obj,
@@ -570,7 +570,7 @@ def _stock_py_converters() -> typing.List:
     ]
 
     if _import_numpy():
-        # Primitive Java array to NumPy converter
+        # primitive array -> numpy.ndarray
         converters.append(
             Converter(
                 predicate=_supports_jarray_to_ndarray,
@@ -579,7 +579,7 @@ def _stock_py_converters() -> typing.List:
         )
 
     if _import_pandas():
-        # SciJava Table converter
+        # org.scijava.table.Table -> pandas.DataFrame
         converters.append(
             Converter(
                 predicate=_is_table,

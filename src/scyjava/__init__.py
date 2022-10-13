@@ -146,8 +146,7 @@ def constant(func: Callable[[], Any], cache=True) -> Callable[[], Any]:
 
 def __getattr__(name):
     """
-    Runs as a fallback when this module does not have an
-    attribute.
+    Runs as a fallback when this module does not have an attribute.
     :param name: The name of the attribute being searched for.
     """
     if name in _CONSTANTS:

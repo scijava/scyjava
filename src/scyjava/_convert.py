@@ -4,6 +4,7 @@ The scyjava conversion subsystem, and built-in conversion functions.
 
 import collections
 import typing
+from pathlib import Path
 from typing import Any, Callable, NamedTuple
 
 from jpype import JArray, JBoolean, JByte, JChar, JDouble, JFloat, JInt, JLong, JShort
@@ -177,6 +178,12 @@ def _stock_java_converters() -> typing.List[Converter]:
             predicate=lambda obj: isinstance(obj, float),
             converter=lambda obj: _jc.BigDecimal(str(obj)),
             priority=Priority.NORMAL - 2,
+        ),
+        # pathlib.Path -> java.nio.file.Path
+        Converter(
+            predicate=lambda obj: isinstance(obj, Path),
+            converter=lambda obj: _jc.Paths.get(str(obj)),
+            priority=Priority.NORMAL + 1,
         ),
         # Pandas table converter
         Converter(
@@ -436,119 +443,125 @@ def _stock_py_converters() -> typing.List:
             converter=lambda obj: obj,
             priority=Priority.EXTREMELY_HIGH,
         ),
-        # JBoolean converter
+        # JBoolean -> bool
         Converter(
             predicate=lambda obj: isinstance(obj, JBoolean),
             converter=bool,
             priority=Priority.NORMAL + 1,
         ),
-        # JInt/JLong/JShort converter
+        # JByte/JInt/JLong/JShort -> int
         Converter(
             predicate=lambda obj: isinstance(obj, (JByte, JInt, JLong, JShort)),
             converter=int,
             priority=Priority.NORMAL + 1,
         ),
-        # JDouble/JFloat converter
+        # JDouble/JFloat -> float
         Converter(
             predicate=lambda obj: isinstance(obj, (JDouble, JFloat)),
             converter=float,
             priority=Priority.NORMAL + 1,
         ),
-        # JChar converter
+        # JChar -> str
         Converter(
             predicate=lambda obj: isinstance(obj, JChar),
             converter=str,
             priority=Priority.NORMAL + 1,
         ),
-        # Boolean converter
+        # java.lang.Boolean -> bool
         Converter(
             predicate=lambda obj: isinstance(obj, _jc.Boolean),
             converter=lambda obj: obj.booleanValue(),
         ),
-        # Byte converter
+        # java.lang.Byte -> int
         Converter(
             predicate=lambda obj: isinstance(obj, _jc.Byte),
-            converter=lambda obj: obj.byteValue(),
+            converter=lambda obj: int(obj.byteValue()),
         ),
-        # Char converter
+        # java.lang.Character -> str
         Converter(
             predicate=lambda obj: isinstance(obj, _jc.Character),
-            converter=lambda obj: obj.toString(),
+            converter=lambda obj: str,
         ),
-        # Double converter
+        # java.lang.Double -> float
         Converter(
             predicate=lambda obj: isinstance(obj, _jc.Double),
-            converter=lambda obj: obj.doubleValue(),
+            converter=lambda obj: float(obj.doubleValue()),
         ),
-        # Float converter
+        # java.lang.Float -> float
         Converter(
             predicate=lambda obj: isinstance(obj, _jc.Float),
-            converter=lambda obj: obj.floatValue(),
+            converter=lambda obj: float(obj.floatValue()),
         ),
-        # Integer converter
+        # java.lang.Integer -> int
         Converter(
             predicate=lambda obj: isinstance(obj, _jc.Integer),
-            converter=lambda obj: obj.intValue(),
+            converter=lambda obj: int(obj.intValue()),
         ),
-        # Long converter
+        # java.lang.Long -> int
         Converter(
             predicate=lambda obj: isinstance(obj, _jc.Long),
-            converter=lambda obj: obj.longValue(),
+            converter=lambda obj: int(obj.longValue()),
         ),
-        # Short converter
+        # java.lang.Short -> int
         Converter(
             predicate=lambda obj: isinstance(obj, _jc.Short),
-            converter=lambda obj: obj.shortValue(),
+            converter=lambda obj: int(obj.shortValue()),
         ),
-        # String converter
+        # java.lang.String -> str
         Converter(
             predicate=lambda obj: isinstance(obj, _jc.String),
             converter=lambda obj: str(obj),
         ),
-        # BigInteger converter
+        # java.math.BigInteger -> int
         Converter(
             predicate=lambda obj: isinstance(obj, _jc.BigInteger),
-            converter=lambda obj: int(str(obj.toString())),
+            converter=lambda obj: int(str(obj)),
         ),
-        # BigDecimal converter
+        # java.math.BigDecimal -> float
         Converter(
             predicate=lambda obj: isinstance(obj, _jc.BigDecimal),
-            converter=lambda obj: float(str(obj.toString())),
+            converter=lambda obj: float(str(obj)),
         ),
-        # List converter
+        # java.util.List -> scyjava.JavaList (list-like)
         Converter(
             predicate=lambda obj: isinstance(obj, _jc.List),
             converter=JavaList,
         ),
-        # Map converter
+        # java.util.Map -> scyjava.JavaMap (dict-like)
         Converter(
             predicate=lambda obj: isinstance(obj, _jc.Map),
             converter=JavaMap,
         ),
-        # Set converter
+        # java.util.Set -> scyjava.JavaSet (set-like)
         Converter(
             predicate=lambda obj: isinstance(obj, _jc.Set),
             converter=JavaSet,
         ),
-        # Collection converter
+        # java.util.Collection -> scyjava.JavaCollection (collections.abc.Collection)
         Converter(
             predicate=lambda obj: isinstance(obj, _jc.Collection),
             converter=JavaCollection,
             priority=Priority.NORMAL - 1,
         ),
-        # Iterable converter
+        # java.lang.Iterable -> scyjava.JavaIterable (collections.abc.Iterable)
         Converter(
             predicate=lambda obj: isinstance(obj, _jc.Iterable),
             converter=JavaIterable,
             priority=Priority.NORMAL - 1,
         ),
-        # Iterator converter
+        # java.util.Iterator -> scyjava.JavaIterator (collections.abc.Iterator)
         Converter(
             predicate=lambda obj: isinstance(obj, _jc.Iterator),
             converter=JavaIterator,
             priority=Priority.NORMAL - 1,
         ),
-        # JArray converter
+        # java.nio.file.Path -> pathlib.Path
+        Converter(
+            predicate=lambda obj: isinstance(obj, _jc.Path),
+            converter=lambda obj: Path(str(obj)),
+            priority=Priority.NORMAL + 1,
+        ),
+        # JArray -> list
         Converter(
             predicate=lambda obj: isinstance(obj, JArray),
             converter=lambda obj: [to_python(o) for o in obj],
@@ -757,6 +770,10 @@ class _JavaClasses(JavaClasses):
     def BigDecimal(self):    return "java.math.BigDecimal"     # noqa: E272
     @JavaClasses.java_import
     def BigInteger(self):    return "java.math.BigInteger"     # noqa: E272
+    @JavaClasses.java_import
+    def Path(self):          return "java.nio.file.Path"       # noqa: E272
+    @JavaClasses.java_import
+    def Paths(self):         return "java.nio.file.Paths"      # noqa: E272
     @JavaClasses.java_import
     def ArrayList(self):     return "java.util.ArrayList"      # noqa: E272
     @JavaClasses.java_import

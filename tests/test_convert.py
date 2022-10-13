@@ -1,3 +1,6 @@
+from os import getcwd
+from pathlib import Path
+
 from jpype import JByte
 
 from scyjava import Converter, config, jarray, jclass, jimport, to_java, to_python
@@ -175,6 +178,15 @@ class TestConvert(object):
         pd = to_python(jd)
         assert d == pd
         assert str(d) == str(pd)
+
+    def testPath(self):
+        py_path = Path(getcwd())
+        j_path = to_java(py_path)
+        assert isinstance(j_path, jimport("java.nio.file.Path"))
+        assert str(j_path) == str(py_path)
+
+        actual = to_python(j_path)
+        assert actual == py_path
 
     def testMixed(self):
         test_dict = {"a": "b", "c": "d"}

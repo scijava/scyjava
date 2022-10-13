@@ -273,12 +273,12 @@ def shutdown_jvm():
         print(f"Exception during JVM shutdown: {e}")
 
 
-def jvm_started():
+def jvm_started() -> bool:
     """Return true iff a Java virtual machine (JVM) has been started."""
     return jpype.isJVMStarted()
 
 
-def is_jvm_headless():
+def is_jvm_headless() -> bool:
     """
     Return true iff Java is running in headless mode.
 
@@ -288,10 +288,10 @@ def is_jvm_headless():
         raise RuntimeError("JVM has not started yet!")
 
     GraphicsEnvironment = scyjava.jimport("java.awt.GraphicsEnvironment")
-    return GraphicsEnvironment.isHeadless()
+    return bool(GraphicsEnvironment.isHeadless())
 
 
-def is_awt_initialized():
+def is_awt_initialized() -> bool:
     """
     Return true iff the AWT subsystem has been initialized.
 
@@ -309,7 +309,7 @@ def is_awt_initialized():
     return any(t.getName().startsWith("AWT-") for t in threads)
 
 
-def when_jvm_starts(f):
+def when_jvm_starts(f) -> None:
     """
     Registers a function to be called when the JVM starts (or immediately).
     This is useful to defer construction of Java-dependent data structures
@@ -327,7 +327,7 @@ def when_jvm_starts(f):
         _startup_callbacks.append(f)
 
 
-def when_jvm_stops(f):
+def when_jvm_stops(f) -> None:
     """
     Registers a function to be called just before the JVM shuts down.
     This is useful to perform cleanup of Java-dependent data structures.
@@ -344,12 +344,12 @@ def when_jvm_stops(f):
 # -- Java functions --
 
 
-def isjava(data):
+def isjava(data) -> bool:
     """Return whether the given data object is a Java object."""
     return isinstance(data, jpype.JClass) or isinstance(data, jpype.JObject)
 
 
-def is_jarray(data):
+def is_jarray(data) -> bool:
     """Return whether the given data object is a Java array."""
     return isinstance(data, jpype.JArray)
 
@@ -389,7 +389,7 @@ def jclass(data):
     raise TypeError("Cannot glean class from data of type: " + str(type(data)))
 
 
-def jinstance(obj, jtype):
+def jinstance(obj, jtype) -> bool:
     """
     Test if the given object is an instance of a particular Java type.
 
@@ -403,7 +403,7 @@ def jinstance(obj, jtype):
     return isinstance(obj, jtype)
 
 
-def jstacktrace(exc):
+def jstacktrace(exc) -> str:
     """
     Extract the Java-side stack trace from a Java exception.
 
@@ -425,7 +425,7 @@ def jstacktrace(exc):
         PrintWriter = jimport("java.io.PrintWriter")
         sw = StringWriter()
         exc.printStackTrace(PrintWriter(sw, True))
-        return sw.toString()
+        return str(sw)
     except BaseException:
         return ""
 

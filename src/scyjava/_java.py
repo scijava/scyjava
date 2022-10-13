@@ -409,3 +409,55 @@ def jstacktrace(exc):
         return sw.toString()
     except BaseException:
         return ""
+
+
+def jarray(kind, lengths):
+    """
+    Create a new n-dimensional Java array.
+
+    :param kind: The type of array to create. This can either be a particular
+    type of object as obtained from jimport, or else a special code for one of
+    the eight primitive array types:
+    * 'b' for byte
+    * 'c' for char
+    * 'd' for double
+    * 'f' for float
+    * 'i' for int
+    * 'j' for long
+    * 's' for short
+    * 'z' for boolean
+    :param lengths: List of lengths for the array. For example:
+    `jarray('z', [3, 7])` is the equivalent of `new boolean[3][7]` in Java.
+    You can pass a single integer to make a 1-dimensional array of that length.
+    :returns: The newly allocated array
+    """
+    if isinstance(kind, str):
+        kind = kind.lower()
+    if isinstance(lengths, int):
+        lengths = [lengths]
+    arraytype = kind
+
+    start_jvm()
+
+    # build up the array type
+    kinds = {
+        "b": jpype.JByte,
+        "c": jpype.JChar,
+        "d": jpype.JDouble,
+        "f": jpype.JFloat,
+        "i": jpype.JInt,
+        "j": jpype.JLong,
+        "s": jpype.JShort,
+        "z": jpype.JBoolean,
+    }
+    if arraytype in kinds:
+        arraytype = kinds[arraytype]
+    for _ in range(len(lengths)):
+        arraytype = jpype.JArray(arraytype)
+    # instantiate the n-dimensional array
+    arr = arraytype(lengths[0])
+
+    if len(lengths) > 1:
+        for i in range(len(arr)):
+            arr[i] = jarray(kind, lengths[1:])
+    return arr

@@ -1,6 +1,6 @@
-from jpype import JArray, JByte, JInt
+from jpype import JByte
 
-from scyjava import Converter, config, jclass, jimport, start_jvm, to_java, to_python
+from scyjava import Converter, config, jarray, jclass, jimport, to_java, to_python
 
 config.endpoints.append("org.scijava:scijava-table")
 config.add_option("-Djava.awt.headless=true")
@@ -124,13 +124,28 @@ class TestConvert(object):
         assert s == ps
         assert str(s) == str(ps)
 
-    def testArray(self):
-        start_jvm()
-        arr = JArray(JInt)(4)
+    def testPrimitiveIntArray(self):
+        arr = jarray("i", 4)
         for i in range(len(arr)):
-            arr[i] = to_java(i)
+            arr[i] = i  # NB: assign Python int into Java int!
         py_arr = to_python(arr)
+        assert isinstance(py_arr, list)
         assert py_arr == [0, 1, 2, 3]
+
+    def test2DStringArray(self):
+        String = jimport("java.lang.String")
+        arr = jarray(String, [3, 5])
+        for i in range(len(arr)):
+            for j in range(len(arr[i])):
+                s = f"{i}, {j}"
+                arr[i][j] = s  # NB: assign Python str to Java String!
+        py_arr = to_python(arr)
+        assert isinstance(py_arr, list)
+        assert py_arr == [
+            ["0, 0", "0, 1", "0, 2", "0, 3", "0, 4"],
+            ["1, 0", "1, 1", "1, 2", "1, 3", "1, 4"],
+            ["2, 0", "2, 1", "2, 2", "2, 3", "2, 4"],
+        ]
 
     def testDict(self):
         d = {

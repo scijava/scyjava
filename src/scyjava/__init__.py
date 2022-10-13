@@ -99,6 +99,7 @@ from scyjava._java import (  # noqa: F401
     is_awt_initialized,
     is_jvm_headless,
     isjava,
+    jarray,
     jclass,
     jimport,
     jstacktrace,

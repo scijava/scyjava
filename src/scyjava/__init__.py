@@ -44,8 +44,8 @@ Convert Java collections to Python:
 
     >>> from scyjava import jimport
     >>> HashSet = jimport('java.util.HashSet')
-    >>> moves = set(('jump', 'duck', 'dodge'))
-    >>> fish = set(('walleye', 'pike', 'trout'))
+    >>> moves = {'jump', 'duck', 'dodge'}
+    >>> fish = {'walleye', 'pike', 'trout'}
     >>> jbirds = HashSet()
     >>> for bird in ('duck', 'goose', 'swan'): jbirds.add(bird)
     >>> from scyjava import to_python as j2p
@@ -59,7 +59,7 @@ Convert Python collections to Java:
     >>> from scyjava import jimport
     >>> HashSet = jimport('java.util.HashSet')
     >>> jset = HashSet()
-    >>> pset = set((1, 2, 3))
+    >>> pset = {1, 2, 3}
     >>> from scyjava import to_java as p2j
     >>> jset.addAll(p2j(pset))
     True

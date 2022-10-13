@@ -422,7 +422,8 @@ def _stock_py_converters() -> typing.List:
     This should only be called after the JVM has been started!
     :returns: A list of Converters
     """
-    return [
+
+    converters = [
         # Other (Exceptional) converter
         Converter(
             predicate=lambda obj: True,
@@ -514,11 +515,6 @@ def _stock_py_converters() -> typing.List:
             predicate=lambda obj: isinstance(obj, _jc.BigDecimal),
             converter=lambda obj: float(str(obj.toString())),
         ),
-        # SciJava Table converter
-        Converter(
-            predicate=_is_table,
-            converter=_convert_table,
-        ),
         # List converter
         Converter(
             predicate=lambda obj: isinstance(obj, _jc.List),
@@ -559,6 +555,17 @@ def _stock_py_converters() -> typing.List:
             priority=Priority.VERY_LOW,
         ),
     ]
+
+    if _import_pandas():
+        # SciJava Table converter
+        converters.append(
+            Converter(
+                predicate=_is_table,
+                converter=_convert_table,
+            )
+        )
+
+    return converters
 
 
 def _is_table(obj: Any) -> bool:

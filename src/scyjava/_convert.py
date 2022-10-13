@@ -8,9 +8,9 @@ import math
 from pathlib import Path
 from typing import Any, Callable, List, NamedTuple
 
-from jpype import JArray, JBoolean, JByte, JChar, JDouble, JFloat, JInt, JLong, JShort
+from jpype import JBoolean, JByte, JChar, JDouble, JFloat, JInt, JLong, JShort
 
-from ._java import JavaClasses, isjava, jclass, jimport, jinstance, start_jvm
+from ._java import JavaClasses, is_jarray, isjava, jclass, jimport, jinstance, start_jvm
 
 
 # NB: We cannot use org.scijava.priority.Priority or other Java-side class
@@ -608,9 +608,9 @@ def _stock_py_converters() -> List:
             converter=lambda obj: Path(str(obj)),
             priority=Priority.NORMAL + 1,
         ),
-        # JArray -> list
+        # jarray -> list
         Converter(
-            predicate=lambda obj: isinstance(obj, JArray),
+            predicate=lambda obj: is_jarray(obj),
             converter=lambda obj: [to_python(o) for o in obj],
             priority=Priority.VERY_LOW,
         ),
@@ -693,20 +693,20 @@ def _supports_jarray_to_ndarray(obj):
 
 
 def _jarray_element_type(jarr):
-    if not isinstance(jarr, JArray):
+    if not is_jarray(jarr):
         return None
     element = jarr
-    while isinstance(element, JArray):
+    while is_jarray(element):
         element = element[0]
     return type(element)
 
 
 def _jarray_shape(jarr):
-    if not isinstance(jarr, JArray):
+    if not is_jarray(jarr):
         return None
     shape = []
     element = jarr
-    while isinstance(element, JArray):
+    while is_jarray(element):
         shape.append(len(element))
         element = element[0]
     return shape

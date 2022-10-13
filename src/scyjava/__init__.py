@@ -97,6 +97,7 @@ from scyjava._convert import (  # noqa: F401
 from scyjava._java import (  # noqa: F401
     JavaClasses,
     is_awt_initialized,
+    is_jarray,
     is_jvm_headless,
     isjava,
     jarray,

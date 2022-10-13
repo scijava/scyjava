@@ -349,6 +349,11 @@ def isjava(data):
     return isinstance(data, jpype.JClass) or isinstance(data, jpype.JObject)
 
 
+def is_jarray(data):
+    """Return whether the given data object is a Java array."""
+    return isinstance(data, jpype.JArray)
+
+
 @lru_cache(maxsize=None)
 def jimport(class_name):
     """

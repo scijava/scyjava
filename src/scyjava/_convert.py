@@ -591,10 +591,10 @@ def _import_pandas():
         import pandas as pd
 
         return pd
-    except ImportError:
+    except ImportError as e:
         msg = "The Pandas library is missing (http://pandas.pydata.org/). "
         msg += "Please install it before using this function."
-        raise Exception(msg)
+        raise RuntimeError(msg) from e
 
 
 def _table_to_pandas(table):

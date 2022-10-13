@@ -377,6 +377,10 @@ def isjava(data) -> bool:
 
 def is_jarray(data) -> bool:
     """Return whether the given data object is a Java array."""
+    if mode == Mode.JEP:
+        return str(type(data)) == "<class 'jep.PyJArray'>"
+
+    assert mode == Mode.JPYPE
     return isinstance(data, jpype.JArray)
 
 

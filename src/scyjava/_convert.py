@@ -97,7 +97,7 @@ def to_java(obj: Any) -> Any:
     * set -> LinkedHashSet
     * list -> ArrayList
 
-    :param data: The Python object to convert.
+    :param obj: The Python object to convert.
     :returns: A corresponding Java object with the same contents.
     :raises TypeError: if the argument is not one of the aforementioned types.
     """

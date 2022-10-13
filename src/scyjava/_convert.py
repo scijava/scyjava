@@ -556,6 +556,15 @@ def _stock_py_converters() -> typing.List:
         ),
     ]
 
+    if _import_numpy():
+        # Primitive Java array to NumPy converter
+        converters.append(
+            Converter(
+                predicate=_supports_jarray_to_ndarray,
+                converter=_jarray_to_ndarray,
+            )
+        )
+
     if _import_pandas():
         # SciJava Table converter
         converters.append(
@@ -566,6 +575,86 @@ def _stock_py_converters() -> typing.List:
         )
 
     return converters
+
+
+###############################
+# Java array -> NumPy ndarray #
+###############################
+
+
+def _jarray_to_ndarray(jarr):
+    """
+    Convert the given Java primitive array into a NumPy ndarray.
+
+    :param jarr: The Java primitive array
+    :return: The converted NumPy ndarray
+    """
+    np = _import_numpy()
+    assert _supports_jarray_to_ndarray(jarr)
+    element_type = _jarray_element_type(jarr)
+    # fmt: off
+    jarraytype_map = {
+        JBoolean: np.bool8,
+        JByte:    np.int8,
+        # JChar:  np.???,
+        JDouble:  np.float64,
+        JFloat:   np.float32,
+        JInt:     np.int32,
+        JLong:    np.int64,
+        JShort:   np.int16,
+    }
+    # fmt: on
+    dtype = jarraytype_map[element_type]
+    ndarray = np.frombuffer(memoryview(jarr), dtype=dtype)
+    return ndarray.reshape(_jarray_shape(jarr))
+
+
+def _supports_jarray_to_ndarray(obj):
+    """
+    Return True iff the given object is convertible to a NumPy ndarray
+    via the _jarray_to_ndarray function.
+
+    :param obj: The object to check for convertibility
+    :return: True iff conversion to a NumPy ndarray is possible
+    """
+    element_type = _jarray_element_type(obj)
+    return element_type in (JBoolean, JByte, JDouble, JFloat, JInt, JLong, JShort)
+
+
+def _jarray_element_type(jarr):
+    if not isinstance(jarr, JArray):
+        return None
+    element = jarr
+    while isinstance(element, JArray):
+        element = element[0]
+    return type(element)
+
+
+def _jarray_shape(jarr):
+    if not isinstance(jarr, JArray):
+        return None
+    shape = []
+    element = jarr
+    while isinstance(element, JArray):
+        shape.append(len(element))
+        element = element[0]
+    return shape
+
+
+def _import_numpy():
+    try:
+        import numpy as np
+
+        return np
+    except ImportError as e:
+        msg = "The NumPy library is missing (https://numpy.org/). "
+        msg += "Please install it before using this function."
+        raise RuntimeError(msg) from e
+
+
+######################################
+# SciJava table <-> pandas DataFrame #
+######################################
 
 
 def _is_table(obj: Any) -> bool:

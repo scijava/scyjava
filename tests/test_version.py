@@ -1,8 +1,9 @@
 import sys
+from pathlib import Path
+
+import pytest
 import toml
 
-from pathlib import Path
-import pytest
 import scyjava
 from scyjava import get_version
 

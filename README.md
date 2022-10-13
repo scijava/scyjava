@@ -92,8 +92,8 @@ See the [jgo documentation](https://github.com/scijava/jgo) for more about Maven
 ```python
 >>> from scyjava import jimport
 >>> HashSet = jimport('java.util.HashSet')
->>> moves = set(('jump', 'duck', 'dodge'))
->>> fish = set(('walleye', 'pike', 'trout'))
+>>> moves = {'jump', 'duck', 'dodge'}
+>>> fish = {'walleye', 'pike', 'trout'}
 >>> jbirds = HashSet()
 >>> for bird in ('duck', 'goose', 'swan'): jbirds.add(bird)
 ...
@@ -130,7 +130,7 @@ AttributeError: 'list' object has no attribute 'stream'
 >>> from scyjava import jimport
 >>> HashSet = jimport('java.util.HashSet')
 >>> jset = HashSet()
->>> pset = set((1, 2, 3))
+>>> pset = {1, 2, 3}
 >>> jset.addAll(pset)
 Traceback (most recent call last):
   File "<stdin>", line 1, in <module>

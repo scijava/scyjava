@@ -5,13 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "scyjava"
 version = "1.6.1.dev0"
-authors = [
-    {name = "Curtis Rueden", email = "ctrueden@wisc.edu"},
-    {name = "Philipp Hanslovsky"},
-    {name = "Edward Evans"},
-    {name = "Mark Hiner"},
-    {name = "Gabriel Selzer"},
-]
+authors = [{name = "SciJava developers", email = "ctrueden@wisc.edu"}]
 description = "Supercharged Java access from Python"
 readme = "README.md"
 license = {text = "The Unlicense"}

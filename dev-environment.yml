@@ -32,5 +32,5 @@ dependencies:
   # Project from source
   - pip
   - pip:
+    - validate-pyproject[all]
     - -e .
-

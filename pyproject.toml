@@ -50,6 +50,7 @@ dev = [
     "numpy",
     "pandas",
     "toml",
+    "validate-pyproject[all]",
 ]
 
 [project.urls]

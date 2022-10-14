@@ -5,10 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "scyjava"
 version = "1.6.1.dev0"
-authors = [{name = "SciJava developers", email = "ctrueden@wisc.edu"}]
 description = "Supercharged Java access from Python"
-readme = "README.md"
 license = {text = "The Unlicense"}
+authors = [{name = "SciJava developers", email = "ctrueden@wisc.edu"}]
+readme = "README.md"
+keywords = ["java", "maven", "cross-language"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
@@ -28,20 +29,16 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Utilities",
 ]
+
+# NB: Keep this in sync with environment.yml AND dev-environment.yml!
 requires-python = ">=3.7"
 dependencies = [
     "jpype1 >= 1.3.0",
     "jgo",
 ]
 
-[project.urls]
-Homepage = "https://github.com/scijava/scyjava"
-"Bug Tracker" = "https://github.com/scijava/scyjava/issues"
-Documentation = "https://github.com/scijava/scyjava/blob/master/README.md"
-"Source Code" = "https://github.com/scijava/scyjava"
-
 [project.optional-dependencies]
-# Ensure any changes to this list are also added to dev-environment.yml!
+# NB: Keep this in sync with dev-environment.yml!
 dev = [
     "autopep8",
     "black",
@@ -55,9 +52,15 @@ dev = [
     "toml",
 ]
 
+[project.urls]
+homepage = "https://github.com/scijava/scyjava"
+documentation = "https://github.com/scijava/scyjava/blob/master/README.md"
+source = "https://github.com/scijava/scyjava"
+download = "https://pypi.org/project/scyjava/"
+tracker = "https://github.com/scijava/scyjava/issues"
+
 [tool.setuptools]
 package-dir = {"" = "src"}
-# Ensure any changes to this list are also added to environment.yml AND dev-environment.yml!
 include-package-data = false
 
 [tool.setuptools.packages.find]

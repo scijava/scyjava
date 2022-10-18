@@ -23,7 +23,7 @@ lint: check
 test: check
 	bin/test.sh
 
-dist: check
+dist: check clean
 	python -m build
 
 .PHONY: test

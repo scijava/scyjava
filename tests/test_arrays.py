@@ -26,6 +26,33 @@ class TestArrays(object):
         for i in range(len(nums)):
             assert nums[i] == pints[i]
 
+    def test_jarray_to_ndarray_1d_updates(self):
+        nums_init = [11, 6, 2, 15, 5]
+        nums_delta = [4, 100, 36, 133, 3]
+        jints = jarray("i", len(nums_init))
+        for i in range(len(nums_init)):
+            jints[i] = nums_init[i]
+
+        # assert narr initial state
+        pints = to_python(jints)
+        assert isinstance(pints, np.ndarray)
+        assert np.int32 == pints.dtype
+        assert (5,) == pints.shape
+        for i in range(len(nums_init)):
+            assert nums_init[i] == pints[i]
+
+        # change jint data state
+        for i in range(len(nums_delta)):
+            jints[i] = nums_delta[i]
+
+        # assert narr delta state
+        pints = to_python(jints)
+        assert isinstance(pints, np.ndarray)
+        assert np.int32 == pints.dtype
+        assert (5,) == pints.shape
+        for i in range(len(nums_delta)):
+            assert nums_delta[i] == pints[i]
+
     def test_jarray_to_ndarray_2d(self):
         nums = [
             [1.2, 3.4, 5.6],
@@ -50,3 +77,46 @@ class TestArrays(object):
         for i in range(len(nums)):
             for j in range(len(nums[i])):
                 assert nums[i][j] == pdoubles[i][j]
+
+    def test_jarray_to_ndarray_2d_updates(self):
+        nums_init = [
+            [1.2, 3.4, 5.6],
+            [7.8, 9.1, 2.3],
+            [4.5, 6.7, 8.9],
+            [0.2, 4.6, 8.0],
+            [1.3, 5.7, 9.1],
+        ]
+        nums_delta = [
+            [15.3, 3.4, 5.6],
+            [7.8, 9.1, 22.3],
+            [90.5, 0.7, 8.9],
+            [80.2, 3.6, 59.0],
+            [1.5, 95.4, 9.1],
+        ]
+        jdoubles = jarray("d", [len(nums_init), len(nums_init[0])])
+        for i in range(len(nums_init)):
+            for j in range(len(nums_init[i])):
+                jdoubles[i][j] = nums_init[i][j]
+
+        # assert narr initial state
+        pdoubles = to_python(jdoubles)
+        assert isinstance(pdoubles, np.ndarray)
+        assert np.float64 == pdoubles.dtype
+        assert (5, 3) == pdoubles.shape
+        for i in range(len(nums_init)):
+            for j in range(len(nums_init[i])):
+                assert nums_init[i][j] == pdoubles[i][j]
+
+        # change jdoubles data state
+        for i in range(len(nums_delta)):
+            for j in range(len(nums_delta[i])):
+                jdoubles[i][j] = nums_delta[i][j]
+
+        # assert narr delta state
+        pdoubles = to_python(jdoubles)
+        assert isinstance(pdoubles, np.ndarray)
+        assert np.float64 == pdoubles.dtype
+        assert (5, 3) == pdoubles.shape
+        for i in range(len(nums_delta)):
+            for j in range(len(nums_delta[i])):
+                assert nums_delta[i][j] == pdoubles[i][j]

@@ -618,7 +618,9 @@ def _jarray_to_ndarray(jarr):
     }
     # fmt: on
     dtype = jarraytype_map[element_type]
-    ndarray = np.frombuffer(memoryview(jarr), dtype=dtype)
+    bb = bytes(jarr)
+    ndarray = np.frombuffer(bb, dtype=dtype)
+    del bb  # release the buffer
     return ndarray.reshape(_jarray_shape(jarr))
 
 

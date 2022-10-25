@@ -1,22 +1,29 @@
 # Use this file to construct an environment
 # for developing scyjava from source.
 #
+# First, install mambaforge:
+#
+#   https://github.com/conda-forge/miniforge#mambaforge
+#
+# Then run:
+#
 #   mamba env create -f dev-environment.yml
 #   conda activate scyjava-dev
 #
-# In addition to the dependencies needed for using scyjava, it includes tools
-# for developer-related actions like running automated tests (pytest),
-# linting the code (black), and generating the API documentation (sphinx).
-# If you want an environment without these tools, use environment.yml.
+# In addition to the dependencies needed for using scyjava, it
+# includes tools for developer-related actions like running
+# automated tests (pytest) and linting the code (black). If you
+# want an environment without these tools, use environment.yml.
 name: scyjava-dev
 channels:
   - conda-forge
   - defaults
 dependencies:
+  - python >= 3.7
   # Project dependencies
   - jpype1 >= 1.3.0
   - jgo
-  - openjdk=8
+  - openjdk
   # Test dependencies
   - numpy
   - pandas

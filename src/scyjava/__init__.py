@@ -117,7 +117,13 @@ from scyjava._versions import (  # noqa: F401
 )
 
 __version__ = get_version("scyjava")
-
+__all__ = [
+    k
+    for k, v in globals().items()
+    if not k.startswith("_")
+    and hasattr(v, "__module__")
+    and v.__module__.startswith("scyjava.")
+]
 
 _logger = logging.getLogger(__name__)
 

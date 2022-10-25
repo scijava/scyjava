@@ -3,6 +3,7 @@ The scyjava conversion subsystem, and built-in conversion functions.
 """
 
 import collections
+import inspect
 import math
 from pathlib import Path
 from typing import Any, Callable, List, NamedTuple
@@ -33,10 +34,20 @@ class Converter(NamedTuple):
     priority: float = Priority.NORMAL
 
 
-def _convert(obj: Any, converters: List[Converter]) -> Any:
+def _convert(obj: Any, converters: List[Converter], **hints: dict) -> Any:
     suitable_converters = filter(lambda c: c.predicate(obj), converters)
     prioritized = max(suitable_converters, key=lambda c: c.priority)
-    return prioritized.converter(obj)
+
+    # check if selected converter supports hints
+    uses_hints = not isjava(prioritized.converter) and any(
+        p.kind == inspect.Parameter.VAR_KEYWORD
+        for p in inspect.signature(prioritized.converter).parameters.values()
+    )
+    return (
+        prioritized.converter(obj, **hints)
+        if uses_hints
+        else prioritized.converter(obj)
+    )
 
 
 # -- Python to Java --
@@ -85,7 +96,7 @@ def add_java_converter(converter: Converter):
     java_converters.append(converter)
 
 
-def to_java(obj: Any) -> Any:
+def to_java(obj: Any, **hints: dict) -> Any:
     """
     Recursively convert a Python object to a Java object.
 
@@ -103,7 +114,7 @@ def to_java(obj: Any) -> Any:
     :raises TypeError: if the argument is not one of the aforementioned types.
     """
     start_jvm()
-    return _convert(obj, java_converters)
+    return _convert(obj, java_converters, **hints)
 
 
 def _stock_java_converters() -> List[Converter]:

@@ -167,7 +167,7 @@ FUNCTIONS
     get_version(java_class_or_python_package)
         Return the version of a Java class or Python package.
 
-        For Python packages, uses importlib.metadata.version if available
+        For Python package, uses importlib.metadata.version if available
         (Python 3.8+), with pkg_resources.get_distribution as a fallback.
 
         For Java classes, requires org.scijava:scijava-common on the classpath.
@@ -177,6 +177,13 @@ FUNCTIONS
         with Maven, or the JAR manifest's Specification-Version value if it exists.
 
         See org.scijava.VersionUtils.getVersion(Class) for further details.
+
+    is_arraylike(arr)
+        Return True iff the object is arraylike: possessing
+        .shape, .dtype, .__array__, and .ndim attributes.
+
+        :param arr: The object to check for arraylike properties
+        :return: True iff the object is arraylike
 
     is_awt_initialized()
         Return true iff the AWT subsystem has been initialized.
@@ -193,6 +200,13 @@ FUNCTIONS
 
         :raises RuntimeError: If the JVM has not started yet.
 
+    is_memoryarraylike(arr)
+        Return True iff the object is memoryarraylike:
+        an arraylike object whose .data type is memoryview.
+
+        :param arr: The object to check for memoryarraylike properties
+        :return: True iff the object is memoryarraylike
+
     is_version_at_least(actual_version, minimum_version)
         Return a boolean on a version comparison.
         Requires org.scijava:scijava-common on the classpath.
@@ -202,8 +216,35 @@ FUNCTIONS
 
         See org.scijava.VersionUtils.compare(String, String) for further details.
 
+    is_xarraylike(xarr)
+        Return True iff the object is xarraylike:
+        possessing .values, .dims, and .coords attributes,
+        and whose .values are arraylike.
+
+        :param arr: The object to check for xarraylike properties
+        :return: True iff the object is xarraylike
+
     isjava(data)
         Return whether the given data object is a Java object.
+
+    jarray(kind, lengths)
+        Create a new n-dimensional Java array.
+
+        :param kind: The type of array to create. This can either be a particular
+        type of object as obtained from jimport, or else a special code for one of
+        the eight primitive array types:
+        * 'b' for byte
+        * 'c' for char
+        * 'd' for double
+        * 'f' for float
+        * 'i' for int
+        * 'j' for long
+        * 's' for short
+        * 'z' for boolean
+        :param lengths: List of lengths for the array. For example:
+        `jarray('z', [3, 7])` is the equivalent of `new boolean[3][7]` in Java.
+        You can pass a single integer to make a 1-dimensional array of that length.
+        :returns: The newly allocated array
 
     jclass(data)
         Obtain a Java class object.
@@ -213,7 +254,7 @@ FUNCTIONS
         A. Name of a class to look up, analogous to
         Class.forName("java.lang.String");
         B. A jpype.JClass object analogous to String.class;
-        C. A _jpype._JObject instance analogous to o.getClass().
+        C. A jpype.JObject instance analogous to o.getClass().
         :returns: A java.lang.Class object, suitable for use with reflection.
         :raises TypeError: if the argument is not one of the aforementioned types.
 
@@ -285,7 +326,7 @@ FUNCTIONS
         Note that if the JVM is not already running, then this function does
         nothing! In particular, shutdown hooks are skipped in this situation.
 
-    start_jvm(options=[])
+    start_jvm(options=None)
         Explicitly connect to the Java virtual machine (JVM). Only one JVM can
         be active; does nothing if the JVM has already been started. Calling
         this function directly is typically not necessary, because the first
@@ -297,7 +338,7 @@ FUNCTIONS
 
     to_java(obj: Any) -> Any
         Recursively convert a Python object to a Java object.
-        :param data: The Python object to convert.
+
         Supported types include:
         * str -> String
         * bool -> Boolean
@@ -306,14 +347,14 @@ FUNCTIONS
         * dict -> LinkedHashMap
         * set -> LinkedHashSet
         * list -> ArrayList
+
+        :param obj: The Python object to convert.
         :returns: A corresponding Java object with the same contents.
         :raises TypeError: if the argument is not one of the aforementioned types.
 
     to_python(data: Any, gentle: bool = False) -> Any
         Recursively convert a Java object to a Python object.
-        :param data: The Java object to convert.
-        :param gentle: If set, and the type cannot be converted, leaves
-                       the data alone rather than raising a TypeError.
+
         Supported types include:
         * String, Character -> str
         * Boolean -> bool
@@ -325,6 +366,10 @@ FUNCTIONS
         * Collection -> collections.abc.Collection
         * Iterable -> collections.abc.Iterable
         * Iterator -> collections.abc.Iterator
+
+        :param data: The Java object to convert.
+        :param gentle: If set, and the type cannot be converted, leaves
+                       the data alone rather than raising a TypeError.
         :returns: A corresponding Python object with the same contents.
         :raises TypeError: if the argument is not one of the aforementioned types,
                            and the gentle flag is not set.

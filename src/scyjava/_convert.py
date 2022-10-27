@@ -615,7 +615,16 @@ def _jarray_to_ndarray(jarr):
     }
     # fmt: on
     dtype = jarraytype_map[element_type]
-    bb = bytes(jarr)
+    # Use a bytearray instead of memoryview for np.frombuffer.
+    # Casting memoryview() on a Java array copies the array's content
+    # into a buffer which does not get released when a new view is
+    # requested. If the Java array's data changes a new memoryview will
+    # contain the old buffer data. The view and any object created with
+    # it must be deleted (del or =None) to release the buffer before
+    # requesting a new view. Instead of utilizing the buffer
+    # memoryview creates of the Java array, we obtain the buffer ouselves
+    # as a mutable bytearray.
+    bb = bytearray(jarr)
     ndarray = np.frombuffer(bb, dtype=dtype)
     del bb  # release the buffer
     return ndarray.reshape(_jarray_shape(jarr))

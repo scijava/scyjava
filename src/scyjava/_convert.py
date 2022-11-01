@@ -79,7 +79,7 @@ java_converters: List[Converter] = []
 
 def add_java_converter(converter: Converter):
     """
-    Adds a converter to the list used by to_java
+    Add a converter to the list used by to_java.
     :param converter: A Converter going from python to java
     """
     java_converters.append(converter)
@@ -108,10 +108,10 @@ def to_java(obj: Any) -> Any:
 
 def _stock_java_converters() -> List[Converter]:
     """
-    Returns all python-to-java converters supported out of the box!
-    This should only be called after the JVM has been started!
+    Construct the Python-to-Java converters supported out of the box.
     :returns: A list of Converters
     """
+    start_jvm()
     return [
         # Other (Exceptional) converter
         Converter(
@@ -390,7 +390,7 @@ py_converters: List[Converter] = []
 
 def add_py_converter(converter: Converter):
     """
-    Adds a converter to the list used by to_python
+    Add a converter to the list used by to_python.
     :param converter: A Converter from java to python
     """
     py_converters.append(converter)
@@ -430,10 +430,10 @@ def to_python(data: Any, gentle: bool = False) -> Any:
 
 def _stock_py_converters() -> List:
     """
-    Returns all java-to-python converters supported out of the box!
-    This should only be called after the JVM has been started!
+    Construct the Java-to-Python converters supported out of the box.
     :returns: A list of Converters
     """
+    start_jvm()
 
     converters = [
         # Other (Exceptional) converter

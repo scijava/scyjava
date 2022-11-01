@@ -28,26 +28,37 @@ class Priority:
     LAST = -1e300
 
 
+def _has_kwargs(f):
+    return not isjava(f) and any(
+        p.kind == inspect.Parameter.VAR_KEYWORD
+        for p in inspect.signature(f).parameters.values()
+    )
+
+
 class Converter(NamedTuple):
     predicate: Callable[[Any], bool]
     converter: Callable[[Any], Any]
     priority: float = Priority.NORMAL
 
+    def supports(self, obj: Any, **hints: dict) -> bool:
+        return (
+            self.predicate(obj, **hints)
+            if _has_kwargs(self.predicate)
+            else self.predicate(obj)
+        )
+
+    def convert(self, obj: Any, **hints: dict) -> Any:
+        return (
+            self.converter(obj, **hints)
+            if _has_kwargs(self.converter)
+            else self.converter(obj)
+        )
+
 
 def _convert(obj: Any, converters: List[Converter], **hints: dict) -> Any:
-    suitable_converters = filter(lambda c: c.predicate(obj), converters)
+    suitable_converters = [c for c in converters if c.supports(obj, **hints)]
     prioritized = max(suitable_converters, key=lambda c: c.priority)
-
-    # check if selected converter supports hints
-    uses_hints = not isjava(prioritized.converter) and any(
-        p.kind == inspect.Parameter.VAR_KEYWORD
-        for p in inspect.signature(prioritized.converter).parameters.values()
-    )
-    return (
-        prioritized.converter(obj, **hints)
-        if uses_hints
-        else prioritized.converter(obj)
-    )
+    return prioritized.convert(obj, **hints)
 
 
 # -- Python to Java --

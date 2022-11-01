@@ -384,6 +384,20 @@ def jclass(data):
     raise TypeError("Cannot glean class from data of type: " + str(type(data)))
 
 
+def jinstance(obj, jtype):
+    """
+    Test if the given object is an instance of a particular Java type.
+
+    :param obj: The object to check.
+    :param jtype: The Java type, as either a jimported class or as a string.
+    :returns: True iff the object is an instance of that Java type.
+    """
+    if isinstance(jtype, str):
+        jtype = jimport(jtype)
+
+    return isinstance(obj, jtype)
+
+
 def jstacktrace(exc):
     """
     Extract the Java-side stack trace from a Java exception.

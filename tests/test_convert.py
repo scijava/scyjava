@@ -3,7 +3,16 @@ from pathlib import Path
 
 from jpype import JByte
 
-from scyjava import Converter, config, jarray, jclass, jimport, to_java, to_python
+from scyjava import (
+    Converter,
+    config,
+    jarray,
+    jclass,
+    jimport,
+    jinstance,
+    to_java,
+    to_python,
+)
 
 config.endpoints.append("org.scijava:scijava-table")
 config.add_option("-Djava.awt.headless=true")
@@ -182,7 +191,7 @@ class TestConvert(object):
     def testPath(self):
         py_path = Path(getcwd())
         j_path = to_java(py_path)
-        assert isinstance(j_path, jimport("java.nio.file.Path"))
+        assert jinstance(j_path, "java.nio.file.Path")
         assert str(j_path) == str(py_path)
 
         actual = to_python(j_path)

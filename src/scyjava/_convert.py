@@ -8,7 +8,7 @@ from typing import Any, Callable, List, NamedTuple
 
 from jpype import JArray, JBoolean, JByte, JChar, JDouble, JFloat, JInt, JLong, JShort
 
-from ._java import JavaClasses, isjava, jclass, jimport, start_jvm
+from ._java import JavaClasses, isjava, jclass, jimport, jinstance, start_jvm
 
 
 # NB: We cannot use org.scijava.priority.Priority or other Java-side class
@@ -681,7 +681,7 @@ def _import_numpy(required=True):
 def _is_table(obj: Any) -> bool:
     """Check if obj is a table."""
     try:
-        return isinstance(obj, jimport("org.scijava.table.Table"))
+        return jinstance(obj, "org.scijava.table.Table")
     except BaseException:
         # No worries if scijava-table is not available.
         pass

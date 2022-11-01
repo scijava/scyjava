@@ -3,9 +3,8 @@ The scyjava conversion subsystem, and built-in conversion functions.
 """
 
 import collections
-import typing
 from pathlib import Path
-from typing import Any, Callable, NamedTuple
+from typing import Any, Callable, List, NamedTuple
 
 from jpype import JArray, JBoolean, JByte, JChar, JDouble, JFloat, JInt, JLong, JShort
 
@@ -33,7 +32,7 @@ class Converter(NamedTuple):
     priority: float = Priority.NORMAL
 
 
-def _convert(obj: Any, converters: typing.List[Converter]) -> Any:
+def _convert(obj: Any, converters: List[Converter]) -> Any:
     suitable_converters = filter(lambda c: c.predicate(obj), converters)
     prioritized = max(suitable_converters, key=lambda c: c.priority)
     return prioritized.converter(obj)
@@ -74,7 +73,7 @@ def _convertIterable(obj: collections.abc.Iterable):
     return jlist
 
 
-java_converters: typing.List[Converter] = []
+java_converters: List[Converter] = []
 
 
 def add_java_converter(converter: Converter):
@@ -106,7 +105,7 @@ def to_java(obj: Any) -> Any:
     return _convert(obj, java_converters)
 
 
-def _stock_java_converters() -> typing.List[Converter]:
+def _stock_java_converters() -> List[Converter]:
     """
     Returns all python-to-java converters supported out of the box!
     This should only be called after the JVM has been started!
@@ -377,7 +376,7 @@ class JavaSet(JavaCollection, collections.abc.MutableSet):
         return "{" + ", ".join(_jstr(v) for v in self) + "}"
 
 
-py_converters: typing.List[Converter] = []
+py_converters: List[Converter] = []
 
 
 def add_py_converter(converter: Converter):
@@ -420,7 +419,7 @@ def to_python(data: Any, gentle: bool = False) -> Any:
         raise exc
 
 
-def _stock_py_converters() -> typing.List:
+def _stock_py_converters() -> List:
     """
     Returns all java-to-python converters supported out of the box!
     This should only be called after the JVM has been started!

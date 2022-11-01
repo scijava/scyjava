@@ -163,15 +163,33 @@ def _stock_java_converters() -> List[Converter]:
             predicate=lambda obj: isinstance(obj, bool),
             converter=_jc.Boolean,
         ),
+        # int -> java.lang.Byte
+        Converter(
+            predicate=lambda obj, **hints: isinstance(obj, int)
+            and ("type" in hints and hints["type"] in ("b", "byte", "Byte"))
+            and _jc.Byte.MIN_VALUE <= obj <= _jc.Byte.MAX_VALUE,
+            converter=_jc.Byte,
+            priority=Priority.HIGH,
+        ),
+        # int -> java.lang.Short
+        Converter(
+            predicate=lambda obj, **hints: isinstance(obj, int)
+            and ("type" in hints and hints["type"] in ("s", "short", "Short"))
+            and _jc.Short.MIN_VALUE <= obj <= _jc.Short.MAX_VALUE,
+            converter=_jc.Short,
+            priority=Priority.HIGH,
+        ),
         # int -> java.lang.Integer
         Converter(
-            predicate=lambda obj: isinstance(obj, int)
+            predicate=lambda obj, **hints: isinstance(obj, int)
+            and ("type" not in hints or hints["type"] in ("i", "int", "Integer"))
             and _jc.Integer.MIN_VALUE <= obj <= _jc.Integer.MAX_VALUE,
             converter=_jc.Integer,
         ),
         # int -> java.lang.Long
         Converter(
-            predicate=lambda obj: isinstance(obj, int)
+            predicate=lambda obj, **hints: isinstance(obj, int)
+            and ("type" not in hints or hints["type"] in ("j", "l", "long", "Long"))
             and _jc.Long.MIN_VALUE <= obj <= _jc.Long.MAX_VALUE,
             converter=_jc.Long,
             priority=Priority.NORMAL - 1,
@@ -184,7 +202,8 @@ def _stock_java_converters() -> List[Converter]:
         ),
         # float -> java.lang.Float
         Converter(
-            predicate=lambda obj: isinstance(obj, float)
+            predicate=lambda obj, **hints: isinstance(obj, float)
+            and ("type" not in hints or hints["type"] in ("f", "float", "Float"))
             and (
                 math.isinf(obj)
                 or math.isnan(obj)
@@ -194,7 +213,8 @@ def _stock_java_converters() -> List[Converter]:
         ),
         # float -> java.lang.Double
         Converter(
-            predicate=lambda obj: isinstance(obj, float)
+            predicate=lambda obj, **hints: isinstance(obj, float)
+            and ("type" not in hints or hints["type"] in ("d", "double", "Double"))
             and (
                 math.isinf(obj)
                 or math.isnan(obj)

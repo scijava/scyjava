@@ -2,8 +2,6 @@ import math
 from os import getcwd
 from pathlib import Path
 
-from jpype import JByte
-
 from scyjava import (
     Converter,
     config,
@@ -60,13 +58,22 @@ class TestConvert(object):
         assert pfalse is False
 
     def testByte(self):
-        # NB we can't (yet) convert TO Bytes, since there is not (yet)
-        # a great type to convert FROM. We convert python ints to Integers
-        i = 5
-        ji = JByte(i)
-        pi = to_python(ji)
-        assert i == pi
-        assert str(i) == str(pi)
+        obyte = 5
+        jbyte = to_java(obyte, type="b")
+        assert jinstance(jbyte, "java.lang.Byte")
+        assert obyte == jbyte.byteValue()
+        pbyte = to_python(jbyte)
+        assert isinstance(pbyte, int)
+        assert obyte == pbyte
+
+    def testShort(self):
+        oshort = 5
+        jshort = to_java(oshort, type="s")
+        assert jinstance(jshort, "java.lang.Short")
+        assert oshort == jshort.shortValue()
+        pshort = to_python(jshort)
+        assert isinstance(pshort, int)
+        assert oshort == pshort
 
     def testInteger(self):
         oint = 5

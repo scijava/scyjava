@@ -3,6 +3,7 @@ The scyjava conversion subsystem, and built-in conversion functions.
 """
 
 import collections
+import math
 from pathlib import Path
 from typing import Any, Callable, List, NamedTuple
 
@@ -162,13 +163,21 @@ def _stock_java_converters() -> List[Converter]:
         # float -> java.lang.Float
         Converter(
             predicate=lambda obj: isinstance(obj, float)
-            and _jc.Float.MIN_VALUE <= obj <= _jc.Float.MAX_VALUE,
+            and (
+                math.isinf(obj)
+                or math.isnan(obj)
+                or -_jc.Float.MAX_VALUE <= obj <= _jc.Float.MAX_VALUE
+            ),
             converter=_jc.Float,
         ),
         # float -> java.lang.Double
         Converter(
             predicate=lambda obj: isinstance(obj, float)
-            and _jc.Double.MAX_VALUE <= obj <= _jc.Double.MAX_VALUE,
+            and (
+                math.isinf(obj)
+                or math.isnan(obj)
+                or -_jc.Double.MAX_VALUE <= obj <= _jc.Double.MAX_VALUE
+            ),
             converter=_jc.Double,
             priority=Priority.NORMAL - 1,
         ),

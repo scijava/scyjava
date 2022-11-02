@@ -566,7 +566,7 @@ def _stock_py_converters() -> typing.List:
         ),
     ]
 
-    if _import_numpy():
+    if _import_numpy(required=False):
         # primitive array -> numpy.ndarray
         converters.append(
             Converter(
@@ -575,7 +575,7 @@ def _stock_py_converters() -> typing.List:
             )
         )
 
-    if _import_pandas():
+    if _import_pandas(required=False):
         # org.scijava.table.Table -> pandas.DataFrame
         converters.append(
             Converter(
@@ -662,15 +662,16 @@ def _jarray_shape(jarr):
     return shape
 
 
-def _import_numpy():
+def _import_numpy(required=True):
     try:
         import numpy as np
 
         return np
     except ImportError as e:
-        msg = "The NumPy library is missing (https://numpy.org/). "
-        msg += "Please install it before using this function."
-        raise RuntimeError(msg) from e
+        if required:
+            msg = "The NumPy library is missing (https://numpy.org/). "
+            msg += "Please install it before using this function."
+            raise RuntimeError(msg) from e
 
 
 ######################################
@@ -696,15 +697,16 @@ def _convert_table(obj: Any):
         pass
 
 
-def _import_pandas():
+def _import_pandas(required=True):
     try:
         import pandas as pd
 
         return pd
     except ImportError as e:
-        msg = "The Pandas library is missing (http://pandas.pydata.org/). "
-        msg += "Please install it before using this function."
-        raise RuntimeError(msg) from e
+        if required:
+            msg = "The Pandas library is missing (http://pandas.pydata.org/). "
+            msg += "Please install it before using this function."
+            raise RuntimeError(msg) from e
 
 
 def _table_to_pandas(table):

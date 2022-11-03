@@ -120,7 +120,38 @@ def to_java(obj: Any, **hints: Dict) -> Any:
     * set -> LinkedHashSet
     * list -> ArrayList
 
+    There is typically one single destination conversion type and value that
+    makes sense. For example, Python str always converts to java.lang.String.
+    But in some cases, there are multiple options that can be controlled by
+    passing key/value pairs as hints. The base scyjava library includes:
+
+    * int + type='byte' -> Byte
+    * int + type='short' -> Short
+    * int + type='int' -> Integer
+    * int + type='long' -> Long
+    * int + type='bigint' -> BigInteger
+    * float + type='float' -> Float
+    * float + type='double' -> Double
+    * float + type='bigdec' -> BigDecimal
+
+    But the scyjava conversion framework is extensible and other
+    packages may introduce converters supporting additional hints.
+
+    In the absence of a hint, scyjava makes a best effort to use a sensible
+    destination type and value:
+
+    * int values in [-2**31, 2**31-1] convert to Integer
+    * int values in [-2**63, 2**63-1] but outside int range convert to Long
+    * int values outside Java long range convert to BigInteger
+    * conversion of int to Byte or Short must be requested via a hint
+    * float values in Float range convert to Float
+    * float inf, -inf, and nan convert to Float
+    * float values in Double range but outside float range convert to Double
+    * float values outside double range convert to BigDecimal
+
     :param obj: The Python object to convert.
+    :param hints: An optional dictionary of hints, to help scyjava
+                  make decisions about how to do the conversion.
     :returns: A corresponding Java object with the same contents.
     :raises TypeError: if the argument is not one of the aforementioned types.
     """

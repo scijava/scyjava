@@ -10,7 +10,7 @@ import subprocess
 import sys
 from functools import lru_cache
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Sequence
 
 import jpype
 import jpype.config
@@ -76,7 +76,7 @@ class JavaClasses:
 # -- JVM functions --
 
 
-def jvm_version():
+def jvm_version() -> str:
     """
     Gets the version of the JVM as a tuple,
     with each dot-separated digit as one element.
@@ -147,7 +147,7 @@ def jvm_version():
     return tuple(map(int, m.group(1).split(".")))
 
 
-def start_jvm(options=None):
+def start_jvm(options=None) -> None:
     """
     Explicitly connect to the Java virtual machine (JVM). Only one JVM can
     be active; does nothing if the JVM has already been started. Calling
@@ -231,7 +231,7 @@ def start_jvm(options=None):
         callback()
 
 
-def shutdown_jvm():
+def shutdown_jvm() -> None:
     """Shutdown the JVM.
 
     This function makes a best effort to clean up Java resources first.
@@ -355,7 +355,7 @@ def is_jarray(data) -> bool:
 
 
 @lru_cache(maxsize=None)
-def jimport(class_name):
+def jimport(class_name: str):
     """
     Import a class from Java to Python.
 
@@ -430,7 +430,7 @@ def jstacktrace(exc) -> str:
         return ""
 
 
-def jarray(kind, lengths):
+def jarray(kind, lengths: Sequence):
     """
     Create a new n-dimensional Java array.
 

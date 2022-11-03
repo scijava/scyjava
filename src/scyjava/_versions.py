@@ -10,7 +10,7 @@ from ._java import isjava, jimport
 _logger = logging.getLogger(__name__)
 
 
-def get_version(java_class_or_python_package):
+def get_version(java_class_or_python_package) -> str:
     """
     Return the version of a Java class or Python package.
 
@@ -48,7 +48,7 @@ def get_version(java_class_or_python_package):
     raise RuntimeError("Cannot determine version! Is pkg_resources installed?")
 
 
-def is_version_at_least(actual_version, minimum_version):
+def is_version_at_least(actual_version: str, minimum_version: str) -> bool:
     """
     Return a boolean on a version comparison.
     Requires org.scijava:scijava-common on the classpath.

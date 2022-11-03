@@ -99,7 +99,7 @@ def _convertIterable(obj: collections.abc.Iterable):
 java_converters: List[Converter] = []
 
 
-def add_java_converter(converter: Converter):
+def add_java_converter(converter: Converter) -> None:
     """
     Add a converter to the list used by to_java.
     :param converter: A Converter going from python to java
@@ -467,7 +467,7 @@ class JavaSet(JavaCollection, collections.abc.MutableSet):
 py_converters: List[Converter] = []
 
 
-def add_py_converter(converter: Converter):
+def add_py_converter(converter: Converter) -> None:
     """
     Add a converter to the list used by to_python.
     :param converter: A Converter from java to python

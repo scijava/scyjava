@@ -2,8 +2,10 @@
 Utility functions for working with and reasoning about arrays.
 """
 
+from typing import Any
 
-def is_arraylike(arr):
+
+def is_arraylike(arr: Any) -> bool:
     """
     Return True iff the object is arraylike: possessing
     .shape, .dtype, .__array__, and .ndim attributes.
@@ -19,7 +21,7 @@ def is_arraylike(arr):
     )
 
 
-def is_memoryarraylike(arr):
+def is_memoryarraylike(arr: Any) -> bool:
     """
     Return True iff the object is memoryarraylike:
     an arraylike object whose .data type is memoryview.
@@ -34,7 +36,7 @@ def is_memoryarraylike(arr):
     )
 
 
-def is_xarraylike(xarr):
+def is_xarraylike(xarr: Any) -> bool:
     """
     Return True iff the object is xarraylike:
     possessing .values, .dims, and .coords attributes,

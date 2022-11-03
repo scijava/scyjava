@@ -2,7 +2,7 @@ import numpy as np
 import numpy.testing as npt
 import pandas as pd
 
-from scyjava import config, jimport, to_java
+from scyjava import config, jinstance, to_java
 
 config.endpoints.append("org.scijava:scijava-table")
 config.add_option("-Djava.awt.headless=true")
@@ -28,8 +28,7 @@ class TestPandas(object):
         table = to_java(df)
 
         assert_same_table(table, df)
-        DefaultFloatTable = jimport("org.scijava.table.DefaultFloatTable")
-        assert isinstance(table, DefaultFloatTable)
+        assert jinstance(table, "org.scijava.table.DefaultFloatTable")
 
         # Int table.
         columns = ["header1", "header2", "header3", "header4", "header5"]
@@ -40,8 +39,7 @@ class TestPandas(object):
         table = to_java(df)
 
         assert_same_table(table, df)
-        DefaultIntTable = jimport("org.scijava.table.DefaultIntTable")
-        assert isinstance(table, DefaultIntTable)
+        assert jinstance(table, "org.scijava.table.DefaultIntTable")
 
         # Bool table.
         columns = ["header1", "header2", "header3", "header4", "header5"]
@@ -51,8 +49,7 @@ class TestPandas(object):
         table = to_java(df)
 
         assert_same_table(table, df)
-        DefaultBoolTable = jimport("org.scijava.table.DefaultBoolTable")
-        assert isinstance(table, DefaultBoolTable)
+        assert jinstance(table, "org.scijava.table.DefaultBoolTable")
 
         # Mixed table.
         columns = ["header1", "header2", "header3", "header4", "header5"]
@@ -71,5 +68,4 @@ class TestPandas(object):
 
         # Table types cannot be the same here, unless we want to cast.
         # assert_same_table(table, df)
-        DefaultGenericTable = jimport("org.scijava.table.DefaultGenericTable")
-        assert isinstance(table, DefaultGenericTable)
+        assert jinstance(table, "org.scijava.table.DefaultGenericTable")

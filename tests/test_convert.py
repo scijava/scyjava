@@ -1,9 +1,17 @@
+import math
 from os import getcwd
 from pathlib import Path
 
-from jpype import JByte
-
-from scyjava import Converter, config, jarray, jclass, jimport, to_java, to_python
+from scyjava import (
+    Converter,
+    config,
+    jarray,
+    jclass,
+    jimport,
+    jinstance,
+    to_java,
+    to_python,
+)
 
 config.endpoints.append("org.scijava:scijava-table")
 config.add_option("-Djava.awt.headless=true")
@@ -35,84 +43,123 @@ class TestConvert(object):
         assert "java.util.Map" == jclass("java.util.Map").getName()
 
     def testBoolean(self):
-        jt = to_java(True)
-        assert jt.booleanValue()
-        pt = to_python(jt)
-        assert pt
-        assert "True" == str(pt)
-        jf = to_java(False)
-        assert not jf.booleanValue()
-        pf = to_python(jf)
-        assert not pf
-        assert "False" == str(pf)
+        jtrue = to_java(True)
+        assert jinstance(jtrue, "java.lang.Boolean")
+        assert jtrue.booleanValue() is True
+        ptrue = to_python(jtrue)
+        assert isinstance(ptrue, bool)
+        assert ptrue is True
+
+        jfalse = to_java(False)
+        assert jinstance(jfalse, "java.lang.Boolean")
+        assert jfalse.booleanValue() is False
+        pfalse = to_python(jfalse)
+        assert isinstance(pfalse, bool)
+        assert pfalse is False
 
     def testByte(self):
-        # NB we can't (yet) convert TO Bytes, since there is not (yet)
-        # a great type to convert FROM. We convert python ints to Integers
-        i = 5
-        ji = JByte(i)
-        pi = to_python(ji)
-        assert i == pi
-        assert str(i) == str(pi)
+        obyte = 5
+        jbyte = to_java(obyte, type="b")
+        assert jinstance(jbyte, "java.lang.Byte")
+        assert obyte == jbyte.byteValue()
+        pbyte = to_python(jbyte)
+        assert isinstance(pbyte, int)
+        assert obyte == pbyte
+
+    def testShort(self):
+        oshort = 5
+        jshort = to_java(oshort, type="s")
+        assert jinstance(jshort, "java.lang.Short")
+        assert oshort == jshort.shortValue()
+        pshort = to_python(jshort)
+        assert isinstance(pshort, int)
+        assert oshort == pshort
 
     def testInteger(self):
-        i = 5
-        ji = to_java(i)
-        assert i == ji.intValue()
-        pi = to_python(ji)
-        assert i == pi
-        assert str(i) == str(pi)
+        oint = 5
+        jint = to_java(oint)
+        assert jinstance(jint, "java.lang.Integer")
+        assert oint == jint.intValue()
+        pint = to_python(jint)
+        assert isinstance(pint, int)
+        assert oint == pint
 
     def testLong(self):
-        long = 4000000001
-        jlong = to_java(long)
-        assert long == jlong.longValue()
+        olong = 4000000001
+        jlong = to_java(olong)
+        assert jinstance(jlong, "java.lang.Long")
+        assert olong == jlong.longValue()
         plong = to_python(jlong)
-        assert long == plong
-        assert str(long) == str(plong)
+        assert isinstance(plong, int)
+        assert olong == plong
 
     def testBigInteger(self):
-        bi = 9879999999999999789
-        jbi = to_java(bi)
-        assert bi == int(str(jbi.toString()))
+        obi = 9879999999999999789
+        jbi = to_java(obi)
+        assert jinstance(jbi, "java.math.BigInteger")
+        assert str(obi) == str(jbi.toString())
         pbi = to_python(jbi)
-        assert bi == pbi
-        assert str(bi) == str(pbi)
+        assert isinstance(pbi, int)
+        assert obi == pbi
 
     def testFloat(self):
-        f = 5.0
-        jf = to_java(f)
-        assert f == jf.floatValue()
-        pf = to_python(jf)
-        assert f == pf
-        assert str(f) == str(pf)
+        ofloat = 5.0
+        jfloat = to_java(ofloat)
+        assert jinstance(jfloat, "java.lang.Float")
+        assert ofloat == jfloat.floatValue()
+        pfloat = to_python(jfloat)
+        assert isinstance(pfloat, float)
+        assert ofloat == pfloat
 
     def testDouble(self):
-        Float = jimport("java.lang.Float")
-        d = Float.MAX_VALUE * 2
-        jd = to_java(d)
-        assert d == jd.doubleValue()
-        pd = to_python(jd)
-        assert d == pd
-        assert str(d) == str(pd)
+        odouble = 4.56e123
+        jdouble = to_java(odouble)
+        assert jinstance(jdouble, "java.lang.Double")
+        assert odouble == jdouble.doubleValue()
+        pdouble = to_python(jdouble)
+        assert isinstance(pdouble, float)
+        assert odouble == pdouble
+
+    def testInf(self):
+        jinf = to_java(math.inf)
+        assert jinstance(jinf, "java.lang.Float")
+        assert math.inf == jinf.floatValue()
+        pinf = to_python(jinf)
+        assert isinstance(pinf, float)
+        assert math.inf == pinf
+
+        jninf = to_java(-math.inf)
+        assert jinstance(jninf, "java.lang.Float")
+        assert -math.inf == jninf.floatValue()
+        pninf = to_python(jninf)
+        assert isinstance(pninf, float)
+        assert -math.inf == pninf
+
+    def testNaN(self):
+        jnan = to_java(math.nan)
+        assert jinstance(jnan, "java.lang.Float")
+        assert math.isnan(jnan.floatValue())
+        pnan = to_python(jnan)
+        assert isinstance(pnan, float)
+        assert math.isnan(pnan)
 
     def testString(self):
-        s = "Hello world!"
-        js = to_java(s)
-        for e, a in zip(s, js.toCharArray()):
+        ostring = "Hello world!"
+        jstring = to_java(ostring)
+        assert jinstance(jstring, "java.lang.String")
+        for e, a in zip(ostring, jstring.toCharArray()):
             assert e == a
-        ps = to_python(js)
-        assert s == ps
-        assert str(s) == str(ps)
+        pstring = to_python(jstring)
+        assert ostring == pstring
 
     def testList(self):
-        list = "The quick brown fox jumps over the lazy dogs".split()
-        jlist = to_java(list)
-        for e, a in zip(list, jlist):
+        olist = "The quick brown fox jumps over the lazy dogs".split()
+        jlist = to_java(olist)
+        for e, a in zip(olist, jlist):
             assert e == to_python(a)
         plist = to_python(jlist)
-        assert list == plist
-        assert str(list) == str(plist)
+        assert olist == plist
+        assert str(olist) == str(plist)
         assert plist[1] == "quick"
         plist[7] = "silly"
         assert "The quick brown fox jumps over the silly dogs" == " ".join(plist)
@@ -182,7 +229,7 @@ class TestConvert(object):
     def testPath(self):
         py_path = Path(getcwd())
         j_path = to_java(py_path)
-        assert isinstance(j_path, jimport("java.nio.file.Path"))
+        assert jinstance(j_path, "java.nio.file.Path")
         assert str(j_path) == str(py_path)
 
         actual = to_python(j_path)

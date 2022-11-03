@@ -102,6 +102,7 @@ from scyjava._java import (  # noqa: F401
     jarray,
     jclass,
     jimport,
+    jinstance,
     jstacktrace,
     jvm_started,
     jvm_version,

@@ -3,13 +3,14 @@ The scyjava conversion subsystem, and built-in conversion functions.
 """
 
 import collections
-import typing
+import inspect
+import math
 from pathlib import Path
-from typing import Any, Callable, NamedTuple
+from typing import Any, Callable, List, NamedTuple
 
 from jpype import JArray, JBoolean, JByte, JChar, JDouble, JFloat, JInt, JLong, JShort
 
-from ._java import JavaClasses, isjava, jclass, jimport, start_jvm
+from ._java import JavaClasses, isjava, jclass, jimport, jinstance, start_jvm
 
 
 # NB: We cannot use org.scijava.priority.Priority or other Java-side class
@@ -27,16 +28,37 @@ class Priority:
     LAST = -1e300
 
 
+def _has_kwargs(f):
+    return not isjava(f) and any(
+        p.kind == inspect.Parameter.VAR_KEYWORD
+        for p in inspect.signature(f).parameters.values()
+    )
+
+
 class Converter(NamedTuple):
     predicate: Callable[[Any], bool]
     converter: Callable[[Any], Any]
     priority: float = Priority.NORMAL
 
+    def supports(self, obj: Any, **hints: dict) -> bool:
+        return (
+            self.predicate(obj, **hints)
+            if _has_kwargs(self.predicate)
+            else self.predicate(obj)
+        )
 
-def _convert(obj: Any, converters: typing.List[Converter]) -> Any:
-    suitable_converters = filter(lambda c: c.predicate(obj), converters)
+    def convert(self, obj: Any, **hints: dict) -> Any:
+        return (
+            self.converter(obj, **hints)
+            if _has_kwargs(self.converter)
+            else self.converter(obj)
+        )
+
+
+def _convert(obj: Any, converters: List[Converter], **hints: dict) -> Any:
+    suitable_converters = [c for c in converters if c.supports(obj, **hints)]
     prioritized = max(suitable_converters, key=lambda c: c.priority)
-    return prioritized.converter(obj)
+    return prioritized.convert(obj, **hints)
 
 
 # -- Python to Java --
@@ -74,18 +96,18 @@ def _convertIterable(obj: collections.abc.Iterable):
     return jlist
 
 
-java_converters: typing.List[Converter] = []
+java_converters: List[Converter] = []
 
 
 def add_java_converter(converter: Converter):
     """
-    Adds a converter to the list used by to_java
+    Add a converter to the list used by to_java.
     :param converter: A Converter going from python to java
     """
     java_converters.append(converter)
 
 
-def to_java(obj: Any) -> Any:
+def to_java(obj: Any, **hints: dict) -> Any:
     """
     Recursively convert a Python object to a Java object.
 
@@ -103,15 +125,15 @@ def to_java(obj: Any) -> Any:
     :raises TypeError: if the argument is not one of the aforementioned types.
     """
     start_jvm()
-    return _convert(obj, java_converters)
+    return _convert(obj, java_converters, **hints)
 
 
-def _stock_java_converters() -> typing.List[Converter]:
+def _stock_java_converters() -> List[Converter]:
     """
-    Returns all python-to-java converters supported out of the box!
-    This should only be called after the JVM has been started!
+    Construct the Python-to-Java converters supported out of the box.
     :returns: A list of Converters
     """
+    start_jvm()
     return [
         # Other (Exceptional) converter
         Converter(
@@ -141,15 +163,33 @@ def _stock_java_converters() -> typing.List[Converter]:
             predicate=lambda obj: isinstance(obj, bool),
             converter=_jc.Boolean,
         ),
+        # int -> java.lang.Byte
+        Converter(
+            predicate=lambda obj, **hints: isinstance(obj, int)
+            and ("type" in hints and hints["type"] in ("b", "byte", "Byte"))
+            and _jc.Byte.MIN_VALUE <= obj <= _jc.Byte.MAX_VALUE,
+            converter=_jc.Byte,
+            priority=Priority.HIGH,
+        ),
+        # int -> java.lang.Short
+        Converter(
+            predicate=lambda obj, **hints: isinstance(obj, int)
+            and ("type" in hints and hints["type"] in ("s", "short", "Short"))
+            and _jc.Short.MIN_VALUE <= obj <= _jc.Short.MAX_VALUE,
+            converter=_jc.Short,
+            priority=Priority.HIGH,
+        ),
         # int -> java.lang.Integer
         Converter(
-            predicate=lambda obj: isinstance(obj, int)
+            predicate=lambda obj, **hints: isinstance(obj, int)
+            and ("type" not in hints or hints["type"] in ("i", "int", "Integer"))
             and _jc.Integer.MIN_VALUE <= obj <= _jc.Integer.MAX_VALUE,
             converter=_jc.Integer,
         ),
         # int -> java.lang.Long
         Converter(
-            predicate=lambda obj: isinstance(obj, int)
+            predicate=lambda obj, **hints: isinstance(obj, int)
+            and ("type" not in hints or hints["type"] in ("j", "l", "long", "Long"))
             and _jc.Long.MIN_VALUE <= obj <= _jc.Long.MAX_VALUE,
             converter=_jc.Long,
             priority=Priority.NORMAL - 1,
@@ -162,14 +202,24 @@ def _stock_java_converters() -> typing.List[Converter]:
         ),
         # float -> java.lang.Float
         Converter(
-            predicate=lambda obj: isinstance(obj, float)
-            and _jc.Float.MIN_VALUE <= obj <= _jc.Float.MAX_VALUE,
+            predicate=lambda obj, **hints: isinstance(obj, float)
+            and ("type" not in hints or hints["type"] in ("f", "float", "Float"))
+            and (
+                math.isinf(obj)
+                or math.isnan(obj)
+                or -_jc.Float.MAX_VALUE <= obj <= _jc.Float.MAX_VALUE
+            ),
             converter=_jc.Float,
         ),
         # float -> java.lang.Double
         Converter(
-            predicate=lambda obj: isinstance(obj, float)
-            and _jc.Double.MAX_VALUE <= obj <= _jc.Double.MAX_VALUE,
+            predicate=lambda obj, **hints: isinstance(obj, float)
+            and ("type" not in hints or hints["type"] in ("d", "double", "Double"))
+            and (
+                math.isinf(obj)
+                or math.isnan(obj)
+                or -_jc.Double.MAX_VALUE <= obj <= _jc.Double.MAX_VALUE
+            ),
             converter=_jc.Double,
             priority=Priority.NORMAL - 1,
         ),
@@ -377,12 +427,12 @@ class JavaSet(JavaCollection, collections.abc.MutableSet):
         return "{" + ", ".join(_jstr(v) for v in self) + "}"
 
 
-py_converters: typing.List[Converter] = []
+py_converters: List[Converter] = []
 
 
 def add_py_converter(converter: Converter):
     """
-    Adds a converter to the list used by to_python
+    Add a converter to the list used by to_python.
     :param converter: A Converter from java to python
     """
     py_converters.append(converter)
@@ -420,12 +470,12 @@ def to_python(data: Any, gentle: bool = False) -> Any:
         raise exc
 
 
-def _stock_py_converters() -> typing.List:
+def _stock_py_converters() -> List:
     """
-    Returns all java-to-python converters supported out of the box!
-    This should only be called after the JVM has been started!
+    Construct the Java-to-Python converters supported out of the box.
     :returns: A list of Converters
     """
+    start_jvm()
 
     converters = [
         # Other (Exceptional) converter
@@ -682,7 +732,7 @@ def _import_numpy(required=True):
 def _is_table(obj: Any) -> bool:
     """Check if obj is a table."""
     try:
-        return isinstance(obj, jimport("org.scijava.table.Table"))
+        return jinstance(obj, "org.scijava.table.Table")
     except BaseException:
         # No worries if scijava-table is not available.
         pass

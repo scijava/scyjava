@@ -196,7 +196,10 @@ def _stock_java_converters() -> List[Converter]:
         ),
         # int -> java.math.BigInteger
         Converter(
-            predicate=lambda obj: isinstance(obj, int),
+            predicate=lambda obj, **hints: isinstance(obj, int)
+            and (
+                "type" not in hints or hints["type"] in ("bi", "bigint", "BigInteger")
+            ),
             converter=lambda obj: _jc.BigInteger(str(obj)),
             priority=Priority.NORMAL - 2,
         ),
@@ -225,7 +228,10 @@ def _stock_java_converters() -> List[Converter]:
         ),
         # float -> java.math.BigDecimal
         Converter(
-            predicate=lambda obj: isinstance(obj, float),
+            predicate=lambda obj, **hints: isinstance(obj, float)
+            and (
+                "type" not in hints or hints["type"] in ("bd", "bigdec", "BigDecimal")
+            ),
             converter=lambda obj: _jc.BigDecimal(str(obj)),
             priority=Priority.NORMAL - 2,
         ),

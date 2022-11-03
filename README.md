@@ -150,21 +150,15 @@ True
 >>> help(scyjava)
 ...
 FUNCTIONS
-    add_java_converter(converter: scyjava.Converter)
-        Adds a converter to the list used by to_java
+    add_java_converter(converter: scyjava._convert.Converter) -> None
+        Add a converter to the list used by to_java.
         :param converter: A Converter going from python to java
 
-    add_py_converter(converter: scyjava.Converter)
-        Adds a converter to the list used by to_python
+    add_py_converter(converter: scyjava._convert.Converter) -> None
+        Add a converter to the list used by to_python.
         :param converter: A Converter from java to python
 
-    constant(func: Callable[[], Any], cache=True) -> Callable[[], Any]
-        Turns a function into a property of this module
-        Functions decorated with this property must have a
-        leading underscore!
-        :param func: The function to turn into a property
-
-    get_version(java_class_or_python_package)
+    get_version(java_class_or_python_package) -> str
         Return the version of a Java class or Python package.
 
         For Python package, uses importlib.metadata.version if available
@@ -178,14 +172,14 @@ FUNCTIONS
 
         See org.scijava.VersionUtils.getVersion(Class) for further details.
 
-    is_arraylike(arr)
+    is_arraylike(arr: Any) -> bool
         Return True iff the object is arraylike: possessing
         .shape, .dtype, .__array__, and .ndim attributes.
 
         :param arr: The object to check for arraylike properties
         :return: True iff the object is arraylike
 
-    is_awt_initialized()
+    is_awt_initialized() -> bool
         Return true iff the AWT subsystem has been initialized.
 
         Java starts up its AWT subsystem automatically and implicitly, as
@@ -195,19 +189,22 @@ FUNCTIONS
         those actions via the jpype.setupGuiEnvironment wrapper function;
         see the Troubleshooting section of the scyjava README for details.
 
-    is_jvm_headless()
+    is_jarray(data) -> bool
+        Return whether the given data object is a Java array.
+
+    is_jvm_headless() -> bool
         Return true iff Java is running in headless mode.
 
         :raises RuntimeError: If the JVM has not started yet.
 
-    is_memoryarraylike(arr)
+    is_memoryarraylike(arr: Any) -> bool
         Return True iff the object is memoryarraylike:
         an arraylike object whose .data type is memoryview.
 
         :param arr: The object to check for memoryarraylike properties
         :return: True iff the object is memoryarraylike
 
-    is_version_at_least(actual_version, minimum_version)
+    is_version_at_least(actual_version: str, minimum_version: str) -> bool
         Return a boolean on a version comparison.
         Requires org.scijava:scijava-common on the classpath.
 
@@ -216,7 +213,7 @@ FUNCTIONS
 
         See org.scijava.VersionUtils.compare(String, String) for further details.
 
-    is_xarraylike(xarr)
+    is_xarraylike(xarr: Any) -> bool
         Return True iff the object is xarraylike:
         possessing .values, .dims, and .coords attributes,
         and whose .values are arraylike.
@@ -224,10 +221,10 @@ FUNCTIONS
         :param arr: The object to check for xarraylike properties
         :return: True iff the object is xarraylike
 
-    isjava(data)
+    isjava(data) -> bool
         Return whether the given data object is a Java object.
 
-    jarray(kind, lengths)
+    jarray(kind, lengths: Sequence)
         Create a new n-dimensional Java array.
 
         :param kind: The type of array to create. This can either be a particular
@@ -258,14 +255,21 @@ FUNCTIONS
         :returns: A java.lang.Class object, suitable for use with reflection.
         :raises TypeError: if the argument is not one of the aforementioned types.
 
-    jimport(class_name)
+    jimport(class_name: str)
         Import a class from Java to Python.
 
         :param class_name: Name of the class to import.
         :returns: A pointer to the class, which can be used to
                   e.g. instantiate objects of that class.
 
-    jstacktrace(exc)
+    jinstance(obj, jtype) -> bool
+        Test if the given object is an instance of a particular Java type.
+
+        :param obj: The object to check.
+        :param jtype: The Java type, as either a jimported class or as a string.
+        :returns: True iff the object is an instance of that Java type.
+
+    jstacktrace(exc) -> str
         Extract the Java-side stack trace from a Java exception.
 
         Example of usage:
@@ -281,10 +285,10 @@ FUNCTIONS
         :returns: A multi-line string containing the stack trace, or empty string
         if no stack trace could be extracted.
 
-    jvm_started()
+    jvm_started() -> bool
         Return true iff a Java virtual machine (JVM) has been started.
 
-    jvm_version()
+    jvm_version() -> str
         Gets the version of the JVM as a tuple,
         with each dot-separated digit as one element.
         Characters in the version string beyond only
@@ -307,7 +311,7 @@ FUNCTIONS
         JVM in-process. If the version cannot be deduced, a RuntimeError
         with the cause is raised.
 
-    shutdown_jvm()
+    shutdown_jvm() -> None
         Shutdown the JVM.
 
         This function makes a best effort to clean up Java resources first.
@@ -326,7 +330,7 @@ FUNCTIONS
         Note that if the JVM is not already running, then this function does
         nothing! In particular, shutdown hooks are skipped in this situation.
 
-    start_jvm(options=None)
+    start_jvm(options=None) -> None
         Explicitly connect to the Java virtual machine (JVM). Only one JVM can
         be active; does nothing if the JVM has already been started. Calling
         this function directly is typically not necessary, because the first
@@ -336,7 +340,7 @@ FUNCTIONS
         :param options: List of options to pass to the JVM. For example:
                         ['-Djava.awt.headless=true', '-Xmx4g']
 
-    to_java(obj: Any) -> Any
+    to_java(obj: Any, **hints: Dict) -> Any
         Recursively convert a Python object to a Java object.
 
         Supported types include:
@@ -348,7 +352,38 @@ FUNCTIONS
         * set -> LinkedHashSet
         * list -> ArrayList
 
+        There is typically one single destination conversion type and value that
+        makes sense. For example, Python str always converts to java.lang.String.
+        But in some cases, there are multiple options that can be controlled by
+        passing key/value pairs as hints. The base scyjava library includes:
+
+        * int + type='byte' -> Byte
+        * int + type='short' -> Short
+        * int + type='int' -> Integer
+        * int + type='long' -> Long
+        * int + type='bigint' -> BigInteger
+        * float + type='float' -> Float
+        * float + type='double' -> Double
+        * float + type='bigdec' -> BigDecimal
+
+        But the scyjava conversion framework is extensible and other
+        packages may introduce converters supporting additional hints.
+
+        In the absence of a hint, scyjava makes a best effort to use a sensible
+        destination type and value:
+
+        * int values in [-2**31, 2**31-1] convert to Integer
+        * int values in [-2**63, 2**63-1] but outside int range convert to Long
+        * int values outside Java long range convert to BigInteger
+        * conversion of int to Byte or Short must be requested via a hint
+        * float values in Float range convert to Float
+        * float inf, -inf, and nan convert to Float
+        * float values in Double range but outside float range convert to Double
+        * float values outside double range convert to BigDecimal
+
         :param obj: The Python object to convert.
+        :param hints: An optional dictionary of hints, to help scyjava
+                      make decisions about how to do the conversion.
         :returns: A corresponding Java object with the same contents.
         :raises TypeError: if the argument is not one of the aforementioned types.
 
@@ -374,7 +409,7 @@ FUNCTIONS
         :raises TypeError: if the argument is not one of the aforementioned types,
                            and the gentle flag is not set.
 
-    when_jvm_starts(f)
+    when_jvm_starts(f) -> None
         Registers a function to be called when the JVM starts (or immediately).
         This is useful to defer construction of Java-dependent data structures
         until the JVM is known to be available. If the JVM has already been
@@ -382,7 +417,7 @@ FUNCTIONS
 
         :param f: Function to invoke when scyjava.start_jvm() is called.
 
-    when_jvm_stops(f)
+    when_jvm_stops(f) -> None
         Registers a function to be called just before the JVM shuts down.
         This is useful to perform cleanup of Java-dependent data structures.
 

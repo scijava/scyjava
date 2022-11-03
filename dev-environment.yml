@@ -23,7 +23,7 @@ dependencies:
   # Project dependencies
   - jpype1 >= 1.3.0
   - jgo
-  - openjdk
+  - openjdk >= 8, < 12
   # Test dependencies
   - numpy
   - pandas

@@ -59,7 +59,7 @@ def is_version_at_least(actual_version, minimum_version):
     See org.scijava.VersionUtils.compare(String, String) for further details.
     """
     VersionUtils = jimport("org.scijava.util.VersionUtils")
-    return VersionUtils.compare(actual_version, minimum_version) >= 0
+    return bool(VersionUtils.compare(actual_version, minimum_version) >= 0)
 
 
 def compare_version(version, java_class_version):

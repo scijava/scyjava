@@ -6,7 +6,7 @@ import collections
 import inspect
 import math
 from pathlib import Path
-from typing import Any, Callable, List, NamedTuple
+from typing import Any, Callable, Dict, List, NamedTuple
 
 from jpype import JBoolean, JByte, JChar, JDouble, JFloat, JInt, JLong, JShort
 
@@ -40,14 +40,14 @@ class Converter(NamedTuple):
     converter: Callable[[Any], Any]
     priority: float = Priority.NORMAL
 
-    def supports(self, obj: Any, **hints: dict) -> bool:
+    def supports(self, obj: Any, **hints: Dict) -> bool:
         return (
             self.predicate(obj, **hints)
             if _has_kwargs(self.predicate)
             else self.predicate(obj)
         )
 
-    def convert(self, obj: Any, **hints: dict) -> Any:
+    def convert(self, obj: Any, **hints: Dict) -> Any:
         return (
             self.converter(obj, **hints)
             if _has_kwargs(self.converter)
@@ -55,7 +55,7 @@ class Converter(NamedTuple):
         )
 
 
-def _convert(obj: Any, converters: List[Converter], **hints: dict) -> Any:
+def _convert(obj: Any, converters: List[Converter], **hints: Dict) -> Any:
     suitable_converters = [c for c in converters if c.supports(obj, **hints)]
     prioritized = max(suitable_converters, key=lambda c: c.priority)
     return prioritized.convert(obj, **hints)
@@ -107,7 +107,7 @@ def add_java_converter(converter: Converter):
     java_converters.append(converter)
 
 
-def to_java(obj: Any, **hints: dict) -> Any:
+def to_java(obj: Any, **hints: Dict) -> Any:
     """
     Recursively convert a Python object to a Java object.
 

@@ -200,6 +200,9 @@ class TestConvert(object):
         assert np.array_equal(py_arr, [0, 1, 2, 3])
 
     def test2DStringArray(self):
+        if mode == Mode.JEP:
+            pytest.skip("jep cannot support 2+ dimensional arrays!")
+
         String = jimport("java.lang.String")
         arr = jarray(String, [3, 5])
         for i in range(len(arr)):

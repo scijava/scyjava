@@ -523,9 +523,9 @@ def jarray(kind, lengths: Sequence):
     if mode == Mode.JEP:
         import jep  # noqa: F401
 
-        # build up the array type
-        for _ in range(len(lengths) - 1):
-            arraytype = jep.jarray(0, arraytype)
+        # TODO: Support n-d arrays
+        if len(lengths) > 1:
+            raise RuntimeError("jep cannot support 2+ dimensional arrays!")
         # instantiate the n-dimensional array
         arr = jep.jarray(lengths[0], arraytype)
 

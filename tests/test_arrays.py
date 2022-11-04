@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from scyjava import is_jarray, jarray, to_python
 from scyjava.config import Mode, mode
@@ -46,6 +47,9 @@ class TestArrays(object):
         assert_array_conversion_works(jints, deltas)
 
     def test_jarray2d_to_python(self):
+        if mode is Mode.JEP:
+            pytest.skip("Jep doesn't support 2-d arrays")
+
         nums = [
             [1.2, 3.4, 5.6],
             [7.8, 9.1, 2.3],
@@ -65,9 +69,7 @@ class TestArrays(object):
         pdoubles = to_python(jdoubles)
 
         if mode == Mode.JEP:
-            assert isinstance(pdoubles, list)
-            assert all(isinstance(v, list) for v in pdoubles)
-            assert len(nums) == len(pdoubles)
+            raise RuntimeError("Not supported")
 
         elif mode == Mode.JPYPE:
             assert isinstance(pdoubles, np.ndarray)
@@ -79,6 +81,9 @@ class TestArrays(object):
                 assert nums[i][j] == pdoubles[i][j]
 
     def test_jarray2d_to_python_updates(self):
+        if mode is Mode.JEP:
+            pytest.skip("Jep doesn't support 2-d arrays")
+
         nums_init = [
             [1.2, 3.4, 5.6],
             [7.8, 9.1, 2.3],

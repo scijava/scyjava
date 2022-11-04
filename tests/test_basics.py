@@ -1,6 +1,9 @@
 import re
 
+import pytest
+
 import scyjava
+from scyjava.config import Mode, mode
 
 
 class TestBasics(object):
@@ -12,6 +15,8 @@ class TestBasics(object):
         """
         Tests the jclass function.
         """
+        if mode == Mode.JEP:
+            pytest.skip("Jep does not support Java class objects!")
         c = scyjava.jclass("java.lang.Object")
         assert scyjava.jinstance(c, "java.lang.Class")
         assert str(c.toString()) == "class java.lang.Object"

@@ -2,6 +2,7 @@ import math
 from os import getcwd
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 from scyjava import (
@@ -187,9 +188,16 @@ class TestConvert(object):
         for i in range(len(arr)):
             arr[i] = i  # NB: assign Python int into Java int!
         py_arr = to_python(arr)
-        assert type(py_arr).__name__ == "ndarray"
+        if mode == Mode.JEP:
+            assert type(py_arr).__name__ == "list"
+        # JPype brings in a Numpy dependency from the start.
+        # This dependency enables the Numpy converters
+        # Since they take precedence, we'll actually see a ndarray
+        # output from the conversion.
+        elif mode == Mode.JPYPE:
+            assert type(py_arr).__name__ == "ndarray"
         # NB: Comparing ndarray vs list results in a list of bools.
-        assert all(py_arr == [0, 1, 2, 3])
+        assert np.array_equal(py_arr, [0, 1, 2, 3])
 
     def test2DStringArray(self):
         String = jimport("java.lang.String")

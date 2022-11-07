@@ -314,7 +314,16 @@ class TestConvert(object):
                 "foo": "bar",
             }
         )
-        assert "java.util.LinkedHashMap" == jclass(jmap).getName()
+
+        if mode == Mode.JPYPE:
+            assert "java.util.LinkedHashMap" == jclass(jmap).getName()
+        elif mode == Mode.JEP:
+            with pytest.raises(ValueError) as exc:
+                assert "java.util.LinkedHashMap" == jclass(jmap).getName()
+            assert (
+                "ValueError: Jep does not support Java class objects "
+                + "-- see https://github.com/ninia/jep/issues/405"
+            ) == exc.exconly()
 
         # Convert it back to Python.
         pdict = to_python(jmap)

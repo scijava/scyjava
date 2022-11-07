@@ -435,7 +435,7 @@ def jclass(data):
             # JPype object representing a static-style class -- case (B) above.
             return data.class_
     elif mode == Mode.JEP:
-        if str(type(data)) == "<class 'jep.PyJClass'>":
+        if str(type(data.getClass())) == "<class 'jep.PyJClass'>":
             # Jep object representing a static-style class -- case (B) above.
             raise ValueError(
                 "Jep does not support Java class objects "

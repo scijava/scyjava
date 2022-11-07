@@ -105,6 +105,8 @@ def jvm_version() -> str:
     if mode == Mode.JEP:
         System = jimport("java.lang.System")
         version = str(System.getProperty("java.version"))
+        # Get everything up to the hyphen
+        version = version.split("-")[0]
         return tuple(map(int, version.split(".")))
 
     assert mode == Mode.JPYPE

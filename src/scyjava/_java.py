@@ -523,11 +523,30 @@ def jarray(kind, lengths: Sequence):
     if mode == Mode.JEP:
         import jep  # noqa: F401
 
-        # TODO: Support n-d arrays
-        if len(lengths) > 1:
-            raise RuntimeError("jep cannot support 2+ dimensional arrays!")
-        # instantiate the n-dimensional array
-        arr = jep.jarray(lengths[0], arraytype)
+        if len(lengths) == 1:
+            # Fast case: 1-d array (we can use primitives)
+            arr = jep.jarray(lengths[0], arraytype)
+        else:
+            # Slow case: n-d array (we cannot use primitives)
+            # See https://github.com/ninia/jep/issues/439
+            kinds = {
+                "b": jimport("java.lang.Byte"),
+                "c": jimport("java.lang.Character"),
+                "d": jimport("java.lang.Double"),
+                "f": jimport("java.lang.Float"),
+                "i": jimport("java.lang.Integer"),
+                "j": jimport("java.lang.Long"),
+                "s": jimport("java.lang.Short"),
+                "z": jimport("java.lang.Boolean"),
+            }
+            if arraytype in kinds:
+                arraytype = kinds[arraytype]
+                kind = arraytype
+            # build up the array type
+            for _ in range(len(lengths) - 1):
+                arraytype = jep.jarray(0, arraytype)
+            # instantiate the n-dimensional array
+            arr = jep.jarray(lengths[0], arraytype)
 
     elif mode == Mode.JPYPE:
         start_jvm()

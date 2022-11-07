@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 
 from scyjava import is_jarray, jarray, to_python
 from scyjava.config import Mode, mode
@@ -47,9 +46,6 @@ class TestArrays(object):
         assert_array_conversion_works(jints, deltas)
 
     def test_jarray2d_to_python(self):
-        if mode is Mode.JEP:
-            pytest.skip("Jep doesn't support 2-d arrays")
-
         nums = [
             [1.2, 3.4, 5.6],
             [7.8, 9.1, 2.3],
@@ -69,7 +65,9 @@ class TestArrays(object):
         pdoubles = to_python(jdoubles)
 
         if mode == Mode.JEP:
-            raise RuntimeError("Not supported")
+            assert isinstance(pdoubles, list)
+            assert all(isinstance(v, list) for v in pdoubles)
+            assert len(nums) == len(pdoubles)
 
         elif mode == Mode.JPYPE:
             assert isinstance(pdoubles, np.ndarray)
@@ -81,9 +79,6 @@ class TestArrays(object):
                 assert nums[i][j] == pdoubles[i][j]
 
     def test_jarray2d_to_python_updates(self):
-        if mode is Mode.JEP:
-            pytest.skip("Jep doesn't support 2-d arrays")
-
         nums_init = [
             [1.2, 3.4, 5.6],
             [7.8, 9.1, 2.3],
@@ -105,9 +100,15 @@ class TestArrays(object):
 
         # assert narr initial state
         pdoubles = to_python(jdoubles)
-        assert isinstance(pdoubles, np.ndarray)
-        assert np.float64 == pdoubles.dtype
-        assert (5, 3) == pdoubles.shape
+        if mode == Mode.JEP:
+            assert isinstance(pdoubles, list)
+            assert isinstance(pdoubles[0][0], float)
+            assert len(pdoubles) == 5
+            assert len(pdoubles[0]) == 3
+        elif mode == Mode.JPYPE:
+            assert isinstance(pdoubles, np.ndarray)
+            assert np.float64 == pdoubles.dtype
+            assert (5, 3) == pdoubles.shape
         for i in range(len(nums_init)):
             for j in range(len(nums_init[i])):
                 assert nums_init[i][j] == pdoubles[i][j]
@@ -119,9 +120,15 @@ class TestArrays(object):
 
         # assert narr delta state
         pdoubles = to_python(jdoubles)
-        assert isinstance(pdoubles, np.ndarray)
-        assert np.float64 == pdoubles.dtype
-        assert (5, 3) == pdoubles.shape
+        if mode == Mode.JEP:
+            assert isinstance(pdoubles, list)
+            assert isinstance(pdoubles[0][0], float)
+            assert len(pdoubles) == 5
+            assert len(pdoubles[0]) == 3
+        elif mode == Mode.JPYPE:
+            assert isinstance(pdoubles, np.ndarray)
+            assert np.float64 == pdoubles.dtype
+            assert (5, 3) == pdoubles.shape
         for i in range(len(nums_delta)):
             for j in range(len(nums_delta[i])):
                 assert nums_delta[i][j] == pdoubles[i][j]

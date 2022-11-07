@@ -15,6 +15,7 @@ from ._java import (
     Mode,
     is_jarray,
     isjava,
+    jarray,
     jclass,
     jimport,
     jinstance,
@@ -279,7 +280,10 @@ def _stock_java_converters() -> List[Converter]:
         # pathlib.Path -> java.nio.file.Path
         Converter(
             predicate=lambda obj: isinstance(obj, Path),
-            converter=lambda obj: _jc.Paths.get(str(obj)),
+            # Pass an empty String array in addition to our path
+            # To make it clear to jep that we want the string-args version
+            # JPype is smart enough to know that, but it doesn't mind the extra args
+            converter=lambda obj: _jc.Paths.get(str(obj), jarray(_jc.String, [0])),
             priority=Priority.NORMAL + 1,
         ),
         # pandas.DataFrame -> org.scijava.table.Table

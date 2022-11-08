@@ -666,8 +666,7 @@ def _stock_py_converters() -> List:
         # org.scijava.table.Table -> pandas.DataFrame
         converters.append(
             Converter(
-                predicate=_is_table,
-                converter=_convert_table,
+                predicate=_is_table, converter=_convert_table, priority=Priority.HIGH
             )
         )
 

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "scyjava"
-version = "1.8.1"
+version = "1.8.2.dev0"
 description = "Supercharged Java access from Python"
 license = {text = "The Unlicense"}
 authors = [{name = "SciJava developers", email = "ctrueden@wisc.edu"}]

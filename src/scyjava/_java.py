@@ -39,9 +39,9 @@ class JavaClasses:
         from scyjava import JavaClasses
 
         class MyJavaClasses(JavaClasses):
-            @JavaClasses.java_class
+            @JavaClasses.java_import
             def String(self): return "java.lang.String"
-            @JavaClasses.java_class
+            @JavaClasses.java_import
             def Integer(self): return "java.lang.Integer"
             # ... and many more ...
 

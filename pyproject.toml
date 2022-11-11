@@ -55,7 +55,7 @@ dev = [
 
 [project.urls]
 homepage = "https://github.com/scijava/scyjava"
-documentation = "https://github.com/scijava/scyjava/blob/master/README.md"
+documentation = "https://github.com/scijava/scyjava/blob/main/README.md"
 source = "https://github.com/scijava/scyjava"
 download = "https://pypi.org/project/scyjava/"
 tracker = "https://github.com/scijava/scyjava/issues"

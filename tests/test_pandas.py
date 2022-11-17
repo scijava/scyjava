@@ -1,9 +1,8 @@
 import numpy as np
 import numpy.testing as npt
 import pandas as pd
-from jpype import JBoolean, JFloat, JInt, JString
 
-from scyjava import config, jimport, jinstance, to_java, to_python
+from scyjava import config, jarray, jimport, jinstance, to_java, to_python
 
 config.endpoints.append("org.scijava:scijava-table")
 config.add_option("-Djava.awt.headless=true")
@@ -21,8 +20,9 @@ def assert_same_table(table, df):
 
 class TestPandas(object):
     def testPandasToTable(self):
-        # Float table.
         columns = ["header1", "header2", "header3", "header4", "header5"]
+
+        # Float table.
         array = np.random.random(size=(7, 5))
 
         df = pd.DataFrame(array, columns=columns)
@@ -32,7 +32,6 @@ class TestPandas(object):
         assert jinstance(table, "org.scijava.table.DefaultFloatTable")
 
         # Int table.
-        columns = ["header1", "header2", "header3", "header4", "header5"]
         array = np.random.random(size=(7, 5)) * 100
         array = array.astype("int")
 
@@ -43,7 +42,6 @@ class TestPandas(object):
         assert jinstance(table, "org.scijava.table.DefaultIntTable")
 
         # Bool table.
-        columns = ["header1", "header2", "header3", "header4", "header5"]
         array = np.random.random(size=(7, 5)) > 0.5
 
         df = pd.DataFrame(array, columns=columns)
@@ -53,7 +51,6 @@ class TestPandas(object):
         assert jinstance(table, "org.scijava.table.DefaultBoolTable")
 
         # Mixed table.
-        columns = ["header1", "header2", "header3", "header4", "header5"]
         array = np.random.random(size=(7, 5))
 
         df = pd.DataFrame(array, columns=columns)
@@ -72,13 +69,23 @@ class TestPandas(object):
         assert jinstance(table, "org.scijava.table.DefaultGenericTable")
 
     def testTabletoPandas(self):
+        Boolean = jimport("java.lang.Boolean")
+        Double = jimport("java.lang.Double")
+        Float = jimport("java.lang.Float")
+        Integer = jimport("java.lang.Integer")
+        String = jimport("java.lang.String")
+
+        columns = jarray(String, [5])
+        for i in range(5):
+            columns[i] = f"header{i + 1}"
+
         # Float table
         table = jimport("org.scijava.table.DefaultFloatTable")()
-        table.appendColumns(["header1", "header2", "header3", "header4", "header5"])
+        table.appendColumns(columns)
         table.setRowCount(7)
         array = np.random.random(size=(7, 5))
 
-        table = self._fill_table(table, array, JFloat)
+        table = self._fill_table(table, array, lambda v: Float(float(v)))
         df = to_python(table)
 
         assert_same_table(table, df)
@@ -87,12 +94,12 @@ class TestPandas(object):
 
         # Int table
         table = jimport("org.scijava.table.DefaultIntTable")()
-        table.appendColumns(["header1", "header2", "header3", "header4", "header5"])
+        table.appendColumns(columns)
         table.setRowCount(7)
         array = np.random.random(size=(7, 5)) * 100
         array = array.astype("int32")
 
-        table = self._fill_table(table, array, JInt)
+        table = self._fill_table(table, array, lambda v: Integer(int(v)))
         df = to_python(table)
 
         assert_same_table(table, df)
@@ -101,11 +108,11 @@ class TestPandas(object):
 
         # Bool table
         table = jimport("org.scijava.table.DefaultBoolTable")()
-        table.appendColumns(["header1", "header2", "header3", "header4", "header5"])
+        table.appendColumns(columns)
         table.setRowCount(7)
         array = np.random.random(size=(7, 5)) > 0.5
 
-        table = self._fill_table(table, array, JBoolean)
+        table = self._fill_table(table, array, lambda v: Boolean(bool(v)))
         df = to_python(table)
 
         assert_same_table(table, df)
@@ -114,20 +121,23 @@ class TestPandas(object):
 
         # Mixed table
         table = jimport("org.scijava.table.DefaultGenericTable")()
-        table.appendColumns(["header1", "header2", "header3", "header4"])
+        table.appendColumns(columns)
         table.setRowCount(7)
         array_float = np.random.random(size=(7, 1))
         array_int = np.random.random(size=(7, 1)) * 100
         array_int = array_int.astype("int32")
         array_bool = np.random.random(size=(7, 1)) > 0.5
         array_str = np.array(["foo", "bar", "foobar", "barfoo", "oofrab", "oof", "rab"])
+        array_double = np.random.random(size=(7, 1))
+        array_double = array_double.astype("float64")
 
         # fill mixed table
         for i in range(table.getRowCount()):
-            table.set(0, i, JFloat(array_float[i]))
-            table.set(1, i, JInt(array_int[i].item()))
-            table.set(2, i, JBoolean(array_bool[i]))
-            table.set(3, i, JString(array_str[i]))
+            table.set(0, i, Float(float(array_float[i])))
+            table.set(1, i, Integer(int(array_int[i].item())))
+            table.set(2, i, Boolean(bool(array_bool[i])))
+            table.set(3, i, String(array_str[i]))
+            table.set(4, i, Double(float(array_double[i])))
 
         df = to_python(table)
         # Table types cannot be the same here, unless we want to cast.
@@ -136,10 +146,11 @@ class TestPandas(object):
         assert type(df["header2"][0]) == int
         assert type(df["header3"][0]) == bool
         assert type(df["header4"][0]) == str
+        assert type(df["header5"][0]) == float
 
-    def _fill_table(self, table, ndarr, type):
+    def _fill_table(self, table, ndarr, ctor):
         for i in range(table.getColumnCount()):
             s = ndarr[:, i]
             for j in range(table.getRowCount()):
-                table.setValue(i, j, type(s[j]))
+                table.setValue(i, j, ctor(s[j]))
         return table

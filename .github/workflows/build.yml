@@ -39,6 +39,7 @@ jobs:
       with:
         java-version: '8'
         distribution: 'zulu'
+        cache: 'maven'
 
     - name: Install ScyJava
       run: |

@@ -49,15 +49,18 @@ then
   a=$(echo "$@" | sed 's/\\/\\\\/g')     # escape backslashes
   a=$(echo "$a" | sed 's/'\''/\\'\''/g') # escape single quotes
   a=$(echo "$a" | sed 's/ /'\'','\''/g') # replace space with ','
-  argString="['$a']"
+  argString="['-v', '$a']"
 else
   argString=""
 fi
 echo "
-import pytest, sys
+import logging, sys, pytest, scyjava
+scyjava._logger.addHandler(logging.StreamHandler(sys.stderr))
+scyjava._logger.setLevel(logging.DEBUG)
+scyjava.config.set_verbose(2)
 result = pytest.main($argString)
 if result:
   sys.exit(result)
 " > jep_test.py
-jgo -Djava.library.path="$site_packages/jep" black.ninia:jep:jep.Run+org.scijava:scijava-table jep_test.py
+jgo -vv -Djava.library.path="$site_packages/jep" black.ninia:jep:jep.Run+org.scijava:scijava-table jep_test.py
 rm -f jep_test.py

@@ -789,7 +789,7 @@ def _is_table(obj: Any) -> bool:
         return jinstance(obj, "org.scijava.table.Table")
     except BaseException:
         # No worries if scijava-table is not available.
-        pass
+        return False
 
 
 def _convert_table(obj: Any):
@@ -798,7 +798,7 @@ def _convert_table(obj: Any):
         return _table_to_pandas(obj)
     except BaseException:
         # No worries if scijava-table is not available.
-        pass
+        return None
 
 
 def _import_pandas(required=True):

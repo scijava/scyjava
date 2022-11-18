@@ -1,3 +1,4 @@
+import enum
 import logging
 import os
 import pathlib
@@ -15,6 +16,19 @@ _cache_dir = pathlib.Path.home() / ".jgo"
 _m2_repo = pathlib.Path.home() / ".m2" / "repository"
 _options = []
 _shortcuts = {}
+
+
+class Mode(enum.Enum):
+    JEP = "jep"
+    JPYPE = "jpype"
+
+
+try:
+    import jep  # noqa: F401
+
+    mode = Mode.JEP
+except ImportError:
+    mode = Mode.JPYPE
 
 
 def add_endpoints(*new_endpoints):

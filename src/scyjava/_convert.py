@@ -10,7 +10,18 @@ from typing import Any, Callable, Dict, List, NamedTuple
 
 from jpype import JBoolean, JByte, JChar, JDouble, JFloat, JInt, JLong, JShort
 
-from ._java import JavaClasses, is_jarray, isjava, jclass, jimport, jinstance, start_jvm
+from ._java import (
+    JavaClasses,
+    Mode,
+    is_jarray,
+    isjava,
+    jarray,
+    jclass,
+    jimport,
+    jinstance,
+    mode,
+    start_jvm,
+)
 
 
 # NB: We cannot use org.scijava.priority.Priority or other Java-side class
@@ -269,7 +280,10 @@ def _stock_java_converters() -> List[Converter]:
         # pathlib.Path -> java.nio.file.Path
         Converter(
             predicate=lambda obj: isinstance(obj, Path),
-            converter=lambda obj: _jc.Paths.get(str(obj)),
+            # Pass an empty String array in addition to our path
+            # To make it clear to jep that we want the string-args version
+            # JPype is smart enough to know that, but it doesn't mind the extra args
+            converter=lambda obj: _jc.Paths.get(str(obj), jarray(_jc.String, [0])),
             priority=Priority.NORMAL + 1,
         ),
         # pandas.DataFrame -> org.scijava.table.Table
@@ -311,7 +325,7 @@ class JavaObject:
     def __init__(self, jobj, intended_class=None):
         if intended_class is None:
             intended_class = _jc.Object
-        if not isinstance(jobj, intended_class):
+        if not jinstance(jobj, intended_class):
             raise TypeError(
                 f"Not a {intended_class.getName()}: {jclass(jobj).getName()}"
             )
@@ -527,121 +541,97 @@ def _stock_py_converters() -> List:
             converter=lambda obj: obj,
             priority=Priority.EXTREMELY_HIGH,
         ),
-        # JBoolean -> bool
-        Converter(
-            predicate=lambda obj: isinstance(obj, JBoolean),
-            converter=bool,
-            priority=Priority.NORMAL + 1,
-        ),
-        # JByte/JInt/JLong/JShort -> int
-        Converter(
-            predicate=lambda obj: isinstance(obj, (JByte, JInt, JLong, JShort)),
-            converter=int,
-            priority=Priority.NORMAL + 1,
-        ),
-        # JDouble/JFloat -> float
-        Converter(
-            predicate=lambda obj: isinstance(obj, (JDouble, JFloat)),
-            converter=float,
-            priority=Priority.NORMAL + 1,
-        ),
-        # JChar -> str
-        Converter(
-            predicate=lambda obj: isinstance(obj, JChar),
-            converter=str,
-            priority=Priority.NORMAL + 1,
-        ),
         # java.lang.Boolean -> bool
         Converter(
-            predicate=lambda obj: isinstance(obj, _jc.Boolean),
+            predicate=lambda obj: jinstance(obj, _jc.Boolean),
             converter=lambda obj: obj.booleanValue(),
         ),
         # java.lang.Byte -> int
         Converter(
-            predicate=lambda obj: isinstance(obj, _jc.Byte),
+            predicate=lambda obj: jinstance(obj, _jc.Byte),
             converter=lambda obj: int(obj.byteValue()),
         ),
         # java.lang.Character -> str
         Converter(
-            predicate=lambda obj: isinstance(obj, _jc.Character),
+            predicate=lambda obj: jinstance(obj, _jc.Character),
             converter=lambda obj: str,
         ),
         # java.lang.Double -> float
         Converter(
-            predicate=lambda obj: isinstance(obj, _jc.Double),
+            predicate=lambda obj: jinstance(obj, _jc.Double),
             converter=lambda obj: float(obj.doubleValue()),
         ),
         # java.lang.Float -> float
         Converter(
-            predicate=lambda obj: isinstance(obj, _jc.Float),
+            predicate=lambda obj: jinstance(obj, _jc.Float),
             converter=lambda obj: float(obj.floatValue()),
         ),
         # java.lang.Integer -> int
         Converter(
-            predicate=lambda obj: isinstance(obj, _jc.Integer),
+            predicate=lambda obj: jinstance(obj, _jc.Integer),
             converter=lambda obj: int(obj.intValue()),
         ),
         # java.lang.Long -> int
         Converter(
-            predicate=lambda obj: isinstance(obj, _jc.Long),
+            predicate=lambda obj: jinstance(obj, _jc.Long),
             converter=lambda obj: int(obj.longValue()),
         ),
         # java.lang.Short -> int
         Converter(
-            predicate=lambda obj: isinstance(obj, _jc.Short),
+            predicate=lambda obj: jinstance(obj, _jc.Short),
             converter=lambda obj: int(obj.shortValue()),
         ),
         # java.lang.String -> str
         Converter(
-            predicate=lambda obj: isinstance(obj, _jc.String),
+            predicate=lambda obj: jinstance(obj, _jc.String),
             converter=lambda obj: str(obj),
         ),
         # java.math.BigInteger -> int
         Converter(
-            predicate=lambda obj: isinstance(obj, _jc.BigInteger),
+            predicate=lambda obj: jinstance(obj, _jc.BigInteger),
             converter=lambda obj: int(str(obj)),
         ),
         # java.math.BigDecimal -> float
         Converter(
-            predicate=lambda obj: isinstance(obj, _jc.BigDecimal),
+            predicate=lambda obj: jinstance(obj, _jc.BigDecimal),
             converter=lambda obj: float(str(obj)),
         ),
         # java.util.List -> scyjava.JavaList (list-like)
         Converter(
-            predicate=lambda obj: isinstance(obj, _jc.List),
+            predicate=lambda obj: jinstance(obj, _jc.List),
             converter=JavaList,
         ),
         # java.util.Map -> scyjava.JavaMap (dict-like)
         Converter(
-            predicate=lambda obj: isinstance(obj, _jc.Map),
+            predicate=lambda obj: jinstance(obj, _jc.Map),
             converter=JavaMap,
         ),
         # java.util.Set -> scyjava.JavaSet (set-like)
         Converter(
-            predicate=lambda obj: isinstance(obj, _jc.Set),
+            predicate=lambda obj: jinstance(obj, _jc.Set),
             converter=JavaSet,
         ),
         # java.util.Collection -> scyjava.JavaCollection (collections.abc.Collection)
         Converter(
-            predicate=lambda obj: isinstance(obj, _jc.Collection),
+            predicate=lambda obj: jinstance(obj, _jc.Collection),
             converter=JavaCollection,
             priority=Priority.NORMAL - 1,
         ),
         # java.lang.Iterable -> scyjava.JavaIterable (collections.abc.Iterable)
         Converter(
-            predicate=lambda obj: isinstance(obj, _jc.Iterable),
+            predicate=lambda obj: jinstance(obj, _jc.Iterable),
             converter=JavaIterable,
             priority=Priority.NORMAL - 1,
         ),
         # java.util.Iterator -> scyjava.JavaIterator (collections.abc.Iterator)
         Converter(
-            predicate=lambda obj: isinstance(obj, _jc.Iterator),
+            predicate=lambda obj: jinstance(obj, _jc.Iterator),
             converter=JavaIterator,
             priority=Priority.NORMAL - 1,
         ),
         # java.nio.file.Path -> pathlib.Path
         Converter(
-            predicate=lambda obj: isinstance(obj, _jc.Path),
+            predicate=lambda obj: jinstance(obj, _jc.Path),
             converter=lambda obj: Path(str(obj)),
             priority=Priority.NORMAL + 1,
         ),
@@ -652,16 +642,6 @@ def _stock_py_converters() -> List:
             priority=Priority.VERY_LOW,
         ),
     ]
-
-    if _import_numpy(required=False):
-        # primitive array -> numpy.ndarray
-        converters.append(
-            Converter(
-                predicate=_supports_jarray_to_ndarray,
-                converter=_jarray_to_ndarray,
-            )
-        )
-
     if _import_pandas(required=False):
         # org.scijava.table.Table -> pandas.DataFrame
         converters.append(
@@ -669,6 +649,44 @@ def _stock_py_converters() -> List:
                 predicate=_is_table, converter=_convert_table, priority=Priority.HIGH
             )
         )
+
+    if mode == Mode.JPYPE:
+        converters.extend(
+            [
+                # JBoolean -> bool
+                Converter(
+                    predicate=lambda obj: isinstance(obj, JBoolean),
+                    converter=bool,
+                    priority=Priority.NORMAL + 1,
+                ),
+                # JByte/JInt/JLong/JShort -> int
+                Converter(
+                    predicate=lambda obj: isinstance(obj, (JByte, JInt, JLong, JShort)),
+                    converter=int,
+                    priority=Priority.NORMAL + 1,
+                ),
+                # JDouble/JFloat -> float
+                Converter(
+                    predicate=lambda obj: isinstance(obj, (JDouble, JFloat)),
+                    converter=float,
+                    priority=Priority.NORMAL + 1,
+                ),
+                # JChar -> str
+                Converter(
+                    predicate=lambda obj: isinstance(obj, JChar),
+                    converter=str,
+                    priority=Priority.NORMAL + 1,
+                ),
+            ]
+        )
+        if _import_numpy(required=False):
+            # primitive array -> numpy.ndarray
+            converters.append(
+                Converter(
+                    predicate=_supports_jarray_to_ndarray,
+                    converter=_jarray_to_ndarray,
+                )
+            )
 
     return converters
 

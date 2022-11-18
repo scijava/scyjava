@@ -1,59 +1,51 @@
 import numpy as np
-from jpype import JArray, JDouble, JInt
 
-from scyjava import jarray, to_python
+from scyjava import is_jarray, jarray, to_python
+from scyjava.config import Mode, mode
 
 
 class TestArrays(object):
     def test_non_primitive_jarray(self):
         pass
 
-    def test_jarray_to_ndarray_1d(self):
+    def test_jarray1d_to_python(self):
         nums = [11, 6, 2, 15, 5]
         jints = jarray("i", len(nums))
         for i in range(len(nums)):
             jints[i] = nums[i]
 
-        assert isinstance(jints, JArray(JInt))
+        assert is_jarray(jints)
         assert len(nums) == len(jints)
         for i in range(len(nums)):
             assert nums[i] == jints[i]
 
-        pints = to_python(jints)
-        assert isinstance(pints, np.ndarray)
-        assert np.int32 == pints.dtype
-        assert (5,) == pints.shape
-        for i in range(len(nums)):
-            assert nums[i] == pints[i]
+        def assert_array_conversion_works(jarr, expected):
+            pobj = to_python(jarr)
 
-    def test_jarray_to_ndarray_1d_updates(self):
-        nums_init = [11, 6, 2, 15, 5]
-        nums_delta = [4, 100, 36, 133, 3]
-        jints = jarray("i", len(nums_init))
-        for i in range(len(nums_init)):
-            jints[i] = nums_init[i]
+            if mode == Mode.JEP:
+                assert isinstance(pobj, list)
+                assert all(isinstance(v, int) for v in pobj)
+                assert len(expected) == len(pobj)
 
-        # assert narr initial state
-        pints = to_python(jints)
-        assert isinstance(pints, np.ndarray)
-        assert np.int32 == pints.dtype
-        assert (5,) == pints.shape
-        for i in range(len(nums_init)):
-            assert nums_init[i] == pints[i]
+            elif mode == Mode.JPYPE:
+                assert isinstance(pobj, np.ndarray)
+                assert np.int32 == pobj.dtype
+                assert (len(expected),) == pobj.shape
 
-        # change jint data state
-        for i in range(len(nums_delta)):
-            jints[i] = nums_delta[i]
+            for i in range(len(expected)):
+                assert expected[i] == pobj[i]
 
-        # assert narr delta state
-        pints = to_python(jints)
-        assert isinstance(pints, np.ndarray)
-        assert np.int32 == pints.dtype
-        assert (5,) == pints.shape
-        for i in range(len(nums_delta)):
-            assert nums_delta[i] == pints[i]
+        assert_array_conversion_works(jints, nums)
 
-    def test_jarray_to_ndarray_2d(self):
+        # mutate Java array element values
+        deltas = [4, 100, 36, 133, 3]
+        for i in range(len(deltas)):
+            jints[i] = deltas[i]
+
+        # convert to Python again and make sure it matches
+        assert_array_conversion_works(jints, deltas)
+
+    def test_jarray2d_to_python(self):
         nums = [
             [1.2, 3.4, 5.6],
             [7.8, 9.1, 2.3],
@@ -66,19 +58,27 @@ class TestArrays(object):
             for j in range(len(nums[i])):
                 jdoubles[i][j] = nums[i][j]
 
-        assert isinstance(jdoubles, JArray(JArray(JDouble)))
+        assert is_jarray(jdoubles)
         assert 5 == len(jdoubles)
         assert 3 == len(jdoubles[0])
 
         pdoubles = to_python(jdoubles)
-        assert isinstance(pdoubles, np.ndarray)
-        assert np.float64 == pdoubles.dtype
-        assert (5, 3) == pdoubles.shape
+
+        if mode == Mode.JEP:
+            assert isinstance(pdoubles, list)
+            assert all(isinstance(v, list) for v in pdoubles)
+            assert len(nums) == len(pdoubles)
+
+        elif mode == Mode.JPYPE:
+            assert isinstance(pdoubles, np.ndarray)
+            assert np.float64 == pdoubles.dtype
+            assert (5, 3) == pdoubles.shape
+
         for i in range(len(nums)):
             for j in range(len(nums[i])):
                 assert nums[i][j] == pdoubles[i][j]
 
-    def test_jarray_to_ndarray_2d_updates(self):
+    def test_jarray2d_to_python_updates(self):
         nums_init = [
             [1.2, 3.4, 5.6],
             [7.8, 9.1, 2.3],
@@ -100,9 +100,15 @@ class TestArrays(object):
 
         # assert narr initial state
         pdoubles = to_python(jdoubles)
-        assert isinstance(pdoubles, np.ndarray)
-        assert np.float64 == pdoubles.dtype
-        assert (5, 3) == pdoubles.shape
+        if mode == Mode.JEP:
+            assert isinstance(pdoubles, list)
+            assert isinstance(pdoubles[0][0], float)
+            assert len(pdoubles) == 5
+            assert len(pdoubles[0]) == 3
+        elif mode == Mode.JPYPE:
+            assert isinstance(pdoubles, np.ndarray)
+            assert np.float64 == pdoubles.dtype
+            assert (5, 3) == pdoubles.shape
         for i in range(len(nums_init)):
             for j in range(len(nums_init[i])):
                 assert nums_init[i][j] == pdoubles[i][j]
@@ -114,9 +120,15 @@ class TestArrays(object):
 
         # assert narr delta state
         pdoubles = to_python(jdoubles)
-        assert isinstance(pdoubles, np.ndarray)
-        assert np.float64 == pdoubles.dtype
-        assert (5, 3) == pdoubles.shape
+        if mode == Mode.JEP:
+            assert isinstance(pdoubles, list)
+            assert isinstance(pdoubles[0][0], float)
+            assert len(pdoubles) == 5
+            assert len(pdoubles[0]) == 3
+        elif mode == Mode.JPYPE:
+            assert isinstance(pdoubles, np.ndarray)
+            assert np.float64 == pdoubles.dtype
+            assert (5, 3) == pdoubles.shape
         for i in range(len(nums_delta)):
             for j in range(len(nums_delta[i])):
                 assert nums_delta[i][j] == pdoubles[i][j]

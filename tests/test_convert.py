@@ -2,6 +2,9 @@ import math
 from os import getcwd
 from pathlib import Path
 
+import numpy as np
+import pytest
+
 from scyjava import (
     Converter,
     add_java_converter,
@@ -14,6 +17,7 @@ from scyjava import (
     to_java,
     to_python,
 )
+from scyjava.config import Mode, mode
 
 config.endpoints.append("org.scijava:scijava-table")
 config.add_option("-Djava.awt.headless=true")
@@ -24,6 +28,9 @@ class TestConvert(object):
         """
         Tests class detection from Java objects.
         """
+        if mode == Mode.JEP:
+            pytest.skip("The jclass function does not work yet in Jep mode.")
+
         int_class = jclass(to_java(5))
         assert "java.lang.Integer" == int_class.getName()
 
@@ -181,11 +188,21 @@ class TestConvert(object):
         for i in range(len(arr)):
             arr[i] = i  # NB: assign Python int into Java int!
         py_arr = to_python(arr)
-        assert type(py_arr).__name__ == "ndarray"
+        if mode == Mode.JEP:
+            assert type(py_arr).__name__ == "list"
+        # JPype brings in a Numpy dependency from the start.
+        # This dependency enables the Numpy converters
+        # Since they take precedence, we'll actually see a ndarray
+        # output from the conversion.
+        elif mode == Mode.JPYPE:
+            assert type(py_arr).__name__ == "ndarray"
         # NB: Comparing ndarray vs list results in a list of bools.
-        assert all(py_arr == [0, 1, 2, 3])
+        assert np.array_equal(py_arr, [0, 1, 2, 3])
 
     def test2DStringArray(self):
+        if mode == Mode.JEP:
+            pytest.skip("jep cannot support 2+ dimensional arrays!")
+
         String = jimport("java.lang.String")
         arr = jarray(String, [3, 5])
         for i in range(len(arr)):
@@ -277,7 +294,7 @@ class TestConvert(object):
         Object = jimport("java.lang.Object")
         unknown_thing = Object()
         converted_thing = to_python(unknown_thing, gentle=True)
-        assert isinstance(converted_thing, Object)
+        assert jinstance(converted_thing, Object)
         bad_conversion = None
         try:
             bad_conversion = to_python(unknown_thing)
@@ -297,17 +314,26 @@ class TestConvert(object):
                 "foo": "bar",
             }
         )
-        assert "java.util.LinkedHashMap" == jclass(jmap).getName()
+
+        if mode == Mode.JPYPE:
+            assert "java.util.LinkedHashMap" == jclass(jmap).getName()
+        elif mode == Mode.JEP:
+            with pytest.raises(ValueError) as exc:
+                assert "java.util.LinkedHashMap" == jclass(jmap).getName()
+            assert (
+                "ValueError: Jep does not support Java class objects "
+                + "-- see https://github.com/ninia/jep/issues/405"
+            ) == exc.exconly()
 
         # Convert it back to Python.
         pdict = to_python(jmap)
         assert pdict["list"][0] == "a"
-        assert isinstance(pdict["list"][1], Object)
+        assert jinstance(pdict["list"][1], Object)
         assert pdict["list"][2] == 1
         assert "x" in pdict["set"]
         assert 2 in pdict["set"]
         assert len(pdict["set"]) == 3
-        assert isinstance(pdict["object"], Object)
+        assert jinstance(pdict["object"], Object)
         assert pdict["foo"] == "bar"
 
     def test_conversion_priority(self):

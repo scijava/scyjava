@@ -62,5 +62,5 @@ result = pytest.main($argString)
 if result:
   sys.exit(result)
 " > jep_test.py
-jgo -vv -Djava.library.path="$site_packages/jep" black.ninia:jep:jep.Run+org.scijava:scijava-table jep_test.py
+jgo -vv -r scijava.public=https://maven.scijava.org/content/groups/public -Djava.library.path="$site_packages/jep" black.ninia:jep:jep.Run+org.scijava:scijava-table jep_test.py
 rm -f jep_test.py

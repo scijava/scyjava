@@ -45,6 +45,7 @@ dev = [
     "build",
     "flake8",
     "isort",
+    "jep",
     "pytest",
     "pytest-cov",
     "numpy",

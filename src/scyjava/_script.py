@@ -54,6 +54,15 @@ def enable_python_scripting(context):
     stdoutContextWriter = ScriptContextWriter(sys.stdout)
     sys.stdout = stdoutContextWriter
 
+    @JImplements("java.util.function.Supplier")
+    class PythonObjectSupplier:
+        def __init__(self, obj):
+            self.obj = obj
+
+        @JOverride
+        def get(self):
+            return self.obj
+
     @JImplements("java.util.function.Function")
     class PythonScriptRunner:
         @JOverride
@@ -101,9 +110,10 @@ def enable_python_scripting(context):
                 try:
                     arg.vars[key] = to_java(script_locals[key])
                 except Exception:
-                    error_writer = arg.scriptContext.getErrorWriter()
-                    if error_writer is not None:
-                        error_writer.write(to_java(traceback.format_exc()))
+                    arg.vars[key] = PythonObjectSupplier(script_locals[key])
+                    # error_writer = arg.scriptContext.getErrorWriter()
+                    # if error_writer is not None:
+                    #    error_writer.write(to_java(traceback.format_exc()))
 
             return to_java(return_value)
 

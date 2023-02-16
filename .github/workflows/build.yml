@@ -84,18 +84,27 @@ jobs:
         shell: bash -l {0}
     steps:
       - uses: actions/checkout@v2
+      - name: Cache conda
+        uses: actions/cache@v2
+        env:
+          # Increase this value to reset cache if dev-environment.yml has not changed
+          CACHE_NUMBER: 0
+        with:
+          path: ~/conda_pkgs_dir
+          key:
+            ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{ hashFiles('dev-environment.yml') }}
       - uses: conda-incubator/setup-miniconda@v2
         with:
           # Create env with dev packages
           auto-update-conda: true
           python-version: 3.9
+          miniforge-variant: Mambaforge
           environment-file: dev-environment.yml
           # Activate scyjava-dev environment
           activate-environment: scyjava-dev
           auto-activate-base: false
           # Use mamba for faster setup
           use-mamba: true
-          mamba-version: "*"
       - name: Test scyjava
         run: |
           bin/test.sh --cov-report=xml --cov=.

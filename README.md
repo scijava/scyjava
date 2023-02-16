@@ -158,6 +158,14 @@ FUNCTIONS
         Add a converter to the list used by to_python.
         :param converter: A Converter from java to python
 
+    enable_python_scripting(context)
+        Adds a Python script runner object to the ObjectService of the given
+        SciJava context. Intended for use in conjunction with
+        'org.scijava:scripting-python'.
+
+        :param context: The org.scijava.Context containing the ObjectService
+            where the PythonScriptRunner should be injected.
+
     get_version(java_class_or_python_package) -> str
         Return the version of a Java class or Python package.
 

@@ -204,7 +204,6 @@ def start_jvm(options=None) -> None:
         or not os.environ["JAVA_HOME"]
         or not os.path.isdir(os.environ["JAVA_HOME"])
     ):
-
         _logger.debug("JAVA_HOME not set. Will try to infer it from sys.path.")
 
         libjvm_win = Path("Library") / "jre" / "bin" / "server" / "jvm.dll"

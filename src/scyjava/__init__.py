@@ -112,6 +112,7 @@ from scyjava._java import (  # noqa: F401
     when_jvm_starts,
     when_jvm_stops,
 )
+from scyjava._script import enable_python_scripting  # noqa: F401
 from scyjava._versions import (  # noqa: F401
     compare_version,
     get_version,

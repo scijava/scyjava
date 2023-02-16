@@ -75,7 +75,11 @@ def enable_python_scripting(context):
 
                 block = ast.parse(str(arg.script), mode="exec")
                 last = None
-                if len(block.body) > 0 and hasattr(block.body[-1], "value"):
+                if (
+                    len(block.body) > 0
+                    and hasattr(block.body[-1], "value")
+                    and not isinstance(block.body[-1], ast.Assign)
+                ):
                     # Last statement of the script looks like an expression. Evaluate!
                     last = ast.Expression(block.body.pop().value)
 

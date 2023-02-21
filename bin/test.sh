@@ -23,6 +23,7 @@ then
 else
   python -m pytest -p no:faulthandler tests/
 fi
+jpypeCode=$?
 
 echo
 echo "-------------------------------------------"
@@ -63,4 +64,9 @@ if result:
   sys.exit(result)
 " > jep_test.py
 jgo -vv -r scijava.public=https://maven.scijava.org/content/groups/public -Djava.library.path="$site_packages/jep" black.ninia:jep:jep.Run+org.scijava:scijava-table jep_test.py
+jepCode=$?
 rm -f jep_test.py
+
+test "$jpypeCode" -ne 0 && exit "$jpypeCode"
+test "$jepCode" -ne 0 && exit "$jepCode"
+exit 0

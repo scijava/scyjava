@@ -117,7 +117,7 @@ class TestPandas(object):
 
         assert_same_table(table, df)
         for col in df.columns:
-            assert df.dtypes[col] == np.bool8
+            assert df.dtypes[col] == np.bool_
 
         # Mixed table
         table = jimport("org.scijava.table.DefaultGenericTable")()

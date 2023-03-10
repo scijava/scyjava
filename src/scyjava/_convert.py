@@ -708,7 +708,7 @@ def _jarray_to_ndarray(jarr):
     element_type = _jarray_element_type(jarr)
     # fmt: off
     jarraytype_map = {
-        JBoolean: np.bool8,
+        JBoolean: np.bool_,
         JByte:    np.int8,
         # JChar:  np.???,
         JDouble:  np.float64,

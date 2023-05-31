@@ -14,6 +14,7 @@ from scyjava import (
     jclass,
     jimport,
     jinstance,
+    py_converters,
     to_java,
     to_python,
 )
@@ -342,6 +343,7 @@ class TestConvert(object):
         invader = "Not Hello World"
 
         bad_converter = Converter(
+            name=f"test_conversion_priority: str -> '{invader}'",
             predicate=lambda obj: isinstance(obj, str),
             converter=lambda obj: String(invader.encode("utf-8"), "utf-8"),
             priority=100,
@@ -355,3 +357,9 @@ class TestConvert(object):
             assert e == a
 
         java_converters.remove(bad_converter)
+
+    def test_converter_priority(self):
+        assert len(java_converters) > 0
+        assert sorted(java_converters) == java_converters
+        assert len(py_converters) > 0
+        assert sorted(py_converters) == py_converters

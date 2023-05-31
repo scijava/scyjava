@@ -174,10 +174,15 @@ def __getattr__(name):
 
 
 def _initialize_converters():
+    _logger.debug("Initializing type converters")
+
     for converter in _stock_java_converters():
         add_java_converter(converter)
+    _logger.debug("Java converters:{'\n-'.join(java_converters)}")
+
     for converter in _stock_py_converters():
         add_py_converter(converter)
+    _logger.debug("Python converters:{'\n-'.join(py_converters)}")
 
 
 when_jvm_starts(_initialize_converters)

@@ -343,6 +343,7 @@ class TestConvert(object):
         invader = "Not Hello World"
 
         bad_converter = Converter(
+            name=f"test_conversion_priority: str -> '{invader}'",
             predicate=lambda obj: isinstance(obj, str),
             converter=lambda obj: String(invader.encode("utf-8"), "utf-8"),
             priority=100,

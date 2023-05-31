@@ -57,7 +57,7 @@ fi
 echo "
 import logging, sys, pytest, scyjava
 scyjava._logger.addHandler(logging.StreamHandler(sys.stderr))
-scyjava._logger.setLevel(logging.DEBUG)
+scyjava._logger.setLevel(logging.INFO)
 scyjava.config.set_verbose(2)
 result = pytest.main($argString)
 if result:

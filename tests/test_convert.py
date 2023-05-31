@@ -14,6 +14,7 @@ from scyjava import (
     jclass,
     jimport,
     jinstance,
+    py_converters,
     to_java,
     to_python,
 )
@@ -355,3 +356,9 @@ class TestConvert(object):
             assert e == a
 
         java_converters.remove(bad_converter)
+
+    def test_converter_priority(self):
+        assert len(java_converters) > 0
+        assert sorted(java_converters) == java_converters
+        assert len(py_converters) > 0
+        assert sorted(py_converters) == py_converters

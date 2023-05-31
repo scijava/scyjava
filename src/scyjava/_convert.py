@@ -5,6 +5,7 @@ The scyjava conversion subsystem, and built-in conversion functions.
 import collections
 import inspect
 import math
+from bisect import insort
 from pathlib import Path
 from typing import Any, Callable, Dict, List, NamedTuple
 
@@ -39,6 +40,10 @@ class Priority:
     LAST = -1e300
 
 
+def _priority(thing):
+    return getattr(thing, "priority", Priority.NORMAL)
+
+
 def _has_kwargs(f):
     return not isjava(f) and any(
         p.kind == inspect.Parameter.VAR_KEYWORD
@@ -65,11 +70,27 @@ class Converter(NamedTuple):
             else self.converter(obj)
         )
 
+    def __lt__(self, other):
+        return self.priority < _priority(other)
+
+    def __le__(self, other):
+        return self.priority <= _priority(other)
+
+    def __gt__(self, other):
+        return self.priority > _priority(other)
+
+    def __ge__(self, other):
+        return self.priority >= _priority(other)
+
 
 def _convert(obj: Any, converters: List[Converter], **hints: Dict) -> Any:
-    suitable_converters = [c for c in converters if c.supports(obj, **hints)]
-    prioritized = max(suitable_converters, key=lambda c: c.priority)
-    return prioritized.convert(obj, **hints)
+    # NB: The given converters are assumed to be sorted ascending by priority,
+    # meaning lower-priority items appear earlier than higher-priority ones.
+    # But we want to try the higher priority converters first, so we
+    # need to iterate the given converters list starting at the end.
+    for converter in reversed(converters):
+        if converter.supports(obj, **hints):
+            return converter.convert(obj, **hints)
 
 
 # -- Python to Java --
@@ -115,7 +136,7 @@ def add_java_converter(converter: Converter) -> None:
     Add a converter to the list used by to_java.
     :param converter: A Converter going from python to java
     """
-    java_converters.append(converter)
+    insort(java_converters, converter)
 
 
 def to_java(obj: Any, **hints: Dict) -> Any:
@@ -204,6 +225,9 @@ def _stock_java_converters() -> List[Converter]:
         Converter(
             predicate=lambda obj: isinstance(obj, bool),
             converter=_jc.Boolean,
+            # NB: Must be higher priority than the int converters,
+            # because the bool type extends the int type!
+            priority=Priority.NORMAL + 1,
         ),
         # int -> java.lang.Byte
         Converter(
@@ -486,7 +510,7 @@ def add_py_converter(converter: Converter) -> None:
     Add a converter to the list used by to_python.
     :param converter: A Converter from java to python
     """
-    py_converters.append(converter)
+    insort(py_converters, converter)
 
 
 def to_python(data: Any, gentle: bool = False) -> Any:

@@ -4,6 +4,7 @@ The scyjava conversion subsystem, and built-in conversion functions.
 
 import collections
 import inspect
+import logging
 import math
 from bisect import insort
 from pathlib import Path
@@ -23,6 +24,8 @@ from ._java import (
     mode,
     start_jvm,
 )
+
+_logger = logging.getLogger(__name__)
 
 
 # NB: We cannot use org.scijava.priority.Priority or other Java-side class
@@ -92,9 +95,14 @@ def _convert(obj: Any, converters: List[Converter], **hints: Dict) -> Any:
     # meaning lower-priority items appear earlier than higher-priority ones.
     # But we want to try the higher priority converters first, so we
     # need to iterate the given converters list starting at the end.
+    debug = hints.get("debug", False)
+    log = _logger.info if debug else _logger.debug
+    log(f"Converting object of type {type(obj)} with hints {hints}")
     for converter in reversed(converters):
         if converter.supports(obj, **hints):
+            log(f"- {converter} supports")
             return converter.convert(obj, **hints)
+        log(f"- {converter} does not support")
 
 
 # -- Python to Java --

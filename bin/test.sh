@@ -27,6 +27,25 @@ jpypeCode=$?
 
 echo
 echo "-------------------------------------------"
+echo "| Running integration tests (JPype only)  |"
+echo "-------------------------------------------"
+itCode=0
+for t in it/*.py
+do
+  python "$t"
+  code=$?
+  printf -- "--> %s " "$t"
+  if [ "$code" -eq 0 ]
+  then
+    echo "[OK]"
+  else
+    echo "[FAILED]"
+    itCode=$code
+  fi
+done
+
+echo
+echo "-------------------------------------------"
 echo "|  Testing Jep mode (Python inside Java)  |"
 echo "-------------------------------------------"
 
@@ -68,5 +87,6 @@ jepCode=$?
 rm -f jep_test.py
 
 test "$jpypeCode" -ne 0 && exit "$jpypeCode"
+test "$itCode" -ne 0 && exit "$itCode"
 test "$jepCode" -ne 0 && exit "$jepCode"
 exit 0

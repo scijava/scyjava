@@ -9,6 +9,7 @@ import ast
 import sys
 import threading
 import traceback
+from contextlib import redirect_stdout
 
 from jpype import JImplements, JOverride
 
@@ -40,19 +41,17 @@ def enable_python_scripting(context):
                 del self._thread_to_context[thread]
 
         def flush(self):
-            self._std_default.flush()
+            self._writer().flush()
 
         def write(self, s):
-            if threading.currentThread() in self._thread_to_context:
-                self._thread_to_context[threading.currentThread()].getWriter().write(
-                    to_java(s)
-                )
-            else:
-                self._std_default.write(s)
+            self._writer().write(s)
 
-    # Q: Is there a better way to manage stdout in conjunction with the script runner?
+        def _writer(self):
+            return self._thread_to_context.get(
+                threading.currentThread(), self._std_default
+            )
+
     stdoutContextWriter = ScriptContextWriter(sys.stdout)
-    sys.stdout = stdoutContextWriter
 
     @JImplements("java.util.function.Supplier")
     class PythonObjectSupplier:
@@ -77,31 +76,36 @@ def enable_python_scripting(context):
             )
 
             return_value = None
-            try:
-                # NB: Execute the block, except for the last statement,
-                # which we evaluate instead to get its return value.
-                # Credit: https://stackoverflow.com/a/39381428/1207769
+            with redirect_stdout(stdoutContextWriter):
+                try:
+                    # NB: Execute the block, except for the last statement,
+                    # which we evaluate instead to get its return value.
+                    # Credit: https://stackoverflow.com/a/39381428/1207769
 
-                block = ast.parse(str(arg.script), mode="exec")
-                last = None
-                if (
-                    len(block.body) > 0
-                    and hasattr(block.body[-1], "value")
-                    and not isinstance(block.body[-1], ast.Assign)
-                ):
-                    # Last statement of the script looks like an expression. Evaluate!
-                    last = ast.Expression(block.body.pop().value)
+                    block = ast.parse(str(arg.script), mode="exec")
+                    last = None
+                    if (
+                        len(block.body) > 0
+                        and hasattr(block.body[-1], "value")
+                        and not isinstance(block.body[-1], ast.Assign)
+                    ):
+                        # Last statement looks like an expression. Evaluate!
+                        last = ast.Expression(block.body.pop().value)
 
-                _globals = {}
-                exec(compile(block, "<string>", mode="exec"), _globals, script_locals)
-                if last is not None:
-                    return_value = eval(
-                        compile(last, "<string>", mode="eval"), _globals, script_locals
+                    _globals = {}
+                    exec(
+                        compile(block, "<string>", mode="exec"), _globals, script_locals
                     )
-            except Exception:
-                error_writer = arg.scriptContext.getErrorWriter()
-                if error_writer is not None:
-                    error_writer.write(to_java(traceback.format_exc()))
+                    if last is not None:
+                        return_value = eval(
+                            compile(last, "<string>", mode="eval"),
+                            _globals,
+                            script_locals,
+                        )
+                except Exception:
+                    error_writer = arg.scriptContext.getErrorWriter()
+                    if error_writer is not None:
+                        error_writer.write(to_java(traceback.format_exc()))
 
             stdoutContextWriter.removeScriptContext(threading.currentThread())
 

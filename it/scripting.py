@@ -6,12 +6,12 @@ As a side effect, this script also tests Maven dependency resolution.
 """
 
 import sys
+
 import scyjava
 
-scyjava.config.endpoints.extend([
-    "org.scijava:scijava-common:2.94.2",
-    "org.scijava:scripting-python:MANAGED"
-])
+scyjava.config.endpoints.extend(
+    ["org.scijava:scijava-common:2.94.2", "org.scijava:scripting-python:MANAGED"]
+)
 
 # Create minimal SciJava context with a ScriptService.
 Context = scyjava.jimport("org.scijava.Context")

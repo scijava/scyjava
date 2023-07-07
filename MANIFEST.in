@@ -1,0 +1,19 @@
+# Metadata
+include MANIFEST.in
+include Makefile
+include README.md
+include UNLICENSE
+include pyproject.toml
+
+# Conda Environment Files
+include environment.yml
+include dev-environment.yml
+
+# Directory inclusion
+graft src
+graft tests
+graft bin
+
+# File exclusion
+global-exclude __pycache__
+global-exclude *.py[doc]

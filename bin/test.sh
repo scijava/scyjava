@@ -30,7 +30,7 @@ echo "-------------------------------------------"
 echo "| Running integration tests (JPype only)  |"
 echo "-------------------------------------------"
 itCode=0
-for t in it/*.py
+for t in tests/it/*.py
 do
   python "$t"
   code=$?

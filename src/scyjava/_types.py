@@ -1,7 +1,7 @@
 """
 Utility functions for working with and reasoning about Java types.
 """
-from typing import Union, Tuple, Callable, Sequence, Any
+from typing import Any, Callable, Sequence, Tuple, Union
 
 import jpype
 
@@ -280,7 +280,9 @@ def jarray(kind, lengths: Sequence):
     return arr
 
 
-def numeric_bounds(the_type: type) -> Union[Tuple[int, int], Tuple[float, float], Tuple[None, None]]:
+def numeric_bounds(
+    the_type: type,
+) -> Union[Tuple[int, int], Tuple[float, float], Tuple[None, None]]:
     """
     Get the minimum and maximum values for the given numeric type.
     For example, a Java long returns (int(Long.MIN_VALUE), int(Long.MAX_VALUE)),

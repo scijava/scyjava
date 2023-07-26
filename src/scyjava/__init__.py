@@ -70,11 +70,7 @@ import logging
 from functools import lru_cache
 from typing import Any, Callable, Dict
 
-from ._arrays import (  # noqa: F401
-    is_arraylike,
-    is_memoryarraylike,
-    is_xarraylike,
-)
+from ._arrays import is_arraylike, is_memoryarraylike, is_xarraylike  # noqa: F401
 from ._convert import (  # noqa: F401
     Converter,
     JavaCollection,
@@ -121,11 +117,7 @@ from ._types import (  # noqa: F401
     jstacktrace,
     numeric_bounds,
 )
-from ._versions import (  # noqa: F401
-    compare_version,
-    get_version,
-    is_version_at_least,
-)
+from ._versions import compare_version, get_version, is_version_at_least  # noqa: F401
 
 __version__ = get_version("scyjava")
 __all__ = [

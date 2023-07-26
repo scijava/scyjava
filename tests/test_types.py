@@ -22,6 +22,6 @@ class TestTypes(object):
         assert (-2147483648, 2147483647) == numeric_bounds(type(v_int))
         assert (-9223372036854775808, 9223372036854775807) == numeric_bounds(type(v_long))
         assert (None, None) == numeric_bounds(type(v_bigint))
-        assert (float("-inf"), float("inf")) == numeric_bounds(type(v_float))
-        assert (float("-inf"), float("inf")) == numeric_bounds(type(v_double))
+        assert (-3.4028234663852886e+38, 3.4028234663852886e+38) == numeric_bounds(type(v_float))
+        assert (-1.7976931348623157e+308, 1.7976931348623157e+308) == numeric_bounds(type(v_double))
         assert (None, None) == numeric_bounds(type(v_bigdec))

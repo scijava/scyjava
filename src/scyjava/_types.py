@@ -284,7 +284,7 @@ def numeric_bounds(the_type: type) -> Union[Tuple[int, int], Tuple[float, float]
     """
     Get the minimum and maximum values for the given numeric type.
     For example, a Java long returns (int(Long.MIN_VALUE), int(Long.MAX_VALUE)),
-    whereas a Java double returns (float("-inf"), float("inf")).
+    whereas a Java double returns (double(-Double.MAX_VALUE), double(Double.MAX_VALUE)).
 
     :param the_type: The type whose minimum and maximum values are needed.
     :return:
@@ -307,8 +307,13 @@ def numeric_bounds(the_type: type) -> Union[Tuple[int, int], Tuple[float, float]
         Long = jimport("java.lang.Long")
         return int(Long.MIN_VALUE), int(Long.MAX_VALUE)
 
-    if is_jfloat(the_type) or is_jdouble(the_type):
-        return float("-inf"), float("inf")
+    if is_jfloat(the_type):
+        Float = jimport("java.lang.Float")
+        return float(-Float.MAX_VALUE), float(Float.MAX_VALUE)
+
+    if is_jdouble(the_type):
+        Double = jimport("java.lang.Double")
+        return float(-Double.MAX_VALUE), float(Double.MAX_VALUE)
 
     return None, None
 

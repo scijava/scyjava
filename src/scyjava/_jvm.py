@@ -1,5 +1,5 @@
 """
-Utility functions for working with the Java and JVM.
+Utility functions for working with the Java Virtual Machine.
 """
 
 import atexit
@@ -11,7 +11,6 @@ import sys
 from functools import lru_cache
 from importlib import import_module
 from pathlib import Path
-from typing import Callable, Sequence
 
 import jpype
 import jpype.config
@@ -24,58 +23,6 @@ _logger = logging.getLogger(__name__)
 
 _startup_callbacks = []
 _shutdown_callbacks = []
-
-
-class JavaClasses:
-    """
-    Utility class used to make importing frequently-used Java classes
-    significantly easier and more readable.
-
-    Benefits:
-    * Minimal boilerplate
-    * Lazy evaluation
-    * Usable within type hints
-
-    Example:
-
-        from scyjava import JavaClasses
-
-        class MyJavaClasses(JavaClasses):
-            @JavaClasses.java_import
-            def String(self): return "java.lang.String"
-            @JavaClasses.java_import
-            def Integer(self): return "java.lang.Integer"
-            # ... and many more ...
-
-        jc = MyJavaClasses()
-
-        def parse_number_with_java(s: "jc.String") -> "jc.Integer":
-            return jc.Integer.parseInt(s)
-    """
-
-    def java_import(func: Callable[[], str]) -> Callable[[], jpype.JClass]:
-        """
-        A decorator used to lazily evaluate a java import.
-        func is a function of a Python class that takes no arguments and
-        returns a string identifying a Java class by name.
-
-        Using that function, this decorator creates a property
-        that when called, imports the class identified by the function.
-        """
-
-        @property
-        def inner(self):
-            if not jvm_started():
-                raise RuntimeError("JVM has not started yet!")
-            try:
-                return jimport(func(self))
-            except TypeError:
-                return None
-
-        return inner
-
-
-# -- JVM functions --
 
 
 def jvm_version() -> str:
@@ -308,9 +255,11 @@ def gc() -> None:
 
     This function is a shortcut for Java's System.gc().
 
-    :raise RuntimeError: if the JVM has not yet been started.
+    :raises RuntimeError: If the JVM has not started yet.
     """
-    _jc.System.gc()
+    _assert_jvm_started()
+    System = jimport("java.lang.System")
+    System.gc()
 
 
 def memory_total() -> int:
@@ -329,7 +278,7 @@ def memory_total() -> int:
     :return: The total memory in bytes.
     :raise RuntimeError: if the JVM has not yet been started.
     """
-    return int(_jc.Runtime.getRuntime().totalMemory())
+    return int(_runtime().totalMemory())
 
 
 def memory_max() -> int:
@@ -347,7 +296,7 @@ def memory_max() -> int:
     :return: The maximum memory in bytes.
     :raise RuntimeError: if the JVM has not yet been started.
     """
-    return int(_jc.Runtime.getRuntime().maxMemory())
+    return int(_runtime().maxMemory())
 
 
 def memory_used() -> int:
@@ -360,7 +309,7 @@ def memory_used() -> int:
     :return: The used memory in bytes.
     :raise RuntimeError: if the JVM has not yet been started.
     """
-    return memory_total() - int(_jc.Runtime.getRuntime().freeMemory())
+    return memory_total() - int(_runtime().freeMemory())
 
 
 def available_processors() -> int:
@@ -373,7 +322,7 @@ def available_processors() -> int:
     :return: The number of available processors.
     :raise RuntimeError: if the JVM has not yet been started.
     """
-    return int(_jc.Runtime.getRuntime().availableProcessors())
+    return int(_runtime().availableProcessors())
 
 
 def is_jvm_headless() -> bool:
@@ -439,27 +388,6 @@ def when_jvm_stops(f) -> None:
     _shutdown_callbacks.append(f)
 
 
-# -- Java functions --
-
-
-def isjava(data) -> bool:
-    """Return whether the given data object is a Java object."""
-    if mode == Mode.JEP:
-        return jinstance(data, "java.lang.Object")
-
-    assert mode == Mode.JPYPE
-    return isinstance(data, jpype.JClass) or isinstance(data, jpype.JObject)
-
-
-def is_jarray(data) -> bool:
-    """Return whether the given data object is a Java array."""
-    if mode == Mode.JEP:
-        return str(type(data)) == "<class 'jep.PyJArray'>"
-
-    assert mode == Mode.JPYPE
-    return isinstance(data, jpype.JArray)
-
-
 @lru_cache(maxsize=None)
 def jimport(class_name: str):
     """
@@ -479,185 +407,12 @@ def jimport(class_name: str):
     return jpype.JClass(class_name)
 
 
-def jclass(data):
-    """
-    Obtain a Java class object.
-
-    Supported types include:
-
-    A. Name of a class to look up -- e.g. "java.lang.String" --
-       which returns the equivalent of Class.forName("java.lang.String").
-
-    B. A static-style class reference -- e.g. String --
-       which returns the equivalent of String.class.
-
-    C. A Java object -- e.g. foo --
-       which returns the equivalent of foo.getClass().
-
-    Note that if you pass a java.lang.Class object, you will get back Class.class,
-    i.e. the Java class for the Class class. :-)
-
-    :param data: The object from which to glean the class.
-    :returns: A java.lang.Class object, suitable for use with reflection.
-    :raises TypeError: if the argument is not one of the aforementioned types.
-    """
-    if isinstance(data, str):
-        # Name of a class -- case (A) above.
-        return jclass(jimport(data))
-
-    if mode == Mode.JPYPE:
-        start_jvm()
-        if isinstance(data, jpype.JClass):
-            # JPype object representing a static-style class -- case (B) above.
-            return data.class_
-    elif mode == Mode.JEP:
-        if str(type(data.getClass())) == "<class 'jep.PyJClass'>":
-            # Jep object representing a static-style class -- case (B) above.
-            raise ValueError(
-                "Jep does not support Java class objects "
-                + "-- see https://github.com/ninia/jep/issues/405"
-            )
-
-    # A Java object -- case (C) above.
-    if jinstance(data, "java.lang.Object"):
-        return data.getClass()
-
-    raise TypeError("Cannot glean class from data of type: " + str(type(data)))
+def _assert_jvm_started():
+    if not jvm_started():
+        raise RuntimeError("JVM has not started yet!")
 
 
-def jinstance(obj, jtype) -> bool:
-    """
-    Test if the given object is an instance of a particular Java type.
-
-    :param obj: The object to check.
-    :param jtype: The Java type, as either a jimported class or as a string.
-    :returns: True iff the object is an instance of that Java type.
-    """
-    if isinstance(jtype, str):
-        jtype = jimport(jtype)
-
-    if mode == Mode.JEP:
-        return isinstance(obj, jtype.__pytype__)
-
-    assert mode == Mode.JPYPE
-    return isinstance(obj, jtype)
-
-
-def jstacktrace(exc) -> str:
-    """
-    Extract the Java-side stack trace from a Java exception.
-
-    Example of usage:
-
-        from scyjava import jimport, jstacktrace
-        try:
-            Integer = jimport('java.lang.Integer')
-            nan = Integer.parseInt('not a number')
-        except Exception as exc:
-            print(jstacktrace(exc))
-
-    :param exc: The Java Throwable from which to extract the stack trace.
-    :returns: A multi-line string containing the stack trace, or empty string
-    if no stack trace could be extracted.
-    """
-    try:
-        StringWriter = jimport("java.io.StringWriter")
-        PrintWriter = jimport("java.io.PrintWriter")
-        sw = StringWriter()
-        exc.printStackTrace(PrintWriter(sw, True))
-        return str(sw)
-    except BaseException:
-        return ""
-
-
-def jarray(kind, lengths: Sequence):
-    """
-    Create a new n-dimensional Java array.
-
-    :param kind: The type of array to create. This can either be a particular
-    type of object as obtained from jimport, or else a special code for one of
-    the eight primitive array types:
-    * 'b' for byte
-    * 'c' for char
-    * 'd' for double
-    * 'f' for float
-    * 'i' for int
-    * 'j' for long
-    * 's' for short
-    * 'z' for boolean
-    :param lengths: List of lengths for the array. For example:
-    `jarray('z', [3, 7])` is the equivalent of `new boolean[3][7]` in Java.
-    You can pass a single integer to make a 1-dimensional array of that length.
-    :returns: The newly allocated array
-    """
-    if isinstance(kind, str):
-        kind = kind.lower()
-    if isinstance(lengths, int):
-        lengths = [lengths]
-    arraytype = kind
-
-    if mode == Mode.JEP:
-        import jep  # noqa: F401
-
-        if len(lengths) == 1:
-            # Fast case: 1-d array (we can use primitives)
-            arr = jep.jarray(lengths[0], arraytype)
-        else:
-            # Slow case: n-d array (we cannot use primitives)
-            # See https://github.com/ninia/jep/issues/439
-            kinds = {
-                "b": jimport("java.lang.Byte"),
-                "c": jimport("java.lang.Character"),
-                "d": jimport("java.lang.Double"),
-                "f": jimport("java.lang.Float"),
-                "i": jimport("java.lang.Integer"),
-                "j": jimport("java.lang.Long"),
-                "s": jimport("java.lang.Short"),
-                "z": jimport("java.lang.Boolean"),
-            }
-            if arraytype in kinds:
-                arraytype = kinds[arraytype]
-                kind = arraytype
-            # build up the array type
-            for _ in range(len(lengths) - 1):
-                arraytype = jep.jarray(0, arraytype)
-            # instantiate the n-dimensional array
-            arr = jep.jarray(lengths[0], arraytype)
-
-    elif mode == Mode.JPYPE:
-        start_jvm()
-
-        # build up the array type
-        kinds = {
-            "b": jpype.JByte,
-            "c": jpype.JChar,
-            "d": jpype.JDouble,
-            "f": jpype.JFloat,
-            "i": jpype.JInt,
-            "j": jpype.JLong,
-            "s": jpype.JShort,
-            "z": jpype.JBoolean,
-        }
-        if arraytype in kinds:
-            arraytype = kinds[arraytype]
-        for _ in range(len(lengths)):
-            arraytype = jpype.JArray(arraytype)
-        # instantiate the n-dimensional array
-        arr = arraytype(lengths[0])
-
-    if len(lengths) > 1:
-        for i in range(len(arr)):
-            arr[i] = jarray(kind, lengths[1:])
-    return arr
-
-
-# fmt: off
-class _JavaClasses(JavaClasses):
-    @JavaClasses.java_import
-    def Runtime(self):           return "java.lang.Runtime"        # noqa: E272
-    @JavaClasses.java_import
-    def System(self):            return "java.lang.System"         # noqa: E272
-# fmt: on
-
-
-_jc = _JavaClasses()
+def _runtime():
+    _assert_jvm_started()
+    Runtime = jimport("java.lang.Runtime")
+    return Runtime.getRuntime()

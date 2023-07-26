@@ -14,7 +14,7 @@ from contextlib import redirect_stdout
 from jpype import JImplements, JOverride
 
 from scyjava._convert import to_java
-from scyjava._java import jimport
+from scyjava._jvm import jimport
 
 
 def enable_python_scripting(context):

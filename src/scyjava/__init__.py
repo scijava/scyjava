@@ -94,19 +94,12 @@ from ._convert import (  # noqa: F401
     to_java,
     to_python,
 )
-from ._java import (  # noqa: F401
-    JavaClasses,
+from ._jvm import (  # noqa: F401
     available_processors,
     gc,
     is_awt_initialized,
-    is_jarray,
     is_jvm_headless,
-    isjava,
-    jarray,
-    jclass,
     jimport,
-    jinstance,
-    jstacktrace,
     jvm_started,
     jvm_version,
     memory_max,
@@ -118,6 +111,15 @@ from ._java import (  # noqa: F401
     when_jvm_stops,
 )
 from ._script import enable_python_scripting  # noqa: F401
+from ._types import (  # noqa: F401
+    JavaClasses,
+    is_jarray,
+    isjava,
+    jarray,
+    jclass,
+    jinstance,
+    jstacktrace,
+)
 from ._versions import (  # noqa: F401
     compare_version,
     get_version,

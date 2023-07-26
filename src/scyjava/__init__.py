@@ -70,8 +70,8 @@ import logging
 from functools import lru_cache
 from typing import Any, Callable, Dict
 
-from ._arrays import is_arraylike, is_memoryarraylike, is_xarraylike  # noqa: F401
-from ._convert import (  # noqa: F401
+from ._arrays import is_arraylike, is_memoryarraylike, is_xarraylike
+from ._convert import (
     Converter,
     JavaCollection,
     JavaIterable,
@@ -106,8 +106,8 @@ from ._jvm import (  # noqa: F401
     when_jvm_starts,
     when_jvm_stops,
 )
-from ._script import enable_python_scripting  # noqa: F401
-from ._types import (  # noqa: F401
+from ._script import enable_python_scripting
+from ._types import (
     JavaClasses,
     is_jarray,
     isjava,
@@ -117,7 +117,7 @@ from ._types import (  # noqa: F401
     jstacktrace,
     numeric_bounds,
 )
-from ._versions import compare_version, get_version, is_version_at_least  # noqa: F401
+from ._versions import compare_version, get_version, is_version_at_least
 
 __version__ = get_version("scyjava")
 __all__ = [

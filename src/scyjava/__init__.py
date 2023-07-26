@@ -119,6 +119,7 @@ from ._types import (  # noqa: F401
     jclass,
     jinstance,
     jstacktrace,
+    numeric_bounds,
 )
 from ._versions import (  # noqa: F401
     compare_version,

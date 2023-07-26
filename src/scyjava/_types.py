@@ -140,6 +140,38 @@ def isjava(data) -> bool:
     return isinstance(data, jpype.JClass) or isinstance(data, jpype.JObject)
 
 
+def is_jbyte(the_type: type) -> bool:
+    return _is_jtype(the_type, "java.lang.Byte")
+
+
+def is_jshort(the_type: type) -> bool:
+    return _is_jtype(the_type, "java.lang.Short")
+
+
+def is_jinteger(the_type: type) -> bool:
+    return _is_jtype(the_type, "java.lang.Integer")
+
+
+def is_jlong(the_type: type) -> bool:
+    return _is_jtype(the_type, "java.lang.Long")
+
+
+def is_jfloat(the_type: type) -> bool:
+    return _is_jtype(the_type, "java.lang.Float")
+
+
+def is_jdouble(the_type: type) -> bool:
+    return _is_jtype(the_type, "java.lang.Double")
+
+
+def is_jboolean(the_type: type) -> bool:
+    return _is_jtype(the_type, "java.lang.Boolean")
+
+
+def is_jcharacter(the_type: type) -> bool:
+    return _is_jtype(the_type, "java.lang.Character")
+
+
 def is_jarray(data: Any) -> bool:
     """Return whether the given data object is a Java array."""
     if mode == Mode.JEP:
@@ -246,3 +278,50 @@ def jarray(kind, lengths: Sequence):
         for i in range(len(arr)):
             arr[i] = jarray(kind, lengths[1:])
     return arr
+
+
+def numeric_bounds(the_type: type) -> Union[Tuple[int, int], Tuple[float, float], Tuple[None, None]]:
+    """
+    Get the minimum and maximum values for the given numeric type.
+    For example, a Java long returns (int(Long.MIN_VALUE), int(Long.MAX_VALUE)),
+    whereas a Java double returns (float("-inf"), float("inf")).
+
+    :param the_type: The type whose minimum and maximum values are needed.
+    :return:
+        The minimum and maximum values as a two-element tuple of int or float,
+        or a two-element tuple of None if no known bounds.
+    """
+    if is_jbyte(the_type):
+        Byte = jimport("java.lang.Byte")
+        return int(Byte.MIN_VALUE), int(Byte.MAX_VALUE)
+
+    if is_jshort(the_type):
+        Short = jimport("java.lang.Short")
+        return int(Short.MIN_VALUE), int(Short.MAX_VALUE)
+
+    if is_jinteger(the_type):
+        Integer = jimport("java.lang.Integer")
+        return int(Integer.MIN_VALUE), int(Integer.MAX_VALUE)
+
+    if is_jlong(the_type):
+        Long = jimport("java.lang.Long")
+        return int(Long.MIN_VALUE), int(Long.MAX_VALUE)
+
+    if is_jfloat(the_type) or is_jdouble(the_type):
+        return float("-inf"), float("inf")
+
+    return None, None
+
+
+def _is_jtype(the_type: type, class_name: str) -> bool:
+    """
+    Test if the given type object is *exactly* the specified Java type.
+
+    :param the_type: The type object to check.
+    :param class_name: The fully qualified Java class name in string form.
+    :returns: True iff the type is exactly that Java type.
+    """
+    # NB: Stringify the type to support both bridge modes. Ex:
+    # * JPype: <java class 'java.lang.Integer'>
+    # * Jep: <class 'java.lang.Integer'>
+    return f"class '{class_name}'" in str(the_type)

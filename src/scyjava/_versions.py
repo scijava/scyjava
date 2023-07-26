@@ -5,7 +5,7 @@ Utility functions for working with and reasoning about software component versio
 import logging
 from importlib.metadata import version
 
-from ._java import isjava, jimport
+from scyjava._java import isjava, jimport
 
 _logger = logging.getLogger(__name__)
 

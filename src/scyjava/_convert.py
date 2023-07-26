@@ -12,7 +12,7 @@ from typing import Any, Callable, Dict, List, NamedTuple
 
 from jpype import JBoolean, JByte, JChar, JDouble, JFloat, JInt, JLong, JShort
 
-from ._java import (
+from scyjava._java import (
     JavaClasses,
     Mode,
     is_jarray,

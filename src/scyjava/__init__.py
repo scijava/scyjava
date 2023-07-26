@@ -70,12 +70,12 @@ import logging
 from functools import lru_cache
 from typing import Any, Callable, Dict
 
-from scyjava._arrays import (  # noqa: F401
+from ._arrays import (  # noqa: F401
     is_arraylike,
     is_memoryarraylike,
     is_xarraylike,
 )
-from scyjava._convert import (  # noqa: F401
+from ._convert import (  # noqa: F401
     Converter,
     JavaCollection,
     JavaIterable,
@@ -94,7 +94,7 @@ from scyjava._convert import (  # noqa: F401
     to_java,
     to_python,
 )
-from scyjava._java import (  # noqa: F401
+from ._java import (  # noqa: F401
     JavaClasses,
     available_processors,
     gc,
@@ -117,8 +117,8 @@ from scyjava._java import (  # noqa: F401
     when_jvm_starts,
     when_jvm_stops,
 )
-from scyjava._script import enable_python_scripting  # noqa: F401
-from scyjava._versions import (  # noqa: F401
+from ._script import enable_python_scripting  # noqa: F401
+from ._versions import (  # noqa: F401
     compare_version,
     get_version,
     is_version_at_least,

@@ -13,9 +13,7 @@ from typing import Any, Callable, Dict, List, NamedTuple
 from jpype import JBoolean, JByte, JChar, JDouble, JFloat, JInt, JLong, JShort
 
 from scyjava._jvm import (
-    Mode,
     jimport,
-    mode,
     start_jvm,
 )
 from scyjava._types import (
@@ -26,6 +24,7 @@ from scyjava._types import (
     jclass,
     jinstance,
 )
+from scyjava.config import Mode, mode
 
 _logger = logging.getLogger(__name__)
 

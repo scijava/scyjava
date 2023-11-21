@@ -166,6 +166,75 @@ def get_classpath():
     return jpype.getClassPath()
 
 
+def set_heap_min(mb: int = None, gb: int = None):
+    """
+    Set the initial amount of memory to allocate to the Java heap.
+
+    Either mb or gb, but not both, must be given.
+
+    Shortcut for passing -Xms###m or -Xms###g to Java.
+
+    :param mb:
+        The ### of megabytes of memory Java should start with.
+    :param gb:
+        The ### of gigabytes of memory Java should start with.
+    :raise ValueError: If exactly one of mb or gb is not given.
+    """
+    add_option(f"-Xms{_mem_value(mb, gb)}")
+
+
+def set_heap_max(mb: int = None, gb: int = None):
+    """
+    Shortcut for passing -Xmx###m or -Xmx###g to Java.
+
+    Either mb or gb, but not both, must be given.
+
+    :param mb:
+        The maximum ### of megabytes of memory Java is allowed to use.
+    :param gb:
+        The maximum ### of gigabytes of memory Java is allowed to use.
+    :raise ValueError: If exactly one of mb or gb is not given.
+    """
+    add_option(f"-Xmx{_mem_value(mb, gb)}")
+
+
+def _mem_value(mb: int = None, gb: int = None) -> str:
+    # fmt: off
+    if mb is not None and gb is None: return f"{mb}m"  # noqa: E701
+    if gb is not None and mb is None: return f"{gb}g"  # noqa: E701
+    # fmt: on
+    raise ValueError("Exactly one of mb or gb must be given.")
+
+
+def enable_headless_mode():
+    """
+    Enable headless mode, for running Java without a display.
+    This mode prevents any graphical elements from popping up.
+    Shortcut for passing -Djava.awt.headless=true to Java.
+    """
+    add_option("-Djava.awt.headless=true")
+
+
+def enable_remote_debugging(port: int = 8000, suspend: bool = False):
+    """
+    Enable the JDWP debugger, listening on the given port of localhost.
+    Shortcut for -agentlib:jdwp=transport=dt_socket,address=localhost:<port>.
+
+    :param port:
+        The port to listen on for client debuggers (e.g. IDEs).
+    :param suspend:
+        If True, pause when starting up the JVM until a client debugger connects.
+    """
+    jdwp_args = {
+        "transport": "dt_socket",
+        "server": "y",
+        "suspend": "y" if suspend else "n",
+        "address": f"localhost:{port}",
+    }
+    arg_string = ",".join(f"{k}={v}" for k, v in jdwp_args.items())
+    add_option(f"-agentlib:jdwp={arg_string}")
+
+
 def add_option(option):
     global _options
     _options.append(option)

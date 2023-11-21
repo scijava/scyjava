@@ -96,6 +96,8 @@ from scyjava._convert import (  # noqa: F401
 )
 from scyjava._java import (  # noqa: F401
     JavaClasses,
+    available_processors,
+    gc,
     is_awt_initialized,
     is_jarray,
     is_jvm_headless,
@@ -107,6 +109,9 @@ from scyjava._java import (  # noqa: F401
     jstacktrace,
     jvm_started,
     jvm_version,
+    memory_max,
+    memory_total,
+    memory_used,
     shutdown_jvm,
     start_jvm,
     when_jvm_starts,

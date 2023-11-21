@@ -66,7 +66,7 @@ class JavaClasses:
         @property
         def inner(self):
             if not jvm_started():
-                raise Exception()
+                raise RuntimeError("JVM has not started yet!")
             try:
                 return jimport(func(self))
             except TypeError:
@@ -300,6 +300,80 @@ def jvm_started() -> bool:
     assert mode == Mode.JPYPE
 
     return jpype.isJVMStarted()
+
+
+def gc() -> None:
+    """
+    Do a round of Java garbage collection.
+
+    This function is a shortcut for Java's System.gc().
+
+    :raise RuntimeError: if the JVM has not yet been started.
+    """
+    _jc.System.gc()
+
+
+def memory_total() -> int:
+    """
+    Get the total amount of memory currently reserved by the JVM.
+
+    This number will always be less than or equal to memory_max().
+
+    In case the JVM was configured with -Xms flag upon startup (e.g. using
+    the scyjava.config.set_heap_min function), the initial value will typically
+    correspond approximately, but not exactly, to the configured value,
+    although it is likely to grow over time as more Java objects are allocated.
+
+    This function is a shortcut for Java's Runtime.getRuntime().totalMemory().
+
+    :return: The total memory in bytes.
+    :raise RuntimeError: if the JVM has not yet been started.
+    """
+    return int(_jc.Runtime.getRuntime().totalMemory())
+
+
+def memory_max() -> int:
+    """
+    Get the maximum amount of memory that the JVM will attempt to use.
+
+    This number will always be greater than or equal to memory_total().
+
+    In case the JVM was configured with -Xmx flag upon startup (e.g. using
+    the scyjava.config.set_heap_max function), the value will typically
+    correspond approximately, but not exactly, to the configured value.
+
+    This function is a shortcut for Java's Runtime.getRuntime().maxMemory().
+
+    :return: The maximum memory in bytes.
+    :raise RuntimeError: if the JVM has not yet been started.
+    """
+    return int(_jc.Runtime.getRuntime().maxMemory())
+
+
+def memory_used() -> int:
+    """
+    Get the amount of memory currently in use by the JVM.
+
+    This function is a shortcut for
+    Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory().
+
+    :return: The used memory in bytes.
+    :raise RuntimeError: if the JVM has not yet been started.
+    """
+    return memory_total() - int(_jc.Runtime.getRuntime().freeMemory())
+
+
+def available_processors() -> int:
+    """
+    Get the number of processors available to the JVM.
+
+    This function is a shortcut for Java's
+    Runtime.getRuntime().availableProcessors().
+
+    :return: The number of available processors.
+    :raise RuntimeError: if the JVM has not yet been started.
+    """
+    return int(_jc.Runtime.getRuntime().availableProcessors())
 
 
 def is_jvm_headless() -> bool:
@@ -575,3 +649,15 @@ def jarray(kind, lengths: Sequence):
         for i in range(len(arr)):
             arr[i] = jarray(kind, lengths[1:])
     return arr
+
+
+# fmt: off
+class _JavaClasses(JavaClasses):
+    @JavaClasses.java_import
+    def Runtime(self):           return "java.lang.Runtime"        # noqa: E272
+    @JavaClasses.java_import
+    def System(self):            return "java.lang.System"         # noqa: E272
+# fmt: on
+
+
+_jc = _JavaClasses()

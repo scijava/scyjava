@@ -142,11 +142,11 @@ class TestPandas(object):
         df = to_python(table)
         # Table types cannot be the same here, unless we want to cast.
         # assert_same_table(table, df)
-        assert type(df["header1"][0]) == float
-        assert type(df["header2"][0]) == int
-        assert type(df["header3"][0]) == bool
-        assert type(df["header4"][0]) == str
-        assert type(df["header5"][0]) == float
+        assert type(df["header1"][0]) is float
+        assert type(df["header2"][0]) is int
+        assert type(df["header3"][0]) is bool
+        assert type(df["header4"][0]) is str
+        assert type(df["header5"][0]) is float
 
     def _fill_table(self, table, ndarr, ctor):
         for i in range(table.getColumnCount()):

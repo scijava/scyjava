@@ -158,6 +158,15 @@ FUNCTIONS
         Add a converter to the list used by to_python.
         :param converter: A Converter from java to python
 
+    available_processors() -> int
+        Get the number of processors available to the JVM.
+
+        This function is a shortcut for Java's
+        Runtime.getRuntime().availableProcessors().
+
+        :return: The number of available processors.
+        :raise RuntimeError: if the JVM has not yet been started.
+
     enable_python_scripting(context)
         Adds a Python script runner object to the ObjectService of the given
         SciJava context. Intended for use in conjunction with
@@ -165,6 +174,13 @@ FUNCTIONS
 
         :param context: The org.scijava.Context containing the ObjectService
             where the PythonScriptRunner should be injected.
+
+    gc() -> None
+        Do a round of Java garbage collection.
+
+        This function is a shortcut for Java's System.gc().
+
+        :raise RuntimeError: if the JVM has not yet been started.
 
     get_version(java_class_or_python_package) -> str
         Return the version of a Java class or Python package.
@@ -254,12 +270,21 @@ FUNCTIONS
     jclass(data)
         Obtain a Java class object.
 
-        :param data: The object from which to glean the class.
         Supported types include:
-        A. Name of a class to look up, analogous to
-        Class.forName("java.lang.String");
-        B. A jpype.JClass object analogous to String.class;
-        C. A jpype.JObject instance analogous to o.getClass().
+
+        A. Name of a class to look up -- e.g. "java.lang.String" --
+           which returns the equivalent of Class.forName("java.lang.String").
+
+        B. A static-style class reference -- e.g. String --
+           which returns the equivalent of String.class.
+
+        C. A Java object -- e.g. foo --
+           which returns the equivalent of foo.getClass().
+
+        Note that if you pass a java.lang.Class object, you will get back Class.class,
+        i.e. the Java class for the Class class. :-)
+
+        :param data: The object from which to glean the class.
         :returns: A java.lang.Class object, suitable for use with reflection.
         :raises TypeError: if the argument is not one of the aforementioned types.
 
@@ -297,27 +322,62 @@ FUNCTIONS
         Return true iff a Java virtual machine (JVM) has been started.
 
     jvm_version() -> str
-        Gets the version of the JVM as a tuple,
-        with each dot-separated digit as one element.
-        Characters in the version string beyond only
-        numbers and dots are ignored, in line
-        with the java.version system property.
+        Gets the version of the JVM as a tuple, with each dot-separated digit
+        as one element. Characters in the version string beyond only numbers
+        and dots are ignored, in line with the java.version system property.
 
         Examples:
         * OpenJDK 17.0.1 -> [17, 0, 1]
         * OpenJDK 11.0.9.1-internal -> [11, 0, 9, 1]
         * OpenJDK 1.8.0_312 -> [1, 8, 0]
 
-        If the JVM is already started,
-        this function should return the equivalent of:
+        If the JVM is already started, this function returns the equivalent of:
            jimport('java.lang.System')
              .getProperty('java.version')
              .split('.')
 
-        In case the JVM is not started yet,a best effort is made to deduce
+        In case the JVM is not started yet, a best effort is made to deduce
         the version from the environment without actually starting up the
         JVM in-process. If the version cannot be deduced, a RuntimeError
         with the cause is raised.
+
+    memory_max() -> int
+        Get the maximum amount of memory that the JVM will attempt to use.
+
+        This number will always be greater than or equal to memory_total().
+
+        In case the JVM was configured with -Xmx flag upon startup (e.g. using
+        the scyjava.config.set_heap_max function), the value will typically
+        correspond approximately, but not exactly, to the configured value.
+
+        This function is a shortcut for Java's Runtime.getRuntime().maxMemory().
+
+        :return: The maximum memory in bytes.
+        :raise RuntimeError: if the JVM has not yet been started.
+
+    memory_total() -> int
+        Get the total amount of memory currently reserved by the JVM.
+
+        This number will always be less than or equal to memory_max().
+
+        In case the JVM was configured with -Xms flag upon startup (e.g. using
+        the scyjava.config.set_heap_min function), the initial value will typically
+        correspond approximately, but not exactly, to the configured value,
+        although it is likely to grow over time as more Java objects are allocated.
+
+        This function is a shortcut for Java's Runtime.getRuntime().totalMemory().
+
+        :return: The total memory in bytes.
+        :raise RuntimeError: if the JVM has not yet been started.
+
+    memory_used() -> int
+        Get the amount of memory currently in use by the JVM.
+
+        This function is a shortcut for
+        Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory().
+
+        :return: The used memory in bytes.
+        :raise RuntimeError: if the JVM has not yet been started.
 
     shutdown_jvm() -> None
         Shutdown the JVM.
@@ -337,6 +397,8 @@ FUNCTIONS
 
         Note that if the JVM is not already running, then this function does
         nothing! In particular, shutdown hooks are skipped in this situation.
+
+        :raises RuntimeError: if this method is called while in Jep mode.
 
     start_jvm(options=None) -> None
         Explicitly connect to the Java virtual machine (JVM). Only one JVM can

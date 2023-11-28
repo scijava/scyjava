@@ -3,7 +3,7 @@ Utility functions for working with and reasoning about software component versio
 """
 
 import logging
-from importlib.util import find_spec
+from importlib.metadata import version
 
 from ._java import isjava, jimport
 
@@ -32,20 +32,7 @@ def get_version(java_class_or_python_package) -> str:
         return str(VersionUtils.getVersion(java_class_or_python_package))
 
     # Assume we were given a Python package name.
-
-    if find_spec("importlib.metadata"):
-        # Fastest, but requires Python 3.8+.
-        from importlib.metadata import version
-
-        return version(java_class_or_python_package)
-
-    if find_spec("pkg_resources"):
-        # Slower, but works on Python 3.7.
-        from pkg_resources import get_distribution
-
-        return get_distribution(java_class_or_python_package).version
-
-    raise RuntimeError("Cannot determine version! Is pkg_resources installed?")
+    return version(java_class_or_python_package)
 
 
 def is_version_at_least(actual_version: str, minimum_version: str) -> bool:

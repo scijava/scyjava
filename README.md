@@ -55,7 +55,7 @@ u'1.8.0_152-release'
 
 ```python
 >>> from scyjava import config, jimport
->>> config.add_option('-Djava.awt.headless=true')
+>>> config.enable_headless_mode()
 >>> config.add_repositories({'scijava.public': 'https://maven.scijava.org/content/groups/public'})
 >>> config.endpoints.append('net.imagej:imagej:2.1.0')
 >>> ImageJ = jimport('net.imagej.ImageJ')
@@ -408,7 +408,7 @@ FUNCTIONS
         fly with the configuration specified via the scijava.config mechanism.
 
         :param options: List of options to pass to the JVM. For example:
-                        ['-Djava.awt.headless=true', '-Xmx4g']
+                        ['-Dfoo=bar', '-XX:+UnlockExperimentalVMOptions']
 
     to_java(obj: Any, **hints: Dict) -> Any
         Recursively convert a Python object to a Java object.
@@ -506,7 +506,7 @@ unless you do one of two things:
 
     ```python
     from scyjava import config, jimport
-    config.add_option('-Djava.awt.headless=true')
+    config.enable_headless_mode()
     ```
 
     In which case, you'll get `java.awt.HeadlessException` instead of a

@@ -21,7 +21,7 @@ from scyjava import (
 from scyjava.config import Mode, mode
 
 config.endpoints.append("org.scijava:scijava-table")
-config.add_option("-Djava.awt.headless=true")
+config.enable_headless_mode()
 
 
 class TestConvert(object):

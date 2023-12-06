@@ -5,7 +5,7 @@ import pandas as pd
 from scyjava import config, jarray, jimport, jinstance, to_java, to_python
 
 config.endpoints.append("org.scijava:scijava-table")
-config.add_option("-Djava.awt.headless=true")
+config.enable_headless_mode()
 
 
 def assert_same_table(table, df):

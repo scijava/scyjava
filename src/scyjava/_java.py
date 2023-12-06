@@ -167,7 +167,7 @@ def start_jvm(options=None) -> None:
     fly with the configuration specified via the scijava.config mechanism.
 
     :param options: List of options to pass to the JVM. For example:
-                    ['-Djava.awt.headless=true', '-Xmx4g']
+                    ['-Dfoo=bar', '-XX:+UnlockExperimentalVMOptions']
     """
     # if JVM is already running -- break
     if jvm_started():

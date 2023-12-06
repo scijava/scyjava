@@ -11,7 +11,7 @@ assert before_version is not None
 assert len(before_version) >= 3
 assert before_version[0] > 0
 
-scyjava.config.add_option("-Djava.awt.headless=true")
+scyjava.config.enable_headless_mode()
 scyjava.start_jvm()
 
 after_version = scyjava.jvm_version()

@@ -11,7 +11,7 @@ Use Java classes from Python:
 Use Maven artifacts from remote repositories:
 
     >>> from scyjava import config, jimport
-    >>> config.add_option('-Djava.awt.headless=true')
+    >>> config.enable_headless_mode()
     >>> config.add_repositories({
     ... 'scijava.public': 'https://maven.scijava.org/content/groups/public',
     ... })

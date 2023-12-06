@@ -1,5 +1,4 @@
 import numpy as np
-
 from scyjava import is_jarray, jarray, to_python
 from scyjava.config import Mode, mode
 

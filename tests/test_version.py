@@ -1,8 +1,7 @@
 from pathlib import Path
 
-import toml
-
 import scyjava
+import toml
 
 
 def _expected_version():

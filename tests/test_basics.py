@@ -1,7 +1,6 @@
 import re
 
 import pytest
-
 import scyjava
 from scyjava.config import Mode, mode
 

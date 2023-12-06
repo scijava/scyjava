@@ -1,3 +1,4 @@
+# ruff: noqa: F401
 """
 Supercharged Java access from Python, built on JPype and jgo.
 
@@ -118,6 +119,9 @@ from ._types import (
     numeric_bounds,
 )
 from ._versions import compare_version, get_version, is_version_at_least
+
+s = "hello there, look at this very long sentence " + "so this line is more than 88 characters."
+t = "and here is another one that is more than 80 chars " + "but less than 88 chars."
 
 __version__ = get_version("scyjava")
 __all__ = [

@@ -1,7 +1,6 @@
 import numpy as np
 import numpy.testing as npt
 import pandas as pd
-
 from scyjava import config, jarray, jimport, jinstance, to_java, to_python
 
 config.endpoints.append("org.scijava:scijava-table")
@@ -142,11 +141,11 @@ class TestPandas(object):
         df = to_python(table)
         # Table types cannot be the same here, unless we want to cast.
         # assert_same_table(table, df)
-        assert type(df["header1"][0]) is float
-        assert type(df["header2"][0]) is int
-        assert type(df["header3"][0]) is bool
-        assert type(df["header4"][0]) is str
-        assert type(df["header5"][0]) is float
+        assert type(df["header1"][0]) is float  # noqa: E721
+        assert type(df["header2"][0]) is int  # noqa: E721
+        assert type(df["header3"][0]) is bool  # noqa: E721
+        assert type(df["header4"][0]) is str  # noqa: E721
+        assert type(df["header5"][0]) is float  # noqa: E721
 
     def _fill_table(self, table, ndarr, ctor):
         for i in range(table.getColumnCount()):

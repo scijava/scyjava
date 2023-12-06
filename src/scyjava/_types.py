@@ -137,7 +137,7 @@ def isjava(data) -> bool:
         return jinstance(data, "java.lang.Object")
 
     assert mode == Mode.JPYPE
-    return isinstance(data, jpype.JClass) or isinstance(data, jpype.JObject)
+    return isinstance(data, (jpype.JClass, jpype.JObject))
 
 
 def is_jbyte(the_type: type) -> bool:

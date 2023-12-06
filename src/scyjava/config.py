@@ -2,6 +2,7 @@ import enum
 import logging
 import os
 import pathlib
+from typing import Optional
 
 import jpype
 from jgo import maven_scijava_repository
@@ -166,7 +167,7 @@ def get_classpath():
     return jpype.getClassPath()
 
 
-def set_heap_min(mb: int = None, gb: int = None):
+def set_heap_min(mb: Optional[int] = None, gb: Optional[int] = None):
     """
     Set the initial amount of memory to allocate to the Java heap.
 
@@ -183,7 +184,7 @@ def set_heap_min(mb: int = None, gb: int = None):
     add_option(f"-Xms{_mem_value(mb, gb)}")
 
 
-def set_heap_max(mb: int = None, gb: int = None):
+def set_heap_max(mb: Optional[int] = None, gb: Optional[int] = None):
     """
     Shortcut for passing -Xmx###m or -Xmx###g to Java.
 
@@ -198,7 +199,7 @@ def set_heap_max(mb: int = None, gb: int = None):
     add_option(f"-Xmx{_mem_value(mb, gb)}")
 
 
-def _mem_value(mb: int = None, gb: int = None) -> str:
+def _mem_value(mb: Optional[int] = None, gb: Optional[int] = None) -> str:
     # fmt: off
     if mb is not None and gb is None: return f"{mb}m"  # noqa: E701
     if gb is not None and mb is None: return f"{gb}g"  # noqa: E701
@@ -209,6 +210,7 @@ def _mem_value(mb: int = None, gb: int = None) -> str:
 def enable_headless_mode():
     """
     Enable headless mode, for running Java without a display.
+
     This mode prevents any graphical elements from popping up.
     Shortcut for passing -Djava.awt.headless=true to Java.
     """
@@ -218,6 +220,7 @@ def enable_headless_mode():
 def enable_remote_debugging(port: int = 8000, suspend: bool = False):
     """
     Enable the JDWP debugger, listening on the given port of localhost.
+
     Shortcut for -agentlib:jdwp=transport=dt_socket,address=localhost:<port>.
 
     :param port:

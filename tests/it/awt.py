@@ -2,9 +2,14 @@
 Test scyjava AWT-related functions.
 """
 
+import platform
 import sys
 
 import scyjava
+
+if platform.system() == "Darwin":
+    # NB: This test would hang on macOS, due to AWT threading issues.
+    sys.exit(0)
 
 assert not scyjava.jvm_started()
 scyjava.start_jvm()

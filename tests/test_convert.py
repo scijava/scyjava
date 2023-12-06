@@ -27,7 +27,7 @@ config.enable_headless_mode()
 class TestConvert(object):
     def testClass(self):
         """
-        Tests class detection from Java objects.
+        Test class detection from Java objects.
         """
         if mode == Mode.JEP:
             pytest.skip("The jclass function does not work yet in Jep mode.")

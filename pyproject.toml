@@ -77,6 +77,7 @@ extend-ignore = ["E203"]
 # See https://black.readthedocs.io/en/stable/guides/using_black_with_other_tools.html#flake8
 max-line-length = 88
 min_python_version = "3.8"
+per-file-ignores = "__init__.py:F401"
 
 [tool.isort]
 profile = "black"

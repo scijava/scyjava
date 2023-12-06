@@ -12,18 +12,9 @@ from typing import Any, Callable, Dict, List, NamedTuple
 
 from jpype import JBoolean, JByte, JChar, JDouble, JFloat, JInt, JLong, JShort
 
-from ._java import (
-    JavaClasses,
-    Mode,
-    is_jarray,
-    isjava,
-    jarray,
-    jclass,
-    jimport,
-    jinstance,
-    mode,
-    start_jvm,
-)
+from scyjava._jvm import jimport, start_jvm
+from scyjava._types import JavaClasses, is_jarray, isjava, jarray, jclass, jinstance
+from scyjava.config import Mode, mode
 
 _logger = logging.getLogger(__name__)
 
@@ -193,11 +184,13 @@ def to_java(obj: Any, **hints: Dict) -> Any:
     * float values in Double range but outside float range convert to Double
     * float values outside double range convert to BigDecimal
 
-    :param obj: The Python object to convert.
-    :param hints: An optional dictionary of hints, to help scyjava
-                  make decisions about how to do the conversion.
-    :returns: A corresponding Java object with the same contents.
-    :raises TypeError: if the argument is not one of the aforementioned types.
+    :param obj:
+        The Python object to convert.
+    :param hints:
+        An optional dictionary of hints, to help scyjava
+        make decisions about how to do the conversion.
+    :return: A corresponding Java object with the same contents.
+    :raise TypeError: if the argument is not one of the aforementioned types.
     """
     start_jvm()
     return _convert(obj, java_converters, **hints)
@@ -206,7 +199,7 @@ def to_java(obj: Any, **hints: Dict) -> Any:
 def _stock_java_converters() -> List[Converter]:
     """
     Construct the Python-to-Java converters supported out of the box.
-    :returns: A list of Converters
+    :return: A list of Converters
     """
     start_jvm()
     return [
@@ -541,12 +534,15 @@ def to_python(data: Any, gentle: bool = False) -> Any:
     * Iterable -> collections.abc.Iterable
     * Iterator -> collections.abc.Iterator
 
-    :param data: The Java object to convert.
-    :param gentle: If set, and the type cannot be converted, leaves
-                   the data alone rather than raising a TypeError.
-    :returns: A corresponding Python object with the same contents.
-    :raises TypeError: if the argument is not one of the aforementioned types,
-                       and the gentle flag is not set.
+    :param data:
+        The Java object to convert.
+    :param gentle:
+        If set, and the type cannot be converted, leaves
+        the data alone rather than raising a TypeError.
+    :return: A corresponding Python object with the same contents.
+    :raise TypeError:
+        if the argument is not one of the aforementioned types,
+        and the gentle flag is not set.
     """
     start_jvm()
     try:
@@ -560,7 +556,7 @@ def to_python(data: Any, gentle: bool = False) -> Any:
 def _stock_py_converters() -> List:
     """
     Construct the Java-to-Python converters supported out of the box.
-    :returns: A list of Converters
+    :return: A list of Converters
     """
     start_jvm()
 

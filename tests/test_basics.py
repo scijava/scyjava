@@ -8,12 +8,12 @@ from scyjava.config import Mode, mode
 
 class TestBasics(object):
     """
-    Tests basic scyjava functions.
+    Test basic scyjava functions.
     """
 
     def test_jclass(self):
         """
-        Tests the jclass function.
+        Test the jclass function.
         """
         if mode == Mode.JEP:
             pytest.skip("Jep does not support Java class objects!")
@@ -23,7 +23,7 @@ class TestBasics(object):
 
     def test_jimport(self):
         """
-        Tests the jimport function.
+        Test the jimport function.
         """
         Object = scyjava.jimport("java.lang.Object")
         assert Object is not None
@@ -34,7 +34,7 @@ class TestBasics(object):
 
     def test_jinstance(self):
         """
-        Tests the jinstance function.
+        Test the jinstance function.
         """
         jstr = scyjava.to_java("Hello")
         assert scyjava.jinstance(jstr, "java.lang.String")

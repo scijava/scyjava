@@ -13,8 +13,8 @@ from contextlib import redirect_stdout
 
 from jpype import JImplements, JOverride
 
-from ._convert import to_java
-from ._java import jimport
+from scyjava._convert import to_java
+from scyjava._jvm import jimport
 
 
 def enable_python_scripting(context):

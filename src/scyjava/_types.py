@@ -77,8 +77,8 @@ def jclass(data):
     i.e. the Java class for the Class class. :-)
 
     :param data: The object from which to glean the class.
-    :returns: A java.lang.Class object, suitable for use with reflection.
-    :raises TypeError: if the argument is not one of the aforementioned types.
+    :return: A java.lang.Class object, suitable for use with reflection.
+    :raise TypeError: if the argument is not one of the aforementioned types.
     """
     if isinstance(data, str):
         # Name of a class -- case (A) above.
@@ -118,7 +118,7 @@ def jstacktrace(exc) -> str:
             print(jstacktrace(exc))
 
     :param exc: The Java Throwable from which to extract the stack trace.
-    :returns: A multi-line string containing the stack trace, or empty string
+    :return: A multi-line string containing the stack trace, or empty string
     if no stack trace could be extracted.
     """
     try:
@@ -187,7 +187,7 @@ def jinstance(obj, jtype) -> bool:
 
     :param obj: The object to check.
     :param jtype: The Java type, as either a jimported class or as a string.
-    :returns: True iff the object is an instance of that Java type.
+    :return: True iff the object is an instance of that Java type.
     """
     if isinstance(jtype, str):
         jtype = jimport(jtype)
@@ -217,7 +217,7 @@ def jarray(kind, lengths: Sequence):
     :param lengths: List of lengths for the array. For example:
     `jarray('z', [3, 7])` is the equivalent of `new boolean[3][7]` in Java.
     You can pass a single integer to make a 1-dimensional array of that length.
-    :returns: The newly allocated array
+    :return: The newly allocated array
     """
     if isinstance(kind, str):
         kind = kind.lower()
@@ -286,7 +286,7 @@ def numeric_bounds(
     """
     Get the minimum and maximum values for the given numeric type.
     For example, a Java long returns (int(Long.MIN_VALUE), int(Long.MAX_VALUE)),
-    whereas a Java double returns (double(-Double.MAX_VALUE), double(Double.MAX_VALUE)).
+    whereas a Java double returns (float(-Double.MAX_VALUE), float(Double.MAX_VALUE)).
 
     :param the_type: The type whose minimum and maximum values are needed.
     :return:
@@ -326,7 +326,7 @@ def _is_jtype(the_type: type, class_name: str) -> bool:
 
     :param the_type: The type object to check.
     :param class_name: The fully qualified Java class name in string form.
-    :returns: True iff the type is exactly that Java type.
+    :return: True iff the type is exactly that Java type.
     """
     # NB: Stringify the type to support both bridge modes. Ex:
     # * JPype: <java class 'java.lang.Integer'>

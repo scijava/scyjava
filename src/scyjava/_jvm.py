@@ -113,8 +113,9 @@ def start_jvm(options=None) -> None:
     time a scyjava function needing a JVM is invoked, one is started on the
     fly with the configuration specified via the scijava.config mechanism.
 
-    :param options: List of options to pass to the JVM. For example:
-                    ['-Dfoo=bar', '-XX:+UnlockExperimentalVMOptions']
+    :param options:
+        List of options to pass to the JVM.
+        For example: ['-Dfoo=bar', '-XX:+UnlockExperimentalVMOptions']
     """
     # if JVM is already running -- break
     if jvm_started():
@@ -191,7 +192,7 @@ def start_jvm(options=None) -> None:
 
 
 def shutdown_jvm() -> None:
-    """Shutdown the JVM.
+    """Shut down the JVM.
 
     This function makes a best effort to clean up Java resources first.
     In particular, shutdown hooks registered with scyjava.when_jvm_stops
@@ -209,7 +210,7 @@ def shutdown_jvm() -> None:
     Note that if the JVM is not already running, then this function does
     nothing! In particular, shutdown hooks are skipped in this situation.
 
-    :raises RuntimeError: if this method is called while in Jep mode.
+    :raise RuntimeError: if this method is called while in Jep mode.
     """
     if not jvm_started():
         return
@@ -255,7 +256,7 @@ def gc() -> None:
 
     This function is a shortcut for Java's System.gc().
 
-    :raises RuntimeError: If the JVM has not started yet.
+    :raise RuntimeError: If the JVM has not started yet.
     """
     _assert_jvm_started()
     System = jimport("java.lang.System")
@@ -329,7 +330,7 @@ def is_jvm_headless() -> bool:
     """
     Return true iff Java is running in headless mode.
 
-    :raises RuntimeError: If the JVM has not started yet.
+    :raise RuntimeError: If the JVM has not started yet.
     """
     if not jvm_started():
         raise RuntimeError("JVM has not started yet!")
@@ -394,8 +395,9 @@ def jimport(class_name: str):
     Import a class from Java to Python.
 
     :param class_name: Name of the class to import.
-    :returns: A pointer to the class, which can be used to
-              e.g. instantiate objects of that class.
+    :return:
+        A pointer to the class, which can be used to
+        e.g. instantiate objects of that class.
     """
     if mode == Mode.JEP:
         module_path = class_name.rsplit(".", 1)

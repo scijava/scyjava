@@ -184,11 +184,13 @@ def to_java(obj: Any, **hints: Dict) -> Any:
     * float values in Double range but outside float range convert to Double
     * float values outside double range convert to BigDecimal
 
-    :param obj: The Python object to convert.
-    :param hints: An optional dictionary of hints, to help scyjava
-                  make decisions about how to do the conversion.
-    :returns: A corresponding Java object with the same contents.
-    :raises TypeError: if the argument is not one of the aforementioned types.
+    :param obj:
+        The Python object to convert.
+    :param hints:
+        An optional dictionary of hints, to help scyjava
+        make decisions about how to do the conversion.
+    :return: A corresponding Java object with the same contents.
+    :raise TypeError: if the argument is not one of the aforementioned types.
     """
     start_jvm()
     return _convert(obj, java_converters, **hints)
@@ -197,7 +199,7 @@ def to_java(obj: Any, **hints: Dict) -> Any:
 def _stock_java_converters() -> List[Converter]:
     """
     Construct the Python-to-Java converters supported out of the box.
-    :returns: A list of Converters
+    :return: A list of Converters
     """
     start_jvm()
     return [
@@ -532,12 +534,15 @@ def to_python(data: Any, gentle: bool = False) -> Any:
     * Iterable -> collections.abc.Iterable
     * Iterator -> collections.abc.Iterator
 
-    :param data: The Java object to convert.
-    :param gentle: If set, and the type cannot be converted, leaves
-                   the data alone rather than raising a TypeError.
-    :returns: A corresponding Python object with the same contents.
-    :raises TypeError: if the argument is not one of the aforementioned types,
-                       and the gentle flag is not set.
+    :param data:
+        The Java object to convert.
+    :param gentle:
+        If set, and the type cannot be converted, leaves
+        the data alone rather than raising a TypeError.
+    :return: A corresponding Python object with the same contents.
+    :raise TypeError:
+        if the argument is not one of the aforementioned types,
+        and the gentle flag is not set.
     """
     start_jvm()
     try:
@@ -551,7 +556,7 @@ def to_python(data: Any, gentle: bool = False) -> Any:
 def _stock_py_converters() -> List:
     """
     Construct the Java-to-Python converters supported out of the box.
-    :returns: A list of Converters
+    :return: A list of Converters
     """
     start_jvm()
 

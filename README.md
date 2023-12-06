@@ -180,7 +180,7 @@ FUNCTIONS
 
         This function is a shortcut for Java's System.gc().
 
-        :raise RuntimeError: if the JVM has not yet been started.
+        :raise RuntimeError: If the JVM has not started yet.
 
     get_version(java_class_or_python_package) -> str
         Return the version of a Java class or Python package.
@@ -213,13 +213,13 @@ FUNCTIONS
         those actions via the jpype.setupGuiEnvironment wrapper function;
         see the Troubleshooting section of the scyjava README for details.
 
-    is_jarray(data) -> bool
+    is_jarray(data: Any) -> bool
         Return whether the given data object is a Java array.
 
     is_jvm_headless() -> bool
         Return true iff Java is running in headless mode.
 
-        :raises RuntimeError: If the JVM has not started yet.
+        :raise RuntimeError: If the JVM has not started yet.
 
     is_memoryarraylike(arr: Any) -> bool
         Return True iff the object is memoryarraylike:
@@ -265,7 +265,7 @@ FUNCTIONS
         :param lengths: List of lengths for the array. For example:
         `jarray('z', [3, 7])` is the equivalent of `new boolean[3][7]` in Java.
         You can pass a single integer to make a 1-dimensional array of that length.
-        :returns: The newly allocated array
+        :return: The newly allocated array
 
     jclass(data)
         Obtain a Java class object.
@@ -285,22 +285,23 @@ FUNCTIONS
         i.e. the Java class for the Class class. :-)
 
         :param data: The object from which to glean the class.
-        :returns: A java.lang.Class object, suitable for use with reflection.
-        :raises TypeError: if the argument is not one of the aforementioned types.
+        :return: A java.lang.Class object, suitable for use with reflection.
+        :raise TypeError: if the argument is not one of the aforementioned types.
 
     jimport(class_name: str)
         Import a class from Java to Python.
 
         :param class_name: Name of the class to import.
-        :returns: A pointer to the class, which can be used to
-                  e.g. instantiate objects of that class.
+        :return:
+            A pointer to the class, which can be used to
+            e.g. instantiate objects of that class.
 
     jinstance(obj, jtype) -> bool
         Test if the given object is an instance of a particular Java type.
 
         :param obj: The object to check.
         :param jtype: The Java type, as either a jimported class or as a string.
-        :returns: True iff the object is an instance of that Java type.
+        :return: True iff the object is an instance of that Java type.
 
     jstacktrace(exc) -> str
         Extract the Java-side stack trace from a Java exception.
@@ -315,7 +316,7 @@ FUNCTIONS
                 print(jstacktrace(exc))
 
         :param exc: The Java Throwable from which to extract the stack trace.
-        :returns: A multi-line string containing the stack trace, or empty string
+        :return: A multi-line string containing the stack trace, or empty string
         if no stack trace could be extracted.
 
     jvm_started() -> bool
@@ -379,8 +380,18 @@ FUNCTIONS
         :return: The used memory in bytes.
         :raise RuntimeError: if the JVM has not yet been started.
 
+    numeric_bounds(the_type: type) -> Union[Tuple[int, int], Tuple[float, float], Tuple[NoneType, NoneType]]
+        Get the minimum and maximum values for the given numeric type.
+        For example, a Java long returns (int(Long.MIN_VALUE), int(Long.MAX_VALUE)),
+        whereas a Java double returns (float(-Double.MAX_VALUE), float(Double.MAX_VALUE)).
+
+        :param the_type: The type whose minimum and maximum values are needed.
+        :return:
+            The minimum and maximum values as a two-element tuple of int or float,
+            or a two-element tuple of None if no known bounds.
+
     shutdown_jvm() -> None
-        Shutdown the JVM.
+        Shut down the JVM.
 
         This function makes a best effort to clean up Java resources first.
         In particular, shutdown hooks registered with scyjava.when_jvm_stops
@@ -398,7 +409,7 @@ FUNCTIONS
         Note that if the JVM is not already running, then this function does
         nothing! In particular, shutdown hooks are skipped in this situation.
 
-        :raises RuntimeError: if this method is called while in Jep mode.
+        :raise RuntimeError: if this method is called while in Jep mode.
 
     start_jvm(options=None) -> None
         Explicitly connect to the Java virtual machine (JVM). Only one JVM can
@@ -407,8 +418,9 @@ FUNCTIONS
         time a scyjava function needing a JVM is invoked, one is started on the
         fly with the configuration specified via the scijava.config mechanism.
 
-        :param options: List of options to pass to the JVM. For example:
-                        ['-Dfoo=bar', '-XX:+UnlockExperimentalVMOptions']
+        :param options:
+            List of options to pass to the JVM.
+            For example: ['-Dfoo=bar', '-XX:+UnlockExperimentalVMOptions']
 
     to_java(obj: Any, **hints: Dict) -> Any
         Recursively convert a Python object to a Java object.
@@ -451,11 +463,13 @@ FUNCTIONS
         * float values in Double range but outside float range convert to Double
         * float values outside double range convert to BigDecimal
 
-        :param obj: The Python object to convert.
-        :param hints: An optional dictionary of hints, to help scyjava
-                      make decisions about how to do the conversion.
-        :returns: A corresponding Java object with the same contents.
-        :raises TypeError: if the argument is not one of the aforementioned types.
+        :param obj:
+            The Python object to convert.
+        :param hints:
+            An optional dictionary of hints, to help scyjava
+            make decisions about how to do the conversion.
+        :return: A corresponding Java object with the same contents.
+        :raise TypeError: if the argument is not one of the aforementioned types.
 
     to_python(data: Any, gentle: bool = False) -> Any
         Recursively convert a Java object to a Python object.
@@ -472,12 +486,15 @@ FUNCTIONS
         * Iterable -> collections.abc.Iterable
         * Iterator -> collections.abc.Iterator
 
-        :param data: The Java object to convert.
-        :param gentle: If set, and the type cannot be converted, leaves
-                       the data alone rather than raising a TypeError.
-        :returns: A corresponding Python object with the same contents.
-        :raises TypeError: if the argument is not one of the aforementioned types,
-                           and the gentle flag is not set.
+        :param data:
+            The Java object to convert.
+        :param gentle:
+            If set, and the type cannot be converted, leaves
+            the data alone rather than raising a TypeError.
+        :return: A corresponding Python object with the same contents.
+        :raise TypeError:
+            if the argument is not one of the aforementioned types,
+            and the gentle flag is not set.
 
     when_jvm_starts(f) -> None
         Registers a function to be called when the JVM starts (or immediately).

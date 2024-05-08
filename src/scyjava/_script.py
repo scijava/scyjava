@@ -47,9 +47,8 @@ def enable_python_scripting(context):
             self._writer().write(s)
 
         def _writer(self):
-            return self._thread_to_context.get(
-                threading.currentThread(), self._std_default
-            )
+            ctx = self._thread_to_context.get(threading.currentThread())
+            return self._std_default if ctx is None else ctx.getWriter()
 
     stdoutContextWriter = ScriptContextWriter(sys.stdout)
 

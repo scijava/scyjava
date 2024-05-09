@@ -1,6 +1,7 @@
 """
 Utility functions for working with and reasoning about Java types.
 """
+
 from typing import Any, Callable, Sequence, Tuple, Union
 
 import jpype

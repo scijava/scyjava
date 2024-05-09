@@ -66,6 +66,7 @@ Convert Python collections to Java:
     >>> jset.toString()
     '[1, 2, 3]'
 """
+
 import logging
 from functools import lru_cache
 from typing import Any, Callable, Dict

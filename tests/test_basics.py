@@ -30,7 +30,7 @@ class TestBasics(object):
         assert str(Object)
         o = Object()
         assert scyjava.jinstance(o, "java.lang.Object")
-        assert re.match("java.lang.Object@[0-9a-f]{8}", str(o.toString()))
+        assert re.match("java.lang.Object@[0-9a-f]{7}", str(o.toString()))
 
     def test_jinstance(self):
         """

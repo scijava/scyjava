@@ -28,6 +28,7 @@ dependencies:
   - numpy
   - pandas
   # Developer tools
+  - assertpy
   - autopep8
   - black
   - build

@@ -39,6 +39,7 @@ dependencies = [
 [project.optional-dependencies]
 # NB: Keep this in sync with dev-environment.yml!
 dev = [
+    "assertpy",
     "autopep8",
     "black",
     "build",

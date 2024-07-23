@@ -1,7 +1,9 @@
 """
 Test scyjava JVM memory-related functions.
 """
+
 import math
+
 from assertpy import assert_that
 
 import scyjava
@@ -25,11 +27,17 @@ mb_max = scyjava.memory_max() // 1024 // 1024
 mb_total = scyjava.memory_total() // 1024 // 1024
 mb_used = scyjava.memory_used() // 1024 // 1024
 
-assert_that(mb_used, 'Used memory should be less than the current memory total').is_less_than_or_equal_to(mb_total)
-assert_that(mb_total, 'current memory total should be less than maximum memory').is_less_than_or_equal_to(mb_max)
-assert_that(mb_max, 'maximum heap size should be approx. 1 GB').is_between(900, 1024)
+assert_that(
+    mb_used, "Used memory should be less than the current memory total"
+).is_less_than_or_equal_to(mb_total)
+assert_that(
+    mb_total, "current memory total should be less than maximum memory"
+).is_less_than_or_equal_to(mb_max)
+assert_that(mb_max, "maximum heap size should be approx. 1 GB").is_between(900, 1024)
 
 tolerance = pow(10, magnitude(mb_initial))
 
-assert_that(mb_used, 'most memory should be available').is_less_than(tolerance)
-assert_that(mb_total, 'total memory should be close to initial').is_close_to(mb_initial, tolerance=tolerance)
+assert_that(mb_used, "most memory should be available").is_less_than(tolerance)
+assert_that(mb_total, "total memory should be close to initial").is_close_to(
+    mb_initial, tolerance=tolerance
+)

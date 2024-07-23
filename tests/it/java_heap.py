@@ -2,18 +2,12 @@
 Test scyjava JVM memory-related functions.
 """
 
-import math
-
 from assertpy import assert_that
 
 import scyjava
 
-
-def magnitude(x: int) -> int:
-    return math.floor(math.log10(abs(x)))
-
-
 mb_initial = 50  # initial MB of memory to snarf up
+mb_tolerance = 10  # ceiling of expected MB in use
 
 scyjava.config.set_heap_min(mb=mb_initial)
 scyjava.config.set_heap_max(gb=1)
@@ -35,9 +29,7 @@ assert_that(
 ).is_less_than_or_equal_to(mb_max)
 assert_that(mb_max, "maximum heap size should be approx. 1 GB").is_between(900, 1024)
 
-tolerance = pow(10, magnitude(mb_initial))
-
-assert_that(mb_used, "most memory should be available").is_less_than(tolerance)
+assert_that(mb_used, "most memory should be available").is_less_than(mb_tolerance)
 assert_that(mb_total, "total memory should be close to initial").is_close_to(
-    mb_initial, tolerance=tolerance
+    mb_initial, tolerance=mb_tolerance
 )

@@ -29,19 +29,13 @@ dependencies:
   - pandas
   # Developer tools
   - assertpy
-  - autopep8
-  - black
   - build
-  - flake8
-  - isort
   - pytest
   - pytest-cov
+  - ruff
   - toml
   # Project from source
   - pip
   - pip:
     - git+https://github.com/ninia/jep.git@cfca63f8b3398daa6d2685428660dc4b2bfab67d
-    - flake8-pyproject
-    - flake8-typing-imports
-    - validate-pyproject[all]
     - -e .

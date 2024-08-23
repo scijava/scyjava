@@ -1,29 +1,8 @@
-repos:
-  # First, autoflake the code to avoid issues that could be solved quickly
-  - repo: https://github.com/myint/autoflake
-    rev: v1.4
-    hooks:
-      - id: autoflake
-        args: ["--in-place", "--remove-all-unused-imports"]
-  # Then, flake
-  - repo: https://github.com/PyCQA/flake8
-    rev: 4.0.1
-    hooks:
-      - id: flake8
-        additional_dependencies:
-          - "flake8-typing-imports"
-          - "Flake8-pyproject"
-  # Next, sort imports
-  - repo: https://github.com/PyCQA/isort
-    rev: 5.10.1
-    hooks:
-      - id: isort
-  # Finally, lint
-  - repo: https://github.com/psf/black
-    rev: 22.3.0
-    hooks:
-      - id: black
-  - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.10.1
-    hooks:
-      - id: validate-pyproject
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  # ruff version
+  rev: v0.6.2
+  hooks:
+    # run the linter
+    - id: ruff
+    # run the formatter
+    - id: ruff-format

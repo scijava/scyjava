@@ -47,7 +47,8 @@ dev = [
     "numpy",
     "pandas",
     "ruff",
-    "toml"
+    "toml",
+    "validate-pyproject[all]"
 ]
 
 [project.urls]

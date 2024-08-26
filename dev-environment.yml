@@ -33,6 +33,7 @@ dependencies:
   - python-build
   - ruff
   - toml
+  - validate-pyproject
   # Project from source
   - pip
   - pip:

@@ -66,7 +66,7 @@ include-package-data = false
 where = ["src"]
 namespaces = false
 
-# Thanks to Flake8-pyproject, we can configure flake8 here!
+# ruff configuration
 [tool.ruff]
 line-length = 88
 src = ["src", "tests"]

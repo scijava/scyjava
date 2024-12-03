@@ -21,7 +21,7 @@ channels:
 dependencies:
   - python >= 3.8
   # Project dependencies
-  - jpype1 >= 1.3.0
+  - jpype1 >= 1.3.0, <= 1.5.0
   - jgo
   - openjdk >= 8
   # Project from source

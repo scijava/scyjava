@@ -98,6 +98,7 @@ def jvm_version() -> str:
     except subprocess.CalledProcessError as e:
         raise RuntimeError("System call to java failed") from e
 
+    output = output.replace('\n', ' ').replace('\r', '')
     m = re.match('.*version "(([0-9]+\\.)+[0-9]+)', output)
     if not m:
         raise RuntimeError(f"Inscrutable java command output:\n{output}")

@@ -91,7 +91,8 @@ def enable_python_scripting(context):
                         # Last statement looks like an expression. Evaluate!
                         last = ast.Expression(block.body.pop().value)
 
-                    _globals = {}
+                    _globals = {name: module for name, module in sys.modules.items() if name != '__main__'}
+
                     exec(
                         compile(block, "<string>", mode="exec"), _globals, script_locals
                     )

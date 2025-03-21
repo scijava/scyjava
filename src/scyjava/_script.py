@@ -110,9 +110,15 @@ def enable_python_scripting(context):
                             script_locals,
                         )
                 except Exception:
+                    error_message = traceback.format_exc()
                     error_writer = arg.scriptContext.getErrorWriter()
-                    if error_writer is not None:
-                        error_writer.write(to_java(traceback.format_exc()))
+                    if error_writer is None:
+                        # Emit error message to stderr stream.
+                        error_writer = sys.stderr
+                    else:
+                        # Emit error message to designated error writer.
+                        error_message = to_java(error_message)
+                    error_writer.write(error_message)
 
             stdoutContextWriter.removeScriptContext(threading.currentThread())
 
@@ -122,9 +128,6 @@ def enable_python_scripting(context):
                     arg.vars[key] = to_java(script_locals[key])
                 except Exception:
                     arg.vars[key] = PythonObjectSupplier(script_locals[key])
-                    # error_writer = arg.scriptContext.getErrorWriter()
-                    # if error_writer is not None:
-                    #    error_writer.write(to_java(traceback.format_exc()))
 
             return to_java(return_value)
 

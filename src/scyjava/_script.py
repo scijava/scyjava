@@ -90,11 +90,16 @@ def enable_python_scripting(context):
                     ):
                         # Last statement looks like an expression. Evaluate!
                         last = ast.Expression(block.body.pop().value)
-                    # See here for why this implementation: https://docs.python.org/3/library/functions.html#exec
-                    # When `exec` gets two separate objects as *globals* and *locals*, the code will be executed as if it were embedded in a class definition. 
-                    # This means functions and classes defined in the executed code will not be able to access variables assigned at the top level 
-                    # (as the “top level” variables are treated as class variables in a class definition).
+
+                    # NB: When `exec` gets two separate objects as *globals* and
+                    # *locals*, the code will be executed as if it were embedded in
+                    # a class definition. This means functions and classes defined
+                    # in the executed code will not be able to access variables
+                    # assigned at the top level, because the "top level" variables
+                    # are treated as class variables in a class definition.
+                    # See: https://docs.python.org/3/library/functions.html#exec
                     _globals = script_locals
+
                     exec(
                         compile(block, "<string>", mode="exec"), _globals, script_locals
                     )

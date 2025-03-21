@@ -33,10 +33,9 @@ script = """
 #@ int age
 #@output String cbrt_age
 import numpy as np
-import math
 
 def calculate_cbrt(age):
-    return round(math.cbrt(age))
+    return round(age ** (1. / 3))
 
 cbrt_age = calculate_cbrt(age)
 # cbrt_age = round(math.cbrt(age))

@@ -9,6 +9,8 @@ import sys
 
 import scyjava
 
+from assertpy import assert_that
+
 scyjava.config.endpoints.extend(
     ["org.scijava:scijava-common:2.94.2", "org.scijava:scripting-python:MANAGED"]
 )
@@ -26,7 +28,8 @@ scyjava.enable_python_scripting(ctx)
 # Assert that the Python script language is available.
 ss = ctx.service("org.scijava.script.ScriptService")
 lang = ss.getLanguageByName("Python")
-assert lang is not None and "Python" in lang.getNames()
+assert_that(lang).is_not_none()
+assert_that(lang.getNames()).contains("Python")
 
 # Construct a script.
 script = """
@@ -55,5 +58,7 @@ except Exception as e:
         sys.stderr.write(f"{trace}\n")
     raise e
 
-assert statement == "Hello, Chuckles! In one year you will be 14 years old."
-assert return_value == "A wild return value appears!"
+assert_that(statement).is_equal_to(
+    "Hello, Chuckles! In one year you will be 14 years old."
+)
+assert_that(return_value).is_equal_to("A wild return value appears!")

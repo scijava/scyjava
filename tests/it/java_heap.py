@@ -2,9 +2,9 @@
 Test scyjava JVM memory-related functions.
 """
 
-from assertpy import assert_that
-
 import scyjava
+
+from assertpy import assert_that
 
 mb_initial = 50  # initial MB of memory to snarf up
 mb_tolerance = 10  # ceiling of expected MB in use
@@ -12,10 +12,11 @@ mb_tolerance = 10  # ceiling of expected MB in use
 scyjava.config.set_heap_min(mb=mb_initial)
 scyjava.config.set_heap_max(gb=1)
 
-assert not scyjava.jvm_started()
+assert_that(scyjava.jvm_started()).is_false()
+
 scyjava.start_jvm()
 
-assert scyjava.available_processors() >= 1
+assert_that(scyjava.available_processors()).is_greater_than_or_equal_to(1)
 
 mb_max = scyjava.memory_max() // 1024 // 1024
 mb_total = scyjava.memory_total() // 1024 // 1024

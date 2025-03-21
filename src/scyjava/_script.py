@@ -90,20 +90,18 @@ def enable_python_scripting(context):
                     ):
                         # Last statement looks like an expression. Evaluate!
                         last = ast.Expression(block.body.pop().value)
-
-                    # _globals = {name: module for name, module in sys.modules.items() if name != '__main__'}
-                    # _globals = {__builtins__: builtins, '__name__': '__main__','__file__': '<string>', '__package__': None,}
-                    # _globals.update(globals())
-                    # _globals = None
-                    # _globals = locals()
-                    script_globals = script_locals
+                    # See here for why this implementation: https://docs.python.org/3/library/functions.html#exec
+                    # When `exec` gets two separate objects as *globals* and *locals*, the code will be executed as if it were embedded in a class definition. 
+                    # This means functions and classes defined in the executed code will not be able to access variables assigned at the top level 
+                    # (as the “top level” variables are treated as class variables in a class definition).
+                    _globals = script_locals
                     exec(
-                        compile(block, "<string>", mode="exec"), script_globals, script_locals
+                        compile(block, "<string>", mode="exec"), _globals, script_locals
                     )
                     if last is not None:
                         return_value = eval(
                             compile(last, "<string>", mode="eval"),
-                            script_globals,
+                            _globals,
                             script_locals,
                         )
                 except Exception:

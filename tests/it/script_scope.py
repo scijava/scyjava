@@ -35,10 +35,11 @@ script = """
 import numpy as np
 
 def calculate_cbrt(age):
-    return round(age ** (1. / 3))
+    # check whether defined function can import module from global namespace
+    if round(age ** (1. / 3)) == round(np.cbrt(age)):
+        return round(age ** (1. /3))
 
 cbrt_age = calculate_cbrt(age)
-# cbrt_age = round(math.cbrt(age))
 f"The rounded cube root of my age is {cbrt_age}"
 """
 StringReader = scyjava.jimport("java.io.StringReader")

@@ -1,0 +1,62 @@
+"""
+Test the enable_python_scripting function, but here explictly testing import scope for declared functions.
+"""
+
+import sys
+
+import scyjava
+
+scyjava.config.endpoints.extend(
+    ["org.scijava:scijava-common:2.94.2", "org.scijava:scripting-python:MANAGED"]
+)
+
+# Create minimal SciJava context with a ScriptService.
+Context = scyjava.jimport("org.scijava.Context")
+ScriptService = scyjava.jimport("org.scijava.script.ScriptService")
+# HACK: Avoid "[ERROR] Cannot create plugin" spam.
+WidgetService = scyjava.jimport("org.scijava.widget.WidgetService")
+ctx = Context(ScriptService, WidgetService)
+
+# Enable the Python script language.
+scyjava.enable_python_scripting(ctx)
+
+# Assert that the Python script language is available.
+ss = ctx.service("org.scijava.script.ScriptService")
+lang = ss.getLanguageByName("Python")
+assert lang is not None and "Python" in lang.getNames()
+
+# Construct a script.
+script = """
+#@ int age
+#@output String cbrt_age
+import numpy as np
+import math
+
+def calculate_cbrt(age):
+    return round(math.cbrt(age))
+
+cbrt_age = calculate_cbrt(age)
+# cbrt_age = round(math.cbrt(age))
+f"The rounded cube root of my age is {cbrt_age}"
+"""
+StringReader = scyjava.jimport("java.io.StringReader")
+ScriptInfo = scyjava.jimport("org.scijava.script.ScriptInfo")
+info = ScriptInfo(ctx, "script.py", StringReader(script))
+info.setLanguage(lang)
+
+# Run the script.
+future = ss.run(info, True, "age", 13)
+try:
+    module = future.get()
+    outputs = module.getOutputs()
+    statement = outputs["cbrt_age"]
+    return_value = module.getReturnValue()
+except Exception as e:
+    sys.stderr.write("-- SCRIPT EXECUTION FAILED --\n")
+    trace = scyjava.jstacktrace(e)
+    if trace:
+        sys.stderr.write(f"{trace}\n")
+    raise e
+
+assert statement == "2"
+assert return_value == "The rounded cube root of my age is 2"

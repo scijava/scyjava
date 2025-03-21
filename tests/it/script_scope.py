@@ -29,6 +29,7 @@ assert lang is not None and "Python" in lang.getNames()
 script = """
 #@ int age
 #@output String cbrt_age
+import numpy as np
 import math
 
 def calculate_cbrt(age):
@@ -57,5 +58,5 @@ except Exception as e:
         sys.stderr.write(f"{trace}\n")
     raise e
 
-assert return_value == "The rounded cube root of my age is 2"
 assert statement == "2"
+assert return_value == "The rounded cube root of my age is 2"

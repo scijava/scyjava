@@ -275,6 +275,9 @@ def jarray(kind, lengths: Sequence):
         # instantiate the n-dimensional array
         arr = arraytype(lengths[0])
 
+    else:
+        raise RuntimeError(f"Invalid mode: {mode}")
+
     if len(lengths) > 1:
         for i in range(len(arr)):
             arr[i] = jarray(kind, lengths[1:])

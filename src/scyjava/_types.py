@@ -324,6 +324,55 @@ def numeric_bounds(
     return None, None
 
 
+def methods(data) -> list[dict[str, Any]]:
+    """
+    Use Java reflection to introspect the given Java object,
+    returning a table of its available methods.
+
+    :param data: The object or class to inspect.
+    :return: List of table rows with columns "name", "arguments", and "returns".
+    """
+
+    if not isjava(data):
+        raise ValueError("Not a Java object")
+
+    cls = data if jinstance(data, "java.lang.Class") else jclass(data)
+
+    methods = cls.getMethods()
+
+    # NB: Methods are returned in inconsistent order.
+    # Arrays.sort(methods, (m1, m2) -> {
+    #    final int nameComp = m1.getName().compareTo(m2.getName())
+    #    if (nameComp != 0) return nameComp
+    #    final int pCount1 = m1.getParameterCount()
+    #    final int pCount2 = m2.getParameterCount()
+    #    if (pCount1 != pCount2) return pCount1 - pCount2
+    #    final Class<?>[] pTypes1 = m1.getParameterTypes()
+    #    final Class<?>[] pTypes2 = m2.getParameterTypes()
+    #    for (int i = 0; i < pTypes1.length; i++) {
+    #        final int typeComp = ClassUtils.compare(pTypes1[i], pTypes2[i])
+    #        if (typeComp != 0) return typeComp
+    #    }
+    #    return ClassUtils.compare(m1.getReturnType(), m2.getReturnType())
+    # })
+
+    table = []
+
+    for m in methods:
+        name = m.getName()
+        args = [c.getName() for c in m.getParameterTypes()]
+        returns = m.getReturnType().getName()
+        table.append(
+            {
+                "name": name,
+                "arguments": args,
+                "returns": returns,
+            }
+        )
+
+    return table
+
+
 def _is_jtype(the_type: type, class_name: str) -> bool:
     """
     Test if the given type object is *exactly* the specified Java type.

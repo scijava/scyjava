@@ -1,4 +1,5 @@
-from scyjava import numeric_bounds, to_java
+from scyjava import jclass, jimport, numeric_bounds, to_java
+from scyjava.config import Mode, mode
 
 
 class TestTypes(object):
@@ -30,3 +31,22 @@ class TestTypes(object):
             type(v_double)
         )
         assert (None, None) == numeric_bounds(type(v_bigdec))
+
+    def test_jclass(self):
+        if mode == Mode.JEP:
+            # JEP does not support the jclass function.
+            return
+
+        # A. Name of a class to look up -- e.g. "java.lang.String" -> String.class
+        a_cls = jclass("java.lang.String")
+        assert a_cls.getName() == "java.lang.String"
+
+        # B. A static-style class reference -- String -> String.class
+        String = jimport("java.lang.String")
+        b_cls = jclass(String)
+        assert b_cls.getName() == "java.lang.String"
+
+        # C. A Java object -- String("hello") -> "hello".getClass()
+        v_str = to_java("gubernatorial")
+        c_cls = jclass(v_str)
+        assert c_cls.getName() == "java.lang.String"

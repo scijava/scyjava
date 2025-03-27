@@ -125,6 +125,7 @@ from ._types import (
     jinstance,
     jstacktrace,
     methods,
+    find_java_methods,
     numeric_bounds,
 )
 from ._versions import compare_version, get_version, is_version_at_least

@@ -124,8 +124,11 @@ from ._types import (
     jclass,
     jinstance,
     jstacktrace,
-    methods,
     find_java_methods,
+    find_java_fields,
+    methods,
+    fields,
+    attrs,
     numeric_bounds,
 )
 from ._versions import compare_version, get_version, is_version_at_least

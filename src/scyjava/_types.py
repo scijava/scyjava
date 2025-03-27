@@ -396,9 +396,11 @@ def find_java_fields(data) -> list[dict[str, Any]]:
 
     for f in fields:
         name = f.getName()
-        table.append(name)
+        ftype = f.getType().getName()
+        table.append({"name": name, "type": ftype})
+    sorted_table = sorted(table, key=lambda d: d["name"])
 
-    return table
+    return sorted_table
 
 
 def _map_syntax(base_type):
@@ -441,37 +443,16 @@ def _make_pretty_string(entry, offset):
     obj_name = f"{entry['name']}"
     modifier = f"{'*':>4}" if entry["static"] else f"{'':>4}"
 
+    # Handle fields
+    if entry["arguments"] is None:
+        return f"{return_val} = {obj_name}\n"
+
     # Handle methods with no arguments
-    if not entry["arguments"]:
+    if len(entry["arguments"]) == 0:
         return f"{return_val} {modifier} = {obj_name}()\n"
     else:
         arg_string = ", ".join([r.__str__() for r in entry["arguments"]])
         return f"{return_val} {modifier} = {obj_name}({arg_string})\n"
-
-
-# TODO
-def fields(data) -> str:
-    """
-    Writes data to a printed field names with the field value.
-    :param data: The object or class to inspect.
-    """
-    # table = find_java_fields(data)
-
-    all_fields = ""
-    ################
-    # FILL THIS IN #
-    ################
-
-    print(all_fields)
-
-
-# TODO
-def attrs(data):
-    """
-    Writes data to a printed field names with the field value. Alias for `fields(data)`.
-    :param data: The object or class to inspect.
-    """
-    fields(data)
 
 
 def get_source_code(data):
@@ -494,6 +475,36 @@ def get_source_code(data):
         return f"Illegal argument provided {err=},  {type(err)=}"
     except Exception as err:
         return f"Unexpected {err=}, {type(err)=}"
+
+
+def fields(data) -> str:
+    """
+    Writes data to a printed field names with the field value.
+    :param data: The object or class to inspect.
+    """
+    table = find_java_fields(data)
+    if len(table) == 0:
+        print("No fields found")
+        return
+
+    all_fields = ""
+    offset = max(list(map(lambda entry: len(entry["type"]), table)))
+    for entry in table:
+        entry["returns"] = _map_syntax(entry["type"])
+        entry["static"] = False
+        entry["arguments"] = None
+        entry_string = _make_pretty_string(entry, offset)
+        all_fields += entry_string
+
+    print(all_fields)
+
+
+def attrs(data):
+    """
+    Writes data to a printed field names with the field value. Alias for `fields(data)`.
+    :param data: The object or class to inspect.
+    """
+    fields(data)
 
 
 def methods(data, static: bool | None = None, source: bool = True) -> str:

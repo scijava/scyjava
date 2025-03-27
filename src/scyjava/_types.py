@@ -336,9 +336,9 @@ def find_java_methods(data) -> list[dict[str, Any]]:
     if not isjava(data):
         raise ValueError("Not a Java object")
 
-    cls = data if jinstance(data, "java.lang.Class") else jclass(data)
+    jcls = data if jinstance(data, "java.lang.Class") else jclass(data)
 
-    methods = cls.getMethods()
+    methods = jcls.getMethods()
 
     # NB: Methods are returned in inconsistent order.
     # Arrays.sort(methods, (m1, m2) -> {
@@ -389,9 +389,9 @@ def find_java_fields(data) -> list[dict[str, Any]]:
     if not isjava(data):
         raise ValueError("Not a Java object")
 
-    cls = data if jinstance(data, "java.lang.Class") else jclass(data)
+    jcls = data if jinstance(data, "java.lang.Class") else jclass(data)
 
-    fields = cls.getFields()
+    fields = jcls.getFields()
     table = []
 
     for f in fields:
@@ -474,21 +474,64 @@ def attrs(data):
     fields(data)
 
 
-def methods(data) -> str:
+def get_source_code(data):
+    """
+    Tries to find the source code using Scijava's SourceFinder'
+    :param data: The object or class to check for source code.
+    """
+    types = jimport("org.scijava.util.Types")
+    sf = jimport("org.scijava.search.SourceFinder")
+    jstring = jimport("java.lang.String")
+    try:
+        jcls = data if jinstance(data, "java.lang.Class") else jclass(data)
+        if types.location(jcls).toString().startsWith(jstring("jrt")):
+            # Handles Java RunTime (jrt) exceptions.
+            return "GitHub source code not available"
+        url = sf.sourceLocation(jcls, None)
+        urlstring = url.toString()
+        return urlstring
+    except jimport("java.lang.IllegalArgumentException") as err:
+        return f"Illegal argument provided {err=},  {type(err)=}"
+    except Exception as err:
+        return f"Unexpected {err=}, {type(err)=}"
+
+
+def methods(data, static: bool | None = None, source: bool = True) -> str:
     """
     Writes data to a printed string of class methods with inputs, static modifier, arguments, and return values.
 
     :param data: The object or class to inspect.
+    :param static: Which methods to print. Can be set as boolean to filter the class methods based on
+    static vs. instance methods. Optional, default is None (prints all methods).
+    :param source: Whether to print any available source code. Default True.
     """
     table = find_java_methods(data)
 
+    # Print source code
     offset = max(list(map(lambda entry: len(entry["returns"]), table)))
     all_methods = ""
+    if source:
+        urlstring = get_source_code(data)
+        print(f"URL: {urlstring}")
+    else:
+        pass
+
+    # Print methods
     for entry in table:
         entry["returns"] = _map_syntax(entry["returns"])
         entry["arguments"] = [_map_syntax(e) for e in entry["arguments"]]
-        entry_string = _make_pretty_string(entry, offset)
-        all_methods += entry_string
+        if static is None:
+            entry_string = _make_pretty_string(entry, offset)
+            all_methods += entry_string
+
+        elif static and entry["static"]:
+            entry_string = _make_pretty_string(entry, offset)
+            all_methods += entry_string
+        elif not static and not entry["static"]:
+            entry_string = _make_pretty_string(entry, offset)
+            all_methods += entry_string
+        else:
+            continue
 
     # 4 added to align the asterisk with output.
     print(f"{'':<{offset + 4}}* indicates a static method")

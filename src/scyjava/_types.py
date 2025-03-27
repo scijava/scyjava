@@ -436,10 +436,10 @@ def _make_pretty_string(entry, offset):
     """
 
     # A star implies that the method is a static method
-    return_val = f'{entry["returns"].__str__():<{offset}}'
+    return_val = f"{entry['returns'].__str__():<{offset}}"
     # Handle whether to print static/instance modifiers
-    obj_name = f'{entry["name"]}'
-    modifier = f'{"*":>4}' if entry["static"] else f'{"":>4}'
+    obj_name = f"{entry['name']}"
+    modifier = f"{'*':>4}" if entry["static"] else f"{'':>4}"
 
     # Handle methods with no arguments
     if not entry["arguments"]:
@@ -455,7 +455,7 @@ def fields(data) -> str:
     Writes data to a printed field names with the field value.
     :param data: The object or class to inspect.
     """
-    table = find_java_fields(data)
+    # table = find_java_fields(data)
 
     all_fields = ""
     ################
@@ -482,7 +482,7 @@ def methods(data) -> str:
     """
     table = find_java_methods(data)
 
-    offset = max(list(map(lambda l: len(l["returns"]), table)))
+    offset = max(list(map(lambda entry: len(entry["returns"]), table)))
     all_methods = ""
     for entry in table:
         entry["returns"] = _map_syntax(entry["returns"])
@@ -491,7 +491,7 @@ def methods(data) -> str:
         all_methods += entry_string
 
     # 4 added to align the asterisk with output.
-    print(f'{"":<{offset+4}}* indicates a static method')
+    print(f"{'':<{offset + 4}}* indicates a static method")
     print(all_methods)
 
 

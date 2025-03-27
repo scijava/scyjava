@@ -330,7 +330,7 @@ def find_java_methods(data) -> list[dict[str, Any]]:
     returning a table of its available methods.
 
     :param data: The object or class to inspect.
-    :return: List of table rows with columns "name", "arguments", and "returns".
+    :return: List of table rows with columns "name", "static", "arguments", and "returns".
     """
 
     if not isjava(data):
@@ -357,14 +357,17 @@ def find_java_methods(data) -> list[dict[str, Any]]:
     # })
 
     table = []
+    Modifier = jimport("java.lang.reflect.Modifier")
 
     for m in methods:
         name = m.getName()
         args = [c.getName() for c in m.getParameterTypes()]
+        mods = Modifier.isStatic(m.getModifiers())
         returns = m.getReturnType().getName()
         table.append(
             {
                 "name": name,
+                "static": mods,
                 "arguments": args,
                 "returns": returns,
             }
@@ -374,7 +377,31 @@ def find_java_methods(data) -> list[dict[str, Any]]:
     return sorted_table
 
 
-def map_syntax(base_type):
+# TODO
+def find_java_fields(data) -> list[dict[str, Any]]:
+    """
+    Use Java reflection to introspect the given Java object,
+    returning a table of its available fields.
+
+    :param data: The object or class to inspect.
+    :return: List of table rows with columns "name", "arguments", and "returns".
+    """
+    if not isjava(data):
+        raise ValueError("Not a Java object")
+
+    cls = data if jinstance(data, "java.lang.Class") else jclass(data)
+
+    fields = cls.getFields()
+    table = []
+
+    for f in fields:
+        name = f.getName()
+        table.append(name)
+
+    return table
+
+
+def _map_syntax(base_type):
     """
     Maps a java BaseType annotation (see link below) in an Java array
     to a specific type with an Python interpretable syntax.
@@ -385,7 +412,7 @@ def map_syntax(base_type):
         "[C": "char[]",
         "[D": "double[]",
         "[F": "float[]",
-        "[C": "int[]",
+        "[I": "int[]",
         "[J": "long[]",
         "[L": "[]",  # array
         "[S": "short[]",
@@ -394,33 +421,77 @@ def map_syntax(base_type):
 
     if base_type in basetype_mapping:
         return basetype_mapping[base_type]
+    # Handle the case of a returned array of an object
     elif base_type.__str__().startswith("[L"):
         return base_type.__str__()[2:-1] + "[]"
     else:
         return base_type
 
 
+def _make_pretty_string(entry, offset):
+    """
+    Prints the entry with a specific formatting and aligned style
+    :param entry: Dictionary of class names, modifiers, arguments, and return values.
+    :param offset: Offset between the return value and the method.
+    """
+
+    # A star implies that the method is a static method
+    return_val = f'{entry["returns"].__str__():<{offset}}'
+    # Handle whether to print static/instance modifiers
+    obj_name = f'{entry["name"]}'
+    modifier = f'{"*":>4}' if entry["static"] else f'{"":>4}'
+
+    # Handle methods with no arguments
+    if not entry["arguments"]:
+        return f"{return_val} {modifier} = {obj_name}()\n"
+    else:
+        arg_string = ", ".join([r.__str__() for r in entry["arguments"]])
+        return f"{return_val} {modifier} = {obj_name}({arg_string})\n"
+
+
+# TODO
+def fields(data) -> str:
+    """
+    Writes data to a printed field names with the field value.
+    :param data: The object or class to inspect.
+    """
+    table = find_java_fields(data)
+
+    all_fields = ""
+    ################
+    # FILL THIS IN #
+    ################
+
+    print(all_fields)
+
+
+# TODO
+def attrs(data):
+    """
+    Writes data to a printed field names with the field value. Alias for `fields(data)`.
+    :param data: The object or class to inspect.
+    """
+    fields(data)
+
+
 def methods(data) -> str:
+    """
+    Writes data to a printed string of class methods with inputs, static modifier, arguments, and return values.
+
+    :param data: The object or class to inspect.
+    """
     table = find_java_methods(data)
 
     offset = max(list(map(lambda l: len(l["returns"]), table)))
     all_methods = ""
-
     for entry in table:
-        entry["returns"] = map_syntax(entry["returns"])
-        entry["arguments"] = [map_syntax(e) for e in entry["arguments"]]
+        entry["returns"] = _map_syntax(entry["returns"])
+        entry["arguments"] = [_map_syntax(e) for e in entry["arguments"]]
+        entry_string = _make_pretty_string(entry, offset)
+        all_methods += entry_string
 
-        if not entry["arguments"]:
-            all_methods = (
-                all_methods
-                + f'{entry["returns"].__str__():<{offset}} = {entry["name"]}()\n'
-            )
-        else:
-            arg_string = ", ".join([r.__str__() for r in entry["arguments"]])
-            all_methods = (
-                all_methods
-                + f'{entry["returns"].__str__():<{offset}} = {entry["name"]}({arg_string})\n'
-            )
+    # 4 added to align the asterisk with output.
+    print(f'{"":<{offset+4}}* indicates a static method')
     print(all_methods)
 
 

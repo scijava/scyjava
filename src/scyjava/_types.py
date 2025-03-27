@@ -324,7 +324,7 @@ def numeric_bounds(
     return None, None
 
 
-def methods(data) -> list[dict[str, Any]]:
+def find_java_methods(data) -> list[dict[str, Any]]:
     """
     Use Java reflection to introspect the given Java object,
     returning a table of its available methods.
@@ -369,8 +369,59 @@ def methods(data) -> list[dict[str, Any]]:
                 "returns": returns,
             }
         )
+    sorted_table = sorted(table, key=lambda d: d["name"])
 
-    return table
+    return sorted_table
+
+
+def map_syntax(base_type):
+    """
+    Maps a java BaseType annotation (see link below) in an Java array
+    to a specific type with an Python interpretable syntax.
+    https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.3
+    """
+    basetype_mapping = {
+        "[B": "byte[]",
+        "[C": "char[]",
+        "[D": "double[]",
+        "[F": "float[]",
+        "[C": "int[]",
+        "[J": "long[]",
+        "[L": "[]",  # array
+        "[S": "short[]",
+        "[Z": "boolean[]",
+    }
+
+    if base_type in basetype_mapping:
+        return basetype_mapping[base_type]
+    elif base_type.__str__().startswith("[L"):
+        return base_type.__str__()[2:-1] + "[]"
+    else:
+        return base_type
+
+
+def methods(data) -> str:
+    table = find_java_methods(data)
+
+    offset = max(list(map(lambda l: len(l["returns"]), table)))
+    all_methods = ""
+
+    for entry in table:
+        entry["returns"] = map_syntax(entry["returns"])
+        entry["arguments"] = [map_syntax(e) for e in entry["arguments"]]
+
+        if not entry["arguments"]:
+            all_methods = (
+                all_methods
+                + f'{entry["returns"].__str__():<{offset}} = {entry["name"]}()\n'
+            )
+        else:
+            arg_string = ", ".join([r.__str__() for r in entry["arguments"]])
+            all_methods = (
+                all_methods
+                + f'{entry["returns"].__str__():<{offset}} = {entry["name"]}({arg_string})\n'
+            )
+    print(all_methods)
 
 
 def _is_jtype(the_type: type, class_name: str) -> bool:

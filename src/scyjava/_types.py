@@ -5,6 +5,7 @@ Utility functions for working with and reasoning about Java types.
 from typing import Any, Callable, Sequence, Tuple, Union
 
 import jpype
+from functools import partial
 
 from scyjava._jvm import jimport, jvm_started, start_jvm
 from scyjava.config import Mode, mode
@@ -324,46 +325,43 @@ def numeric_bounds(
     return None, None
 
 
-def find_java_methods(data) -> list[dict[str, Any]]:
+def find_java(data, aspect: str) -> list[dict[str, Any]]:
     """
     Use Java reflection to introspect the given Java object,
     returning a table of its available methods.
 
-    :param data: The object or class to inspect.
-    :return: List of table rows with columns "name", "static", "arguments", and "returns".
+    :param data: The object or class or fully qualified class name to inspect.
+    :param aspect: Either 'methods' or 'fields'
+    :return: List of dicts with keys: "name", "static", "arguments", and "returns".
     """
 
-    if not isjava(data):
-        raise ValueError("Not a Java object")
+    if not isjava(data) and isinstance(data, str):
+        try:
+            data = jimport(data)
+        except:
+            raise ValueError("Not a Java object")
 
+    Modifier = jimport("java.lang.reflect.Modifier")
     jcls = data if jinstance(data, "java.lang.Class") else jclass(data)
 
-    methods = jcls.getMethods()
-
-    # NB: Methods are returned in inconsistent order.
-    # Arrays.sort(methods, (m1, m2) -> {
-    #    final int nameComp = m1.getName().compareTo(m2.getName())
-    #    if (nameComp != 0) return nameComp
-    #    final int pCount1 = m1.getParameterCount()
-    #    final int pCount2 = m2.getParameterCount()
-    #    if (pCount1 != pCount2) return pCount1 - pCount2
-    #    final Class<?>[] pTypes1 = m1.getParameterTypes()
-    #    final Class<?>[] pTypes2 = m2.getParameterTypes()
-    #    for (int i = 0; i < pTypes1.length; i++) {
-    #        final int typeComp = ClassUtils.compare(pTypes1[i], pTypes2[i])
-    #        if (typeComp != 0) return typeComp
-    #    }
-    #    return ClassUtils.compare(m1.getReturnType(), m2.getReturnType())
-    # })
+    if aspect == "methods":
+        cls_aspects = jcls.getMethods()
+    elif aspect == "fields":
+        cls_aspects = jcls.getFields()
+    else:
+        return "`aspect` must be either 'fields' or 'methods'"
 
     table = []
-    Modifier = jimport("java.lang.reflect.Modifier")
 
-    for m in methods:
+    for m in cls_aspects:
         name = m.getName()
-        args = [c.getName() for c in m.getParameterTypes()]
+        if aspect == "methods":
+            args = [c.getName() for c in m.getParameterTypes()]
+            returns = m.getReturnType().getName()
+        elif aspect == "fields":
+            args = None
+            returns = m.getType().getName()
         mods = Modifier.isStatic(m.getModifiers())
-        returns = m.getReturnType().getName()
         table.append(
             {
                 "name": name,
@@ -372,32 +370,6 @@ def find_java_methods(data) -> list[dict[str, Any]]:
                 "returns": returns,
             }
         )
-    sorted_table = sorted(table, key=lambda d: d["name"])
-
-    return sorted_table
-
-
-# TODO
-def find_java_fields(data) -> list[dict[str, Any]]:
-    """
-    Use Java reflection to introspect the given Java object,
-    returning a table of its available fields.
-
-    :param data: The object or class to inspect.
-    :return: List of table rows with columns "name", "arguments", and "returns".
-    """
-    if not isjava(data):
-        raise ValueError("Not a Java object")
-
-    jcls = data if jinstance(data, "java.lang.Class") else jclass(data)
-
-    fields = jcls.getFields()
-    table = []
-
-    for f in fields:
-        name = f.getName()
-        ftype = f.getType().getName()
-        table.append({"name": name, "type": ftype})
     sorted_table = sorted(table, key=lambda d: d["name"])
 
     return sorted_table
@@ -445,7 +417,7 @@ def _make_pretty_string(entry, offset):
 
     # Handle fields
     if entry["arguments"] is None:
-        return f"{return_val} = {obj_name}\n"
+        return f"{return_val} {modifier} = {obj_name}\n"
 
     # Handle methods with no arguments
     if len(entry["arguments"]) == 0:
@@ -455,82 +427,65 @@ def _make_pretty_string(entry, offset):
         return f"{return_val} {modifier} = {obj_name}({arg_string})\n"
 
 
-def get_source_code(data):
+def java_source(data):
     """
     Tries to find the source code using Scijava's SourceFinder'
-    :param data: The object or class to check for source code.
+    :param data: The object or class or fully qualified class name to check for source code.
+    :return: The URL of the java class
     """
     types = jimport("org.scijava.util.Types")
     sf = jimport("org.scijava.search.SourceFinder")
     jstring = jimport("java.lang.String")
     try:
+        if not isjava(data) and isinstance(data, str):
+            try:
+                data = jimport(data)  # check if data can be imported
+            except:
+                raise ValueError("Not a Java object")
         jcls = data if jinstance(data, "java.lang.Class") else jclass(data)
         if types.location(jcls).toString().startsWith(jstring("jrt")):
             # Handles Java RunTime (jrt) exceptions.
-            return "GitHub source code not available"
+            raise ValueError("Java Builtin: GitHub source code not available")
         url = sf.sourceLocation(jcls, None)
         urlstring = url.toString()
         return urlstring
     except jimport("java.lang.IllegalArgumentException") as err:
         return f"Illegal argument provided {err=},  {type(err)=}"
+    except ValueError as err:
+        return f"{err}"
+    except TypeError:
+        return f"Not a Java class {str(type(data))}"
     except Exception as err:
         return f"Unexpected {err=}, {type(err)=}"
 
 
-def fields(data) -> str:
-    """
-    Writes data to a printed field names with the field value.
-    :param data: The object or class to inspect.
-    """
-    table = find_java_fields(data)
-    if len(table) == 0:
-        print("No fields found")
-        return
-
-    all_fields = ""
-    offset = max(list(map(lambda entry: len(entry["type"]), table)))
-    for entry in table:
-        entry["returns"] = _map_syntax(entry["type"])
-        entry["static"] = False
-        entry["arguments"] = None
-        entry_string = _make_pretty_string(entry, offset)
-        all_fields += entry_string
-
-    print(all_fields)
-
-
-def attrs(data):
-    """
-    Writes data to a printed field names with the field value. Alias for `fields(data)`.
-    :param data: The object or class to inspect.
-    """
-    fields(data)
-
-
-def methods(data, static: bool | None = None, source: bool = True) -> str:
+def _print_data(data, aspect, static: bool | None = None, source: bool = True):
     """
     Writes data to a printed string of class methods with inputs, static modifier, arguments, and return values.
 
     :param data: The object or class to inspect.
-    :param static: Which methods to print. Can be set as boolean to filter the class methods based on
-    static vs. instance methods. Optional, default is None (prints all methods).
+    :param aspect: Whether to print class fields or methods.
+    :param static: Filter on Static/Instance. Can be set as boolean to filter the class methods based on
+    static vs. instance methods. Optional, default is None (prints all).
     :param source: Whether to print any available source code. Default True.
     """
-    table = find_java_methods(data)
+    table = find_java(data, aspect)
+    if len(table) == 0:
+        print(f"No {aspect} found")
+        return
 
     # Print source code
     offset = max(list(map(lambda entry: len(entry["returns"]), table)))
     all_methods = ""
     if source:
-        urlstring = get_source_code(data)
-        print(f"URL: {urlstring}")
-    else:
-        pass
+        urlstring = java_source(data)
+        print(f"Source code URL: {urlstring}")
 
     # Print methods
     for entry in table:
         entry["returns"] = _map_syntax(entry["returns"])
-        entry["arguments"] = [_map_syntax(e) for e in entry["arguments"]]
+        if entry["arguments"]:
+            entry["arguments"] = [_map_syntax(e) for e in entry["arguments"]]
         if static is None:
             entry_string = _make_pretty_string(entry, offset)
             all_methods += entry_string
@@ -545,8 +500,23 @@ def methods(data, static: bool | None = None, source: bool = True) -> str:
             continue
 
     # 4 added to align the asterisk with output.
-    print(f"{'':<{offset + 4}}* indicates a static method")
+    print(f"{'':<{offset + 4}}* indicates static modifier")
     print(all_methods)
+
+
+methods = partial(_print_data, aspect="methods")
+fields = partial(_print_data, aspect="fields")
+attrs = partial(_print_data, aspect="fields")
+
+
+def src(data):
+    """
+    Prints the source code URL for a Java class, object, or class name.
+
+    :param data: The Java class, object, or fully qualified class name as string
+    """
+    source_url = java_source(data)
+    print(f"Source code URL: {source_url}")
 
 
 def _is_jtype(the_type: type, class_name: str) -> bool:

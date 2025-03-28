@@ -124,6 +124,9 @@ from ._types import (
     jclass,
     jinstance,
     jstacktrace,
+    numeric_bounds,
+)
+from ._introspection import (
     find_java,
     java_source,
     methods,
@@ -131,7 +134,6 @@ from ._types import (
     attrs,
     src,
     java_source,
-    numeric_bounds,
 )
 from ._versions import compare_version, get_version, is_version_at_least
 

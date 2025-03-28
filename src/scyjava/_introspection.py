@@ -22,8 +22,8 @@ def find_java(data, aspect: str) -> list[dict[str, Any]]:
     if not isjava(data) and isinstance(data, str):
         try:
             data = jimport(data)
-        except:
-            raise ValueError("Not a Java object")
+        except Exception as err:
+            raise ValueError(f"Not a Java object {err}")
 
     Modifier = jimport("java.lang.reflect.Modifier")
     jcls = data if jinstance(data, "java.lang.Class") else jclass(data)
@@ -124,8 +124,8 @@ def java_source(data):
         if not isjava(data) and isinstance(data, str):
             try:
                 data = jimport(data)  # check if data can be imported
-            except:
-                raise ValueError("Not a Java object")
+            except Exception as err:
+                raise ValueError(f"Not a Java object {err}")
         jcls = data if jinstance(data, "java.lang.Class") else jclass(data)
         if types.location(jcls).toString().startsWith(jstring("jrt")):
             # Handles Java RunTime (jrt) exceptions.

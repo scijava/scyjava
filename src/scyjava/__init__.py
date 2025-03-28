@@ -133,7 +133,6 @@ from ._introspection import (
     fields,
     attrs,
     src,
-    java_source,
 )
 from ._versions import compare_version, get_version, is_version_at_least
 

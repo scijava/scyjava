@@ -1,5 +1,5 @@
 """
-Introspection functions for reporting java classes and URL
+Introspection functions for reporting java class 'methods', 'fields', and source code URL.
 """
 
 from functools import partial
@@ -61,7 +61,7 @@ def find_java(data, aspect: str) -> list[dict[str, Any]]:
 
 def _map_syntax(base_type):
     """
-    Maps a java BaseType annotation (see link below) in an Java array
+    Maps a Java BaseType annotation (see link below) in an Java array
     to a specific type with an Python interpretable syntax.
     https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.3
     """
@@ -113,7 +113,7 @@ def _make_pretty_string(entry, offset):
 
 def java_source(data):
     """
-    Tries to find the source code using Scijava's SourceFinder'
+    Tries to find the source code using Scijava's SourceFinder
     :param data: The object or class or fully qualified class name to check for source code.
     :return: The URL of the java class
     """
@@ -147,10 +147,9 @@ def _print_data(data, aspect, static: bool | None = None, source: bool = True):
     """
     Writes data to a printed string of class methods with inputs, static modifier, arguments, and return values.
 
-    :param data: The object or class to inspect.
-    :param aspect: Whether to print class fields or methods.
-    :param static: Filter on Static/Instance. Can be set as boolean to filter the class methods based on
-    static vs. instance methods. Optional, default is None (prints all).
+    :param data: The object or class to inspect or fully qualified class name.
+    :param aspect: Whether to print class 'fields' or 'methods'.
+    :param static: Boolean filter on Static or Instance methods. Optional, default is None (prints all).
     :param source: Whether to print any available source code. Default True.
     """
     table = find_java(data, aspect)
@@ -188,6 +187,7 @@ def _print_data(data, aspect, static: bool | None = None, source: bool = True):
     print(all_methods)
 
 
+# The functions with short names for quick usage.
 methods = partial(_print_data, aspect="methods")
 fields = partial(_print_data, aspect="fields")
 attrs = partial(_print_data, aspect="fields")

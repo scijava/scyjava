@@ -1,9 +1,7 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
-Created on Fri Mar 28 13:58:54 2025
+Tests for introspection of java classes (fields and methods), as well as the GitHub source code URLs. Created on Fri Mar 28 13:58:54 2025
 
-@author: ian
+@author: ian-coccimiglio
 """
 
 import scyjava

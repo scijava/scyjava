@@ -3,13 +3,13 @@ Introspection functions for reporting java class 'methods', 'fields', and source
 """
 
 from functools import partial
-from typing import Any
+from typing import Any, Dict, List, Optional
 
 from scyjava._jvm import jimport
 from scyjava._types import isjava, jinstance, jclass
 
 
-def find_java(data, aspect: str) -> list[dict[str, Any]]:
+def find_java(data, aspect: str) -> List[Dict[str, Any]]:
     """
     Use Java reflection to introspect the given Java object,
     returning a table of its available methods.
@@ -143,7 +143,7 @@ def java_source(data):
         return f"Unexpected {err=}, {type(err)=}"
 
 
-def _print_data(data, aspect, static: bool | None = None, source: bool = True):
+def _print_data(data, aspect, static: Optional[bool] = None, source: bool = True):
     """
     Writes data to a printed string of class methods with inputs, static modifier, arguments, and return values.
 

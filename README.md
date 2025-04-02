@@ -216,6 +216,22 @@ FUNCTIONS
     is_jarray(data: Any) -> bool
         Return whether the given data object is a Java array.
 
+    is_jboolean(the_type: type) -> bool
+
+    is_jbyte(the_type: type) -> bool
+
+    is_jcharacter(the_type: type) -> bool
+
+    is_jdouble(the_type: type) -> bool
+
+    is_jfloat(the_type: type) -> bool
+
+    is_jinteger(the_type: type) -> bool
+
+    is_jlong(the_type: type) -> bool
+
+    is_jshort(the_type: type) -> bool
+
     is_jvm_headless() -> bool
         Return true iff Java is running in headless mode.
 

@@ -91,7 +91,7 @@ from ._convert import (
     to_java,
     to_python,
 )
-from ._introspection import (
+from ._introspect import (
     attrs,
     fields,
     find_java,

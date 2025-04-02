@@ -61,7 +61,7 @@ def jreflect(data, aspect: str) -> List[Dict[str, Any]]:
 
 def _map_syntax(base_type):
     """
-    Maps a Java BaseType annotation (see link below) in an Java array
+    Map a Java BaseType annotation (see link below) in an Java array
     to a specific type with an Python interpretable syntax.
     https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html#jvms-4.3
     """
@@ -88,7 +88,7 @@ def _map_syntax(base_type):
 
 def _make_pretty_string(entry, offset):
     """
-    Prints the entry with a specific formatting and aligned style
+    Print the entry with a specific formatting and aligned style.
     :param entry: Dictionary of class names, modifiers, arguments, and return values.
     :param offset: Offset between the return value and the method.
     """
@@ -113,7 +113,7 @@ def _make_pretty_string(entry, offset):
 
 def java_source(data):
     """
-    Tries to find the source code using Scijava's SourceFinder
+    Try to find the source code using SciJava's SourceFinder.
     :param data: The object or class or fully qualified class name to check for source code.
     :return: The URL of the java class
     """
@@ -145,7 +145,8 @@ def java_source(data):
 
 def _print_data(data, aspect, static: Optional[bool] = None, source: bool = True):
     """
-    Writes data to a printed string of class methods with inputs, static modifier, arguments, and return values.
+    Write data to a printed string of class methods with inputs, static modifier,
+    arguments, and return values.
 
     :param data: The object or class to inspect or fully qualified class name.
     :param aspect: Whether to print class 'fields' or 'methods'.
@@ -195,7 +196,7 @@ attrs = partial(_print_data, aspect="fields")
 
 def src(data):
     """
-    Prints the source code URL for a Java class, object, or class name.
+    Print the source code URL for a Java class, object, or class name.
 
     :param data: The Java class, object, or fully qualified class name as string
     """

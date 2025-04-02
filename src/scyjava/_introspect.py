@@ -9,10 +9,10 @@ from scyjava._jvm import jimport
 from scyjava._types import isjava, jinstance, jclass
 
 
-def find_java(data, aspect: str) -> List[Dict[str, Any]]:
+def jreflect(data, aspect: str) -> List[Dict[str, Any]]:
     """
     Use Java reflection to introspect the given Java object,
-    returning a table of its available methods.
+    returning a table of its available methods or fields.
 
     :param data: The object or class or fully qualified class name to inspect.
     :param aspect: Either 'methods' or 'fields'
@@ -152,7 +152,7 @@ def _print_data(data, aspect, static: Optional[bool] = None, source: bool = True
     :param static: Boolean filter on Static or Instance methods. Optional, default is None (prints all).
     :param source: Whether to print any available source code. Default True.
     """
-    table = find_java(data, aspect)
+    table = jreflect(data, aspect)
     if len(table) == 0:
         print(f"No {aspect} found")
         return

@@ -17,27 +17,27 @@ class TestIntrospection(object):
     Test introspection functionality.
     """
 
-    def test_find_java_methods(self):
+    def test_jreflect_methods(self):
         if mode == Mode.JEP:
             # JEP does not support the jclass function.
             return
         str_String = "java.lang.String"
         String = scyjava.jimport(str_String)
-        str_Obj = scyjava.find_java(str_String, "methods")
-        jimport_Obj = scyjava.find_java(String, "methods")
+        str_Obj = scyjava.jreflect(str_String, "methods")
+        jimport_Obj = scyjava.jreflect(String, "methods")
         assert len(str_Obj) > 0
         assert len(jimport_Obj) > 0
         assert jimport_Obj is not None
         assert jimport_Obj == str_Obj
 
-    def test_find_java_fields(self):
+    def test_jreflect_fields(self):
         if mode == Mode.JEP:
             # JEP does not support the jclass function.
             return
         str_BitSet = "java.util.BitSet"
         BitSet = scyjava.jimport(str_BitSet)
-        str_Obj = scyjava.find_java(str_BitSet, "fields")
-        bitset_Obj = scyjava.find_java(BitSet, "fields")
+        str_Obj = scyjava.jreflect(str_BitSet, "fields")
+        bitset_Obj = scyjava.jreflect(BitSet, "fields")
         assert len(str_Obj) == 0
         assert len(bitset_Obj) == 0
         assert bitset_Obj is not None
@@ -61,7 +61,7 @@ class TestIntrospection(object):
             # JEP does not support the jclass function.
             return
         str_RE = "ij.plugin.RoiEnlarger"
-        table = scyjava.find_java(str_RE, aspect="methods")
+        table = scyjava.jreflect(str_RE, aspect="methods")
         assert len([entry for entry in table if entry["static"]]) == 3
         github_home = "https://github.com/"
         assert scyjava.java_source(str_RE).startsWith(github_home)

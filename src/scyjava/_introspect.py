@@ -1,5 +1,6 @@
 """
-Introspection functions for reporting java class 'methods', 'fields', and source code URL.
+Introspection functions for reporting Java
+class methods, fields, and source code URL.
 """
 
 from functools import partial
@@ -15,7 +16,7 @@ def jreflect(data, aspect: str) -> List[Dict[str, Any]]:
     returning a table of its available methods or fields.
 
     :param data: The object or class or fully qualified class name to inspect.
-    :param aspect: Either 'methods' or 'fields'
+    :param aspect: Either "methods" or "fields"
     :return: List of dicts with keys: "name", "static", "arguments", and "returns".
     """
 
@@ -33,7 +34,7 @@ def jreflect(data, aspect: str) -> List[Dict[str, Any]]:
     elif aspect == "fields":
         cls_aspects = jcls.getFields()
     else:
-        return "`aspect` must be either 'fields' or 'methods'"
+        return '`aspect` must be either "fields" or "methods"'
 
     table = []
 
@@ -114,7 +115,8 @@ def _make_pretty_string(entry, offset):
 def java_source(data):
     """
     Try to find the source code using SciJava's SourceFinder.
-    :param data: The object or class or fully qualified class name to check for source code.
+    :param data:
+        The object or class or fully qualified class name to check for source code.
     :return: The URL of the java class
     """
     types = jimport("org.scijava.util.Types")
@@ -149,8 +151,10 @@ def _print_data(data, aspect, static: Optional[bool] = None, source: bool = True
     arguments, and return values.
 
     :param data: The object or class to inspect or fully qualified class name.
-    :param aspect: Whether to print class 'fields' or 'methods'.
-    :param static: Boolean filter on Static or Instance methods. Optional, default is None (prints all).
+    :param aspect: Whether to print class "fields" or "methods".
+    :param static:
+        Boolean filter on Static or Instance methods.
+        Optional, default is None (prints all).
     :param source: Whether to print any available source code. Default True.
     """
     table = jreflect(data, aspect)

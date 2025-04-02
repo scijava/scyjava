@@ -1,3 +1,7 @@
+"""
+Tests for array-related functions in _types submodule.
+"""
+
 import numpy as np
 
 from scyjava import is_jarray, jarray, to_python

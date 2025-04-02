@@ -1,3 +1,7 @@
+"""
+Tests for functions in _versions submodule.
+"""
+
 from pathlib import Path
 
 import toml

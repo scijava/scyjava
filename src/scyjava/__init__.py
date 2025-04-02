@@ -91,6 +91,14 @@ from ._convert import (
     to_java,
     to_python,
 )
+from ._introspection import (
+    attrs,
+    fields,
+    find_java,
+    java_source,
+    methods,
+    src,
+)
 from ._jvm import (  # noqa: F401
     available_processors,
     gc,
@@ -125,14 +133,6 @@ from ._types import (
     jinstance,
     jstacktrace,
     numeric_bounds,
-)
-from ._introspection import (
-    find_java,
-    java_source,
-    methods,
-    fields,
-    attrs,
-    src,
 )
 from ._versions import compare_version, get_version, is_version_at_least
 

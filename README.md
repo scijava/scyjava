@@ -283,6 +283,12 @@ FUNCTIONS
         You can pass a single integer to make a 1-dimensional array of that length.
         :return: The newly allocated array
 
+    java_source(data)
+        Try to find the source code using SciJava's SourceFinder.
+        :param data:
+            The object or class or fully qualified class name to check for source code.
+        :return: The URL of the java class
+
     jclass(data)
         Obtain a Java class object.
 
@@ -318,6 +324,14 @@ FUNCTIONS
         :param obj: The object to check.
         :param jtype: The Java type, as either a jimported class or as a string.
         :return: True iff the object is an instance of that Java type.
+
+    jreflect(data, aspect: str) -> List[Dict[str, Any]]
+        Use Java reflection to introspect the given Java object,
+        returning a table of its available methods or fields.
+
+        :param data: The object or class or fully qualified class name to inspect.
+        :param aspect: Either "methods" or "fields"
+        :return: List of dicts with keys: "name", "static", "arguments", and "returns".
 
     jstacktrace(exc) -> str
         Extract the Java-side stack trace from a Java exception.
@@ -426,6 +440,11 @@ FUNCTIONS
         nothing! In particular, shutdown hooks are skipped in this situation.
 
         :raise RuntimeError: if this method is called while in Jep mode.
+
+    src(data)
+        Print the source code URL for a Java class, object, or class name.
+
+        :param data: The Java class, object, or fully qualified class name as string
 
     start_jvm(options=None) -> None
         Explicitly connect to the Java virtual machine (JVM). Only one JVM can

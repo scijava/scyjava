@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import logging
 import os
+import shutil
+import subprocess
 from typing import TYPE_CHECKING
+
+import jpype
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -12,6 +16,34 @@ _DEFAULT_MAVEN_URL = "tgz+https://dlcdn.apache.org/maven/maven-3/3.9.9/binaries/
 _DEFAULT_MAVEN_SHA = "a555254d6b53d267965a3404ecb14e53c3827c09c3b94b5678835887ab404556bfaf78dcfe03ba76fa2508649dca8531c74bca4d5846513522404d48e8c4ac8b"  # noqa: E501
 _DEFAULT_JAVA_VENDOR = "zulu-jre"
 _DEFAULT_JAVA_VERSION = "11"
+
+
+def ensure_jvm_available(raise_on_error: bool = True) -> None:
+    """Ensure that the JVM is available, or raise if `raise_on_error` is True."""
+    if not is_jvm_available():
+        cjdk_fetch_java(raise_on_error=raise_on_error)
+    if not shutil.which("mvn"):
+        cjdk_fetch_maven(raise_on_error=raise_on_error)
+
+
+def is_jvm_available() -> bool:
+    """Return True if the JVM is available, suppressing stderr on macos."""
+    from unittest.mock import patch
+
+    subprocess_check_output = subprocess.check_output
+
+    def _silent_check_output(*args, **kwargs):
+        # also suppress stderr on calls to subprocess.check_output
+        kwargs.setdefault("stderr", subprocess.DEVNULL)
+        return subprocess_check_output(*args, **kwargs)
+
+    try:
+        with patch.object(subprocess, "check_output", new=_silent_check_output):
+            jpype.getDefaultJVMPath()
+    # on Darwin, may raise a CalledProcessError when invoking `/user/libexec/java_home`
+    except (jpype.JVMNotFoundException, subprocess.CalledProcessError):
+        return False
+    return True
 
 
 def cjdk_fetch_java(
@@ -25,7 +57,7 @@ def cjdk_fetch_java(
             raise ImportError(
                 "No JVM found. Please install `cjdk` to use the fetch_java feature."
             ) from e
-        _logger.info("cjdk is not installed. Skipping automatic fetching of java.")
+        _logger.info("JVM not found. Please install `cjdk` fetch java automatically.")
         return
 
     if not vendor:
@@ -47,7 +79,9 @@ def cjdk_fetch_maven(url: str = "", sha: str = "", raise_on_error: bool = True) 
             raise ImportError(
                 "Please install `cjdk` to use the fetch_java feature."
             ) from e
-        _logger.info("cjdk is not installed. Skipping automatic fetching of Maven.")
+        _logger.info(
+            "Maven not found. Please install `cjdk` fetch maven automatically."
+        )
         return
 
     # if url was passed as an argument, or env_var, use it with provided sha

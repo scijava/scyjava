@@ -12,7 +12,7 @@ on:
 
 jobs:
   build-cross-platform:
-    name: test ${{matrix.os}} - ${{matrix.python-version}}
+    name: test ${{matrix.os}} - ${{matrix.python-version}} - ${{matrix.java-version}}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -32,7 +32,6 @@ jobs:
           - os: ubuntu-latest
             python-version: '3.12'
             java-version: ''
-
 
     steps:
     - uses: actions/checkout@v2

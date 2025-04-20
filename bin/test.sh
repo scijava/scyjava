@@ -73,7 +73,12 @@ then
 else
   argString=""
 fi
-if [ "$(uname -s)" = "Darwin" ]
+if ! java -version 2>&1 | grep -q '^openjdk version "\(1\.8\|9\|10\|11\|12\|13\|14\|15\|16\)\.'
+then
+  echo "Skipping jep tests due to unsupported Java version:"
+  java -version || true
+  jepCode=0
+elif [ "$(uname -s)" = "Darwin" ]
 then
   echo "Skipping jep tests on macOS due to flakiness"
   jepCode=0

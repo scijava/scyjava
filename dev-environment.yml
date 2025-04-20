@@ -37,5 +37,6 @@ dependencies:
   # Project from source
   - pip
   - pip:
+    - cjdk
     - git+https://github.com/ninia/jep.git@cfca63f8b3398daa6d2685428660dc4b2bfab67d
     - -e .

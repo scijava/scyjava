@@ -39,7 +39,9 @@ dependencies = [
 
 [project.optional-dependencies]
 # NB: Keep this in sync with dev-environment.yml!
+cjdk = ["cjdk"]
 dev = [
+    "scyjava[cjdk]",
     "assertpy",
     "build",
     "jep",

@@ -6,6 +6,7 @@ import atexit
 import logging
 import os
 import re
+import shutil
 import subprocess
 import sys
 from functools import lru_cache
@@ -16,6 +17,7 @@ import jpype
 import jpype.config
 from jgo import jgo
 
+from scyjava._cjdk_fetch import cjdk_fetch_java, cjdk_fetch_maven
 import scyjava.config
 from scyjava.config import Mode, mode
 
@@ -106,7 +108,7 @@ def jvm_version() -> str:
     return tuple(map(int, m.group(1).split(".")))
 
 
-def start_jvm(options=None) -> None:
+def start_jvm(options=None, *, fetch_java: bool | None = None) -> None:
     """
     Explicitly connect to the Java virtual machine (JVM). Only one JVM can
     be active; does nothing if the JVM has already been started. Calling
@@ -117,6 +119,13 @@ def start_jvm(options=None) -> None:
     :param options:
         List of options to pass to the JVM.
         For example: ['-Dfoo=bar', '-XX:+UnlockExperimentalVMOptions']
+    :param fetch_java:
+        Whether to automatically fetch a JRE (and/or maven) using
+        [`cjdk`](https://github.com/cachedjdk/cjdk) if java and maven executables are
+        not found. Requires `cjdk` to be installed. See README for details.
+            - If `None` (default), then fetching will only occur if `cjdk` is available.
+            - If `True`, an exception will be raised if `cjdk` is not available.
+            - If `False`, no attempt to import `cjdk` is be made.
     """
     # if JVM is already running -- break
     if jvm_started():
@@ -132,8 +141,14 @@ def start_jvm(options=None) -> None:
     # use the logger to notify user that endpoints are being added
     _logger.debug("Adding jars from endpoints {0}".format(endpoints))
 
+    if fetch_java is not False and not is_jvm_available():
+        cjdk_fetch_java(raise_on_error=fetch_java is True)
+
     # get endpoints and add to JPype class path
     if len(endpoints) > 0:
+        if not shutil.which("mvn") and fetch_java is not False:
+            cjdk_fetch_maven(raise_on_error=fetch_java is True)
+
         endpoints = endpoints[:1] + sorted(endpoints[1:])
         _logger.debug("Using endpoints %s", endpoints)
         _, workspace = jgo.resolve_dependencies(
@@ -338,6 +353,28 @@ def is_jvm_headless() -> bool:
 
     GraphicsEnvironment = scyjava.jimport("java.awt.GraphicsEnvironment")
     return bool(GraphicsEnvironment.isHeadless())
+
+
+def is_jvm_available() -> bool:
+    """
+    Return True if the JVM is available, suppressing stderr on macos.
+    """
+    from unittest.mock import patch
+
+    subprocess_check_output = subprocess.check_output
+
+    def _silent_check_output(*args, **kwargs):
+        # also suppress stderr on calls to subprocess.check_output
+        kwargs.setdefault("stderr", subprocess.DEVNULL)
+        return subprocess_check_output(*args, **kwargs)
+
+    try:
+        with patch.object(subprocess, "check_output", new=_silent_check_output):
+            jpype.getDefaultJVMPath()
+    # on Darwin, may raise a CalledProcessError when invoking `/user/libexec/java_home`
+    except (jpype.JVMNotFoundException, subprocess.CalledProcessError):
+        return False
+    return True
 
 
 def is_awt_initialized() -> bool:

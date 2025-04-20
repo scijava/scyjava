@@ -4,7 +4,7 @@ import logging
 import os
 import shutil
 import subprocess
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 import jpype
 
@@ -118,7 +118,7 @@ def cjdk_fetch_maven(url: str = "", sha: str = "", raise_on_error: bool = True) 
         raise RuntimeError("Failed to find Maven executable in the downloaded package.")
 
 
-def _add_to_path(path: Path | str, front: bool = False) -> None:
+def _add_to_path(path: Union[Path, str], front: bool = False) -> None:
     """Add a path to the PATH environment variable.
 
     If front is True, the path is added to the front of the PATH.

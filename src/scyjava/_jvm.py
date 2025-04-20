@@ -11,6 +11,7 @@ import sys
 from functools import lru_cache
 from importlib import import_module
 from pathlib import Path
+from typing import Optional
 
 import jpype
 import jpype.config
@@ -106,7 +107,7 @@ def jvm_version() -> str:
     return tuple(map(int, m.group(1).split(".")))
 
 
-def start_jvm(options=None, *, fetch_java: bool | None = None) -> None:
+def start_jvm(options=None, *, fetch_java: Optional[bool] = None) -> None:
     """
     Explicitly connect to the Java virtual machine (JVM). Only one JVM can
     be active; does nothing if the JVM has already been started. Calling

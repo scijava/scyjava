@@ -16,7 +16,6 @@ import jpype
 import jpype.config
 from jgo import jgo
 
-from scyjava._cjdk_fetch import ensure_jvm_available
 import scyjava.config
 from scyjava.config import Mode, mode
 
@@ -143,6 +142,8 @@ def start_jvm(options=None, *, fetch_java: bool | None = None) -> None:
     _logger.debug("Adding jars from endpoints {0}".format(endpoints))
 
     if fetch_java is not False:
+        from scyjava._cjdk_fetch import ensure_jvm_available
+
         ensure_jvm_available(raise_on_error=fetch_java is True)
 
     # get endpoints and add to JPype class path

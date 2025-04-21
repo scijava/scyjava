@@ -22,15 +22,14 @@ jobs:
           macos-latest
         ]
         python-version: [
-          '3.8',
-          '3.10',
-          '3.12'
+          '3.9',
+          '3.13'
         ]
         java-version: ['11']
         include:
           # one test without java to test cjdk fallback
           - os: ubuntu-latest
-            python-version: '3.12'
+            python-version: '3.9'
             java-version: ''
 
     steps:

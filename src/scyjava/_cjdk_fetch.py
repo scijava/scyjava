@@ -6,6 +6,7 @@ import shutil
 import subprocess
 from typing import TYPE_CHECKING, Union
 
+import cjdk
 import jpype
 
 if TYPE_CHECKING:
@@ -18,12 +19,12 @@ _DEFAULT_JAVA_VENDOR = "zulu-jre"
 _DEFAULT_JAVA_VERSION = "11"
 
 
-def ensure_jvm_available(raise_on_error: bool = True) -> None:
-    """Ensure that the JVM is available, or raise if `raise_on_error` is True."""
+def ensure_jvm_available() -> None:
+    """Ensure that the JVM is available and Maven is installed."""
     if not is_jvm_available():
-        cjdk_fetch_java(raise_on_error=raise_on_error)
+        cjdk_fetch_java()
     if not shutil.which("mvn"):
-        cjdk_fetch_maven(raise_on_error=raise_on_error)
+        cjdk_fetch_maven()
 
 
 def is_jvm_available() -> bool:
@@ -46,20 +47,8 @@ def is_jvm_available() -> bool:
     return True
 
 
-def cjdk_fetch_java(
-    vendor: str = "", version: str = "", raise_on_error: bool = True
-) -> None:
+def cjdk_fetch_java(vendor: str = "", version: str = "") -> None:
     """Fetch java using cjdk and add it to the PATH."""
-    try:
-        import cjdk
-    except ImportError as e:
-        if raise_on_error is True:
-            raise ImportError(
-                "No JVM found. Please install `cjdk` to use the fetch_java feature."
-            ) from e
-        _logger.info("JVM not found. Please install `cjdk` fetch java automatically.")
-        return
-
     if not vendor:
         vendor = os.getenv("JAVA_VENDOR", _DEFAULT_JAVA_VENDOR)
         version = os.getenv("JAVA_VERSION", _DEFAULT_JAVA_VERSION)
@@ -70,20 +59,8 @@ def cjdk_fetch_java(
     os.environ["JAVA_HOME"] = str(home)
 
 
-def cjdk_fetch_maven(url: str = "", sha: str = "", raise_on_error: bool = True) -> None:
+def cjdk_fetch_maven(url: str = "", sha: str = "") -> None:
     """Fetch Maven using cjdk and add it to the PATH."""
-    try:
-        import cjdk
-    except ImportError as e:
-        if raise_on_error is True:
-            raise ImportError(
-                "Please install `cjdk` to use the fetch_java feature."
-            ) from e
-        _logger.info(
-            "Maven not found. Please install `cjdk` fetch maven automatically."
-        )
-        return
-
     # if url was passed as an argument, or env_var, use it with provided sha
     # otherwise, use default values for both
     if url := url or os.getenv("MAVEN_URL", ""):
@@ -104,7 +81,7 @@ def cjdk_fetch_maven(url: str = "", sha: str = "", raise_on_error: bool = True) 
     kwargs = {}
     if sha_len := len(sha):  # empty sha is fine... we just don't pass it
         sha_lengths = {40: "sha1", 64: "sha256", 128: "sha512"}
-        if sha_len not in sha_lengths:
+        if sha_len not in sha_lengths:  # pragma: no cover
             raise ValueError(
                 "MAVEN_SHA be a valid sha1, sha256, or sha512 hash."
                 f"Got invalid SHA length: {sha_len}. "
@@ -114,8 +91,11 @@ def cjdk_fetch_maven(url: str = "", sha: str = "", raise_on_error: bool = True) 
     maven_dir = cjdk.cache_package("Maven", url, **kwargs)
     if maven_bin := next(maven_dir.rglob("apache-maven-*/**/mvn"), None):
         _add_to_path(maven_bin.parent, front=True)
-    else:
-        raise RuntimeError("Failed to find Maven executable in the downloaded package.")
+    else:  # pragma: no cover
+        raise RuntimeError(
+            "Failed to find Maven executable on system "
+            "PATH, and download via cjdk failed."
+        )
 
 
 def _add_to_path(path: Union[Path, str], front: bool = False) -> None:

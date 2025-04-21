@@ -12,7 +12,7 @@ on:
 
 jobs:
   build-cross-platform:
-    name: test ${{matrix.os}} - ${{matrix.python-version}}
+    name: test ${{matrix.os}} - ${{matrix.python-version}} - ${{matrix.java-version}}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -22,10 +22,15 @@ jobs:
           macos-latest
         ]
         python-version: [
-          '3.8',
-          '3.10',
-          '3.12'
+          '3.9',
+          '3.13'
         ]
+        java-version: ['11']
+        include:
+          # one test without java to test cjdk fallback
+          - os: ubuntu-latest
+            python-version: '3.9'
+            java-version: ''
 
     steps:
     - uses: actions/checkout@v2
@@ -35,8 +40,9 @@ jobs:
         python-version: ${{matrix.python-version}}
 
     - uses: actions/setup-java@v3
+      if: matrix.java-version != ''
       with:
-        java-version: '11'
+        java-version: ${{matrix.java-version}}
         distribution: 'zulu'
         cache: 'maven'
 

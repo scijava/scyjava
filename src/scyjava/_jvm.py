@@ -106,7 +106,7 @@ def jvm_version() -> str:
     return tuple(map(int, m.group(1).split(".")))
 
 
-def start_jvm(options=None) -> None:
+def start_jvm(options=None, *, fetch_java: bool = True) -> None:
     """
     Explicitly connect to the Java virtual machine (JVM). Only one JVM can
     be active; does nothing if the JVM has already been started. Calling
@@ -117,6 +117,19 @@ def start_jvm(options=None) -> None:
     :param options:
         List of options to pass to the JVM.
         For example: ['-Dfoo=bar', '-XX:+UnlockExperimentalVMOptions']
+    :param fetch_java:
+        If True (default), when a JVM/or maven cannot be located on the system,
+        [`cjdk`](https://github.com/cachedjdk/cjdk) will be used to download
+        a JRE distribution and set up the JVM. The following environment variables
+        may be used to configure the JRE and Maven distributions to download:
+        * `JAVA_VENDOR`: The vendor of the JRE distribution to download.
+          Defaults to "zulu-jre".
+        * `JAVA_VERSION`: The version of the JRE distribution to download.
+          Defaults to "11".
+        * `MAVEN_URL`: The URL of the Maven distribution to download.
+          Defaults to https://dlcdn.apache.org/maven/maven-3/3.9.9/
+        * `MAVEN_SHA`: The SHA512 hash of the Maven distribution to download, if
+          providing a custom MAVEN_URL.
     """
     # if JVM is already running -- break
     if jvm_started():
@@ -131,6 +144,11 @@ def start_jvm(options=None) -> None:
 
     # use the logger to notify user that endpoints are being added
     _logger.debug("Adding jars from endpoints {0}".format(endpoints))
+
+    if fetch_java:
+        from scyjava._cjdk_fetch import ensure_jvm_available
+
+        ensure_jvm_available()
 
     # get endpoints and add to JPype class path
     if len(endpoints) > 0:

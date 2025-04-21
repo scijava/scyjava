@@ -11,7 +11,6 @@ import sys
 from functools import lru_cache
 from importlib import import_module
 from pathlib import Path
-from typing import Optional
 
 import jpype
 import jpype.config

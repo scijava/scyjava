@@ -8,9 +8,12 @@ import subprocess
 from importlib import import_module
 from itertools import chain
 from pathlib import Path, PurePath
+import sys
 from typing import TYPE_CHECKING, Any
 from unittest.mock import patch
 from zipfile import ZipFile
+
+import jpype
 
 import scyjava
 import scyjava.config
@@ -70,11 +73,6 @@ def generate_stubs(
     """
     import jpype
 
-    # FIXME: either remove the _JImportLoader from sys.meta_path after this is done
-    # (if it wasn't there to begin with), or replace the import_module calls below
-    # with a more direct JPackage call
-    import jpype.imports
-
     startJVM = jpype.startJVM
 
     scyjava.config.endpoints.extend(endpoints)
@@ -99,7 +97,16 @@ def generate_stubs(
     logger.info(f"Generating stubs for: {prefixes}")
     logger.info(f"Writing stubs to: {output_dir}")
 
-    jmodules = [import_module(prefix) for prefix in prefixes]
+    metapath = sys.meta_path
+    try:
+        import jpype.imports
+
+        jmodules = [import_module(prefix) for prefix in prefixes]
+    finally:
+        # remove the jpype.imports magic from the import system
+        # if it wasn't there to begin with
+        sys.meta_path = metapath
+
     stubgenj.generateJavaStubs(
         jmodules,
         useStubsSuffix=False,

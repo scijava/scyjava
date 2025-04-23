@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import jpype
-import jpype.imports
 
 import scyjava
 from scyjava._stubs import _cli

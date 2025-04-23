@@ -13,7 +13,8 @@ def setup_java_imports(
     """Setup a module to dynamically import Java class names.
 
     This function creates a `__getattr__` function that, when called, will dynamically
-    import the requested class from the Java namespace corresponding to this module.
+    import the requested class from the Java namespace corresponding to the calling
+    module.
 
     :param module_name: The dotted name/identifier of the module that is calling this
         function (usually `__name__` in the calling module).

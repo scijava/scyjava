@@ -12,7 +12,7 @@
 #
 # It includes the dependencies needed for using scyjava, but not tools
 # for developer-related actions like running automated tests (pytest),
-# linting the code (black), and generating the API documentation (sphinx).
+# linting the code (ruff), and generating the API documentation (sphinx).
 # If you want an environment including these tools, use dev-environment.yml.
 
 name: scyjava
@@ -23,6 +23,7 @@ dependencies:
   # Project dependencies
   - jpype1 >= 1.3.0
   - jgo
+  - cjdk
   - openjdk >= 8
   # Project from source
   - pip

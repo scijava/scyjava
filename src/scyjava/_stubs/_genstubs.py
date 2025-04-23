@@ -69,6 +69,10 @@ def generate_stubs(
         stub generator wrote to it (and therefore inaccurate).
     """
     import jpype
+
+    # FIXME: either remove the _JImportLoader from sys.meta_path after this is done
+    # (if it wasn't there to begin with), or replace the import_module calls below
+    # with a more direct JPackage call
     import jpype.imports
 
     startJVM = jpype.startJVM

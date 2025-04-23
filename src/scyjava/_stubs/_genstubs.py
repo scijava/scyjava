@@ -15,7 +15,6 @@ from zipfile import ZipFile
 
 import scyjava
 import scyjava.config
-import stubgenj
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -69,6 +68,14 @@ def generate_stubs(
         the `__init__.pyi` for any given module will be whatever whatever the *last*
         stub generator wrote to it (and therefore inaccurate).
     """
+    try:
+        import stubgenj
+    except ImportError as e:
+        raise ImportError(
+            "stubgenj is not installed, but is required to generate java stubs. "
+            "Please install it with `pip/conda install stubgenj`."
+        ) from e
+
     import jpype
 
     startJVM = jpype.startJVM
@@ -145,9 +152,9 @@ INIT_TEMPLATE = """\
 # it creates a __getattr__ function that will dynamically import
 # the requested class from the Java namespace corresponding to this module.
 # see scyjava._stubs for implementation details.
-from scyjava._stubs import dynamic_import
+from scyjava._stubs import setup_java_imports
 
-__all__, __getattr__ = dynamic_import(
+__all__, __getattr__ = setup_java_imports(
     __name__,
     __file__,
     endpoints={endpoints},

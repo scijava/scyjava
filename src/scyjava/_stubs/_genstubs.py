@@ -116,6 +116,7 @@ def generate_stubs(
     output_dir = Path(output_dir)
     if add_runtime_imports:
         logger.info("Adding runtime imports to generated stubs")
+
     for stub in output_dir.rglob("*.pyi"):
         stub_ast = ast.parse(stub.read_text())
         members = {node.name for node in stub_ast.body if hasattr(node, "name")}
@@ -127,8 +128,13 @@ def generate_stubs(
             continue
         if add_runtime_imports:
             real_import = stub.with_suffix(".py")
-            endpoint_args = ", ".join(repr(x) for x in endpoints)
-            real_import.write_text(INIT_TEMPLATE.format(endpoints=endpoint_args))
+            base_prefix = stub.relative_to(output_dir).parts[0]
+            real_import.write_text(
+                INIT_TEMPLATE.format(
+                    endpoints=repr(endpoints),
+                    base_prefix=repr(base_prefix),
+                )
+            )
 
     ruff_check(output_dir.absolute())
 
@@ -141,7 +147,12 @@ INIT_TEMPLATE = """\
 # see scyjava._stubs for implementation details.
 from scyjava._stubs import dynamic_import
 
-__all__, __getattr__ = dynamic_import(__name__, __file__, {endpoints})
+__all__, __getattr__ = dynamic_import(
+    __name__,
+    __file__,
+    endpoints={endpoints},
+    base_prefix={base_prefix},
+)
 """
 
 

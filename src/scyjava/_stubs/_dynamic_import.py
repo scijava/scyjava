@@ -1,11 +1,14 @@
 import ast
 from logging import warning
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Sequence
 
 
 def dynamic_import(
-    module_name: str, module_file: str, *endpoints: str
+    module_name: str,
+    module_file: str,
+    endpoints: Sequence[str] = (),
+    base_prefix: str = "",
 ) -> tuple[list[str], Callable[[str], Any]]:
     import scyjava
     import scyjava.config
@@ -35,27 +38,25 @@ def dynamic_import(
         if module_all and name not in module_all:
             raise AttributeError(f"module {module_name!r} has no attribute {name!r}")
 
-        # this strip is important... and tricky, because it depends on the
-        # namespace that we intend to install the stubs into.
-        install_path = "scyjava.types."
-        if mod_name.startswith(install_path):
-            mod_name = mod_name[len(install_path) :]
+        # cut the mod_name to only the part including the base_prefix and after
+        if base_prefix in mod_name:
+            mod_name = mod_name[mod_name.index(base_prefix) :]
 
-        full_name = f"{mod_name}.{name}"
+        class_path = f"{mod_name}.{name}"
 
         class ProxyMeta(type):
             def __repr__(self) -> str:
-                return f"<scyjava class {full_name!r}>"
+                return f"<scyjava class {class_path!r}>"
 
         class Proxy(metaclass=ProxyMeta):
             def __new__(_cls_, *args: Any, **kwargs: Any) -> Any:
-                cls = scyjava.jimport(full_name)
+                cls = scyjava.jimport(class_path)
                 return cls(*args, **kwargs)
 
         Proxy.__name__ = name
         Proxy.__qualname__ = name
         Proxy.__module__ = module_name
-        Proxy.__doc__ = f"Proxy for {full_name}"
+        Proxy.__doc__ = f"Proxy for {class_path}"
         return Proxy
 
     return module_all, module_getattr

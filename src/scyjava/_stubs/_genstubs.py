@@ -13,8 +13,6 @@ from typing import TYPE_CHECKING, Any
 from unittest.mock import patch
 from zipfile import ZipFile
 
-import jpype
-
 import scyjava
 import scyjava.config
 import stubgenj

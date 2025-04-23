@@ -12,7 +12,6 @@ from typing import TYPE_CHECKING, Any
 from unittest.mock import patch
 from zipfile import ZipFile
 
-import cjdk
 import scyjava
 import scyjava.config
 import stubgenj

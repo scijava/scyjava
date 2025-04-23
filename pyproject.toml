@@ -36,6 +36,7 @@ dependencies = [
     "jpype1 >= 1.3.0",
     "jgo",
     "cjdk",
+    "stubgenj",
 ]
 
 [project.optional-dependencies]
@@ -52,6 +53,9 @@ dev = [
     "toml",
     "validate-pyproject[all]"
 ]
+
+[project.scripts]
+scyjava-stubgen = "scyjava._stubs._cli:main"
 
 [project.urls]
 homepage = "https://github.com/scijava/scyjava"

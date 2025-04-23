@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 
 
 def test_stubgen(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    # run the stubgen command as if it was run from the command line
     monkeypatch.setattr(
         sys,
         "argv",

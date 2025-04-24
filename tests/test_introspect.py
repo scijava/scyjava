@@ -51,9 +51,9 @@ class TestIntrospection(object):
         SF = scyjava.jimport(str_SF)
         source_strSF = scyjava.java_source(str_SF)
         source_SF = scyjava.java_source(SF)
-        github_home = "https://github.com/"
-        assert source_strSF.startsWith(github_home)
-        assert source_SF.startsWith(github_home)
+        repo_path = "https://github.com/scijava/scijava-search/"
+        assert source_strSF.startsWith(repo_path)
+        assert source_SF.startsWith(repo_path)
         assert source_strSF == source_SF
 
     def test_imagej_legacy(self):
@@ -63,5 +63,5 @@ class TestIntrospection(object):
         str_RE = "ij.plugin.RoiEnlarger"
         table = scyjava.jreflect(str_RE, aspect="methods")
         assert len([entry for entry in table if entry["static"]]) == 3
-        github_home = "https://github.com/"
-        assert scyjava.java_source(str_RE).startsWith(github_home)
+        repo_path = "https://github.com/imagej/ImageJ/"
+        assert scyjava.java_source(str_RE).startsWith(repo_path)

@@ -8,8 +8,9 @@ Created on Fri Mar 28 13:58:54 2025
 import scyjava
 from scyjava.config import Mode, mode
 
-scyjava.config.endpoints.append("net.imagej:imagej")
-scyjava.config.endpoints.append("net.imagej:imagej-legacy:MANAGED")
+scyjava.config.endpoints.extend(
+    ["net.imagej:imagej", "net.imagej:imagej-legacy:MANAGED"]
+)
 
 
 class TestIntrospection(object):

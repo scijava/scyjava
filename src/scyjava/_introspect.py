@@ -10,54 +10,73 @@ from scyjava._jvm import jimport
 from scyjava._types import isjava, jinstance, jclass
 
 
-def jreflect(data, aspect: str) -> List[Dict[str, Any]]:
+def jreflect(data, aspect: str = "all") -> List[Dict[str, Any]]:
     """
     Use Java reflection to introspect the given Java object,
     returning a table of its available methods or fields.
 
     :param data: The object or class or fully qualified class name to inspect.
-    :param aspect: Either "methods" or "fields"
-    :return: List of dicts with keys: "name", "static", "arguments", and "returns".
+    :param aspect: One of: "all", "constructors", "fields", or "methods".
+    :return: List of dicts with keys: "name", "mods", "arguments", and "returns".
     """
+
+    aspects = ["all", "constructors", "fields", "methods"]
+    if aspect not in aspects:
+        raise ValueError("aspect must be one of {aspects}")
 
     if not isjava(data) and isinstance(data, str):
         try:
             data = jimport(data)
-        except Exception as err:
-            raise ValueError(f"Not a Java object {err}")
+        except Exception as e:
+            raise ValueError(
+                f"Object of type '{type(data).__name__}' is not a Java object"
+            ) from e
 
-    Modifier = jimport("java.lang.reflect.Modifier")
     jcls = data if jinstance(data, "java.lang.Class") else jclass(data)
 
-    if aspect == "methods":
-        cls_aspects = jcls.getMethods()
-    elif aspect == "fields":
-        cls_aspects = jcls.getFields()
-    else:
-        return '`aspect` must be either "fields" or "methods"'
+    Modifier = jimport("java.lang.reflect.Modifier")
+    modifiers = {
+        attr[2:].lower(): getattr(Modifier, attr)
+        for attr in dir(Modifier)
+        if attr.startswith("is")
+    }
+
+    members = []
+    if aspect in ["all", "constructors"]:
+        members.extend(jcls.getConstructors())
+    if aspect in ["all", "fields"]:
+        members.extend(jcls.getFields())
+    if aspect in ["all", "methods"]:
+        members.extend(jcls.getMethods())
 
     table = []
 
-    for m in cls_aspects:
-        name = m.getName()
-        if aspect == "methods":
-            args = [c.getName() for c in m.getParameterTypes()]
-            returns = m.getReturnType().getName()
-        elif aspect == "fields":
-            args = None
-            returns = m.getType().getName()
-        mods = Modifier.isStatic(m.getModifiers())
+    for member in members:
+        mtype = str(member.getClass().getName()).split(".")[-1].lower()
+        name = member.getName()
+        modflags = member.getModifiers()
+        mods = [name for name, hasmod in modifiers.items() if hasmod(modflags)]
+        args = (
+            [ptype.getName() for ptype in member.getParameterTypes()]
+            if hasattr(member, "getParameterTypes")
+            else None
+        )
+        returns = (
+            member.getReturnType().getName()
+            if hasattr(member, "getReturnType")
+            else (member.getType().getName() if hasattr(member, "getType") else None)
+        )
         table.append(
             {
+                "type": mtype,
                 "name": name,
-                "static": mods,
+                "mods": mods,
                 "arguments": args,
                 "returns": returns,
             }
         )
-    sorted_table = sorted(table, key=lambda d: d["name"])
 
-    return sorted_table
+    return table
 
 
 def _map_syntax(base_type):
@@ -98,7 +117,7 @@ def _make_pretty_string(entry, offset):
     return_val = f"{entry['returns'].__str__():<{offset}}"
     # Handle whether to print static/instance modifiers
     obj_name = f"{entry['name']}"
-    modifier = f"{'*':>4}" if entry["static"] else f"{'':>4}"
+    modifier = f"{'*':>4}" if "static" in entry["mods"] else f"{'':>4}"
 
     # Handle fields
     if entry["arguments"] is None:

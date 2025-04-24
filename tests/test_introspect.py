@@ -63,6 +63,6 @@ class TestIntrospection(object):
             return
         str_RE = "ij.plugin.RoiEnlarger"
         table = scyjava.jreflect(str_RE, aspect="methods")
-        assert len([entry for entry in table if entry["static"]]) == 3
+        assert sum(1 for entry in table if "static" in entry["mods"]) == 3
         repo_path = "https://github.com/imagej/ImageJ/"
         assert scyjava.jsource(str_RE).startsWith(repo_path)

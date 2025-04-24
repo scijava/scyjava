@@ -135,7 +135,7 @@ AttributeError: 'list' object has no attribute 'stream'
 Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
 TypeError: No matching overloads found for java.util.Set.addAll(set), options are:
-	public abstract boolean java.util.Set.addAll(java.util.Collection)
+        public abstract boolean java.util.Set.addAll(java.util.Collection)
 >>> from scyjava import to_java as p2j
 >>> jset.addAll(p2j(pset))
 True
@@ -325,13 +325,13 @@ FUNCTIONS
         :param jtype: The Java type, as either a jimported class or as a string.
         :return: True iff the object is an instance of that Java type.
 
-    jreflect(data, aspect: str) -> List[Dict[str, Any]]
+    jreflect(data, aspect: str = "all") -> List[Dict[str, Any]]
         Use Java reflection to introspect the given Java object,
         returning a table of its available methods or fields.
 
         :param data: The object or class or fully qualified class name to inspect.
-        :param aspect: Either "methods" or "fields"
-        :return: List of dicts with keys: "name", "static", "arguments", and "returns".
+        :param aspect: One of: "all", "constructors", "fields", or "methods".
+        :return: List of dicts with keys: "name", "mods", "arguments", and "returns".
 
     jstacktrace(exc) -> str
         Extract the Java-side stack trace from a Java exception.

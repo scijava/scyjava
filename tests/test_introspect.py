@@ -44,14 +44,14 @@ class TestIntrospection(object):
         assert bitset_Obj is not None
         assert bitset_Obj == str_Obj
 
-    def test_find_source(self):
+    def test_jsource(self):
         if mode == Mode.JEP:
             # JEP does not support the jclass function.
             return
         str_SF = "org.scijava.search.SourceFinder"
         SF = scyjava.jimport(str_SF)
-        source_strSF = scyjava.java_source(str_SF)
-        source_SF = scyjava.java_source(SF)
+        source_strSF = scyjava.jsource(str_SF)
+        source_SF = scyjava.jsource(SF)
         repo_path = "https://github.com/scijava/scijava-search/"
         assert source_strSF.startsWith(repo_path)
         assert source_SF.startsWith(repo_path)
@@ -65,4 +65,4 @@ class TestIntrospection(object):
         table = scyjava.jreflect(str_RE, aspect="methods")
         assert len([entry for entry in table if entry["static"]]) == 3
         repo_path = "https://github.com/imagej/ImageJ/"
-        assert scyjava.java_source(str_RE).startsWith(repo_path)
+        assert scyjava.jsource(str_RE).startsWith(repo_path)

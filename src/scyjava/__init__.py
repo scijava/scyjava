@@ -94,8 +94,8 @@ from ._convert import (
 from ._introspect import (
     attrs,
     fields,
-    java_source,
     jreflect,
+    jsource,
     methods,
     src,
 )

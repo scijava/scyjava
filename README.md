@@ -283,7 +283,7 @@ FUNCTIONS
         You can pass a single integer to make a 1-dimensional array of that length.
         :return: The newly allocated array
 
-    java_source(data)
+    jsource(data)
         Try to find the source code using SciJava's SourceFinder.
         :param data:
             The object or class or fully qualified class name to check for source code.

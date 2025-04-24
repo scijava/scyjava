@@ -112,7 +112,7 @@ def _make_pretty_string(entry, offset):
         return f"{return_val} {modifier} = {obj_name}({arg_string})\n"
 
 
-def java_source(data):
+def jsource(data):
     """
     Try to find the source code using SciJava's SourceFinder.
     :param data:
@@ -166,7 +166,7 @@ def _print_data(data, aspect, static: Optional[bool] = None, source: bool = True
     offset = max(list(map(lambda entry: len(entry["returns"]), table)))
     all_methods = ""
     if source:
-        urlstring = java_source(data)
+        urlstring = jsource(data)
         print(f"Source code URL: {urlstring}")
 
     # Print methods
@@ -204,5 +204,5 @@ def src(data):
 
     :param data: The Java class, object, or fully qualified class name as string
     """
-    source_url = java_source(data)
+    source_url = jsource(data)
     print(f"Source code URL: {source_url}")

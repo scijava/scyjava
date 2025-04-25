@@ -226,7 +226,7 @@ def shutdown_jvm() -> None:
         try:
             callback()
         except Exception as e:
-            print(f"Exception during shutdown callback: {e}")
+            _logger.error(f"Exception during shutdown callback: {e}")
 
     # dispose AWT resources if applicable
     if is_awt_initialized():
@@ -238,7 +238,7 @@ def shutdown_jvm() -> None:
     try:
         jpype.shutdownJVM()
     except Exception as e:
-        print(f"Exception during JVM shutdown: {e}")
+        _logger.error(f"Exception during JVM shutdown: {e}")
 
 
 def jvm_started() -> bool:

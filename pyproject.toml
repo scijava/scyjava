@@ -53,8 +53,9 @@ dev = [
 scyjava-stubgen = "scyjava._stubs._cli:main"
 
 [project.entry-points.hatch]
-mypyc = "scyjava._stubs._hatchling"
-
+scyjava = "scyjava._stubs._hatchling_plugin"
+[project.entry-points."distutils.commands"]
+build_py = "scyjava_stubgen.build:build_py"
 
 [project.urls]
 homepage = "https://github.com/scijava/scyjava"

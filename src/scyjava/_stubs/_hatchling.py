@@ -30,12 +30,18 @@ class ScyjavaBuildHook(BuildHookInterface):
 
         prefixes = self.config.get("prefixes", [])
         dest = Path(self.root, "src", "scyjava", "types")
+        (dest.parent / "py.typed").touch()
 
         # actually build the stubs
-        generate_stubs(endpoints=endpoints, prefixes=prefixes, output_dir=dest)
+        generate_stubs(
+            endpoints=endpoints,
+            prefixes=prefixes,
+            output_dir=dest,
+            remove_namespace_only_stubs=True,
+        )
         print(f"Generated stubs for {endpoints} in {dest}")
         # add all new packages to the build config
-        build_data["artifacts"].append("src/scyjava/types")
+        build_data["force_include"].update({str(dest.parent): "scyjava"})
 
 
 @hookimpl

@@ -373,7 +373,7 @@ def is_awt_initialized() -> bool:
         return False
     Thread = scyjava.jimport("java.lang.Thread")
     threads = Thread.getAllStackTraces().keySet()
-    return any(t.getName().startsWith("AWT-") for t in threads)
+    return any(str(t.getName()).startswith("AWT-") for t in threads)
 
 
 def when_jvm_starts(f) -> None:

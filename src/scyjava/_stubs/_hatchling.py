@@ -1,5 +1,6 @@
 """Hatchling build hook for generating Java stubs."""
 
+import logging
 import shutil
 from pathlib import Path
 
@@ -9,6 +10,8 @@ from hatchling.plugin import hookimpl
 
 from scyjava._stubs._genstubs import generate_stubs
 
+logger = logging.getLogger("scyjava")
+
 
 class ScyjavaBuildHook(BuildHookInterface):
     """Custom build hook for generating Java stubs."""
@@ -17,20 +20,22 @@ class ScyjavaBuildHook(BuildHookInterface):
 
     def initialize(self, version: str, build_data: dict) -> None:
         """Initialize the build hook with the version and build data."""
-        breakpoint()
         if self.target_name != "wheel":
             return
-        dest = Path(self.root, "src")
-        shutil.rmtree(dest, ignore_errors=True)  # remove the old stubs
+
+        endpoints = self.config.get("maven_coordinates", [])
+        if not endpoints:
+            logger.warning("No maven coordinates provided. Skipping stub generation.")
+            return
+
+        prefixes = self.config.get("prefixes", [])
+        dest = Path(self.root, "src", "scyjava", "types")
 
         # actually build the stubs
-        coord = f"{self.config['maven_coord']}:{self.metadata.version}"
-        prefixes = self.config.get("prefixes", [])
-        generate_stubs(endpoints=[coord], prefixes=prefixes, output_dir=dest)
-
-        # add all packages to the build config
-        packages = [str(x.relative_to(self.root)) for x in dest.iterdir()]
-        self.build_config.target_config.setdefault("packages", packages)
+        generate_stubs(endpoints=endpoints, prefixes=prefixes, output_dir=dest)
+        print(f"Generated stubs for {endpoints} in {dest}")
+        # add all new packages to the build config
+        build_data["artifacts"].append("src/scyjava/types")
 
 
 @hookimpl

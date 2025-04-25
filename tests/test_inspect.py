@@ -18,7 +18,9 @@ class TestInspect(object):
         members = []
         inspect.members("java.lang.Iterable", writer=members.append)
         expected = [
-            "Source code URL: java.lang.NullPointerException",
+            "Source code URL: "
+            "https://github.com/openjdk/jdk/blob/jdk-11-ga/"
+            "src/java.base/share/classes/java/lang/Iterable.java",
             "                         * indicates static modifier",
             "java.util.Iterator         = iterator()",
             "java.util.Spliterator      = spliterator()",
@@ -26,4 +28,4 @@ class TestInspect(object):
             "",
             "",
         ]
-        assert expected == "".join(members).split("\n")
+        assert "".join(members).split("\n") == expected

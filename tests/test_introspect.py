@@ -57,6 +57,17 @@ class TestIntrospection(object):
         assert source_SF.startsWith(repo_path)
         assert source_strSF == source_SF
 
+    def test_jsource_jdk_class(self):
+        if mode == Mode.JEP:
+            # JEP does not support the jclass function.
+            return
+        jv = scyjava.jvm_version()[0]
+        source = scyjava.jsource("java.util.List")
+        assert (
+            source == f"https://github.com/openjdk/jdk/blob/jdk-{jv}-ga/"
+            "src/java.base/share/classes/java/util/List.java"
+        )
+
     def test_imagej_legacy(self):
         if mode == Mode.JEP:
             # JEP does not support the jclass function.

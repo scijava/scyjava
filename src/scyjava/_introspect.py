@@ -5,7 +5,7 @@ class methods, fields, and source code URL.
 
 from typing import Any, Dict, List
 
-from scyjava._jvm import jimport
+from scyjava._jvm import jimport, jvm_version
 from scyjava._types import isjava, jinstance, jclass
 
 
@@ -78,34 +78,49 @@ def jreflect(data, aspect: str = "all") -> List[Dict[str, Any]]:
     return table
 
 
-def jsource(data):
+def jsource(data) -> str:
     """
-    Try to find the source code using SciJava's SourceFinder.
+    Try to find the source code URL for the given Java object, class, or class name.
+    Requires org.scijava:scijava-search on the classpath.
     :param data:
-        The object or class or fully qualified class name to check for source code.
-    :return: The URL of the java class
+        Object, class, or fully qualified class name for which to discern the source code location.
+    :return: URL of the class's source code.
     """
-    Types = jimport("org.scijava.util.Types")
+
+    if not isjava(data) and isinstance(data, str):
+        try:
+            data = jimport(data)  # check if data can be imported
+        except Exception as err:
+            raise ValueError(f"Not a Java object {err}")
+    jcls = data if jinstance(data, "java.lang.Class") else jclass(data)
+
+    if jcls.getClassLoader() is None:
+        # Class is from the Java standard library.
+        cls_path = str(jcls.getName()).replace(".", "/")
+
+        # Discern the Java version.
+        java_version = jvm_version()[0]
+
+        # Note: some classes (e.g. corba and jaxp) will not be located correctly before
+        # Java 10, because they fall under a different subtree than `jdk`. But Java 11+
+        # dispenses with such subtrees in favor of using only the module designations.
+        if java_version <= 7:
+            return f"https://github.com/openjdk/jdk/blob/jdk7-b147/jdk/src/share/classes/{cls_path}.java"
+        elif java_version == 8:
+            return f"https://github.com/openjdk/jdk/blob/jdk8-b120/jdk/src/share/classes/{cls_path}.java"
+        else:  # java_version >= 9
+            module_name = jcls.getModule().getName()
+            # if module_name is null, it's in the unnamed module
+            if java_version == 9:
+                suffix = "%2B181/jdk"
+            elif java_version == 10:
+                suffix = "%2B46"
+            else:
+                suffix = "-ga"
+            return f"https://github.com/openjdk/jdk/blob/jdk-{java_version}{suffix}/src/{module_name}/share/classes/{cls_path}.java"
+
+    # Ask scijava-search for the source location.
     SourceFinder = jimport("org.scijava.search.SourceFinder")
-    String = jimport("java.lang.String")
-    try:
-        if not isjava(data) and isinstance(data, str):
-            try:
-                data = jimport(data)  # check if data can be imported
-            except Exception as err:
-                raise ValueError(f"Not a Java object {err}")
-        jcls = data if jinstance(data, "java.lang.Class") else jclass(data)
-        if Types.location(jcls).toString().startsWith(String("jrt")):
-            # Handles Java RunTime (jrt) exceptions.
-            raise ValueError("Java Builtin: GitHub source code not available")
-        url = SourceFinder.sourceLocation(jcls, None)
-        urlstring = url.toString()
-        return urlstring
-    except jimport("java.lang.IllegalArgumentException") as err:
-        return f"Illegal argument provided {err=},  {type(err)=}"
-    except ValueError as err:
-        return f"{err}"
-    except TypeError:
-        return f"Not a Java class {str(type(data))}"
-    except Exception as err:
-        return f"Unexpected {err=}, {type(err)=}"
+    url = SourceFinder.sourceLocation(jcls, None)
+    urlstring = url.toString()
+    return urlstring

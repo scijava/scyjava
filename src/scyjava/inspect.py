@@ -7,7 +7,7 @@ from sys import stdout as _stdout
 from scyjava import _introspect
 
 
-def members(data, writer=None):
+def members(data, static: bool | None = None, source: bool | None = None, writer=None):
     """
     Print all the members (constructors, fields, and methods)
     for a Java class, object, or class name.
@@ -15,30 +15,34 @@ def members(data, writer=None):
     :param data: The Java class, object, or fully qualified class name as string.
     :param writer: Function to which output will be sent, sys.stdout.write by default.
     """
-    _print_data(data, aspect="all", writer=writer)
+    _print_data(data, aspect="all", static=static, source=source, writer=writer)
 
 
-def constructors(data, writer=None):
+def constructors(
+    data, static: bool | None = None, source: bool | None = None, writer=None
+):
     """
     Print the constructors for a Java class, object, or class name.
 
     :param data: The Java class, object, or fully qualified class name as string.
     :param writer: Function to which output will be sent, sys.stdout.write by default.
     """
-    _print_data(data, aspect="constructors", writer=writer)
+    _print_data(
+        data, aspect="constructors", static=static, source=source, writer=writer
+    )
 
 
-def fields(data, writer=None):
+def fields(data, static: bool | None = None, source: bool | None = None, writer=None):
     """
     Print the fields for a Java class, object, or class name.
 
     :param data: The Java class, object, or fully qualified class name as string.
     :param writer: Function to which output will be sent, sys.stdout.write by default.
     """
-    _print_data(data, aspect="fields", writer=writer)
+    _print_data(data, aspect="fields", static=static, source=source, writer=writer)
 
 
-def methods(data, writer=None):
+def methods(data, static: bool | None = None, source: bool | None = None, writer=None):
     """
     Print the methods for a Java class, object, or class name.
 
@@ -115,7 +119,7 @@ def _pretty_string(entry, offset):
 
 
 def _print_data(
-    data, aspect, static: bool | None = None, source: bool = True, writer=None
+    data, aspect, static: bool | None = None, source: bool | None = None, writer=None
 ):
     """
     Write data to a printed table with inputs, static modifier,
@@ -125,7 +129,11 @@ def _print_data(
     :param static:
         Boolean filter on Static or Instance methods.
         Optional, default is None (prints all).
-    :param source: Whether to print any available source code. Default True.
+    :param source:
+        Whether to discern and report a URL to the relevant source code.
+        Requires org.scijava:scijava-search to be on the classpath.
+        When set to None (the default), autodetects whether scijava-search
+        is available, reporting source URL if so, or leaving it out if not.
     """
     writer = writer or _stdout.write
     table = _introspect.jreflect(data, aspect)
@@ -136,9 +144,15 @@ def _print_data(
     # Print source code
     offset = max(list(map(lambda entry: len(entry["returns"] or "void"), table)))
     all_methods = ""
-    if source:
-        urlstring = _introspect.jsource(data)
-        writer(f"Source code URL: {urlstring}\n")
+    if source or source is None:
+        try:
+            urlstring = _introspect.jsource(data)
+            writer(f"Source code URL: {urlstring}\n")
+        except TypeError:
+            if source:
+                writer(
+                    "Classpath lacks scijava-search; no source code URL detection is available.\n"
+                )
 
     # Print methods
     for entry in table:

@@ -85,9 +85,9 @@ def jsource(data):
         The object or class or fully qualified class name to check for source code.
     :return: The URL of the java class
     """
-    types = jimport("org.scijava.util.Types")
-    sf = jimport("org.scijava.search.SourceFinder")
-    jstring = jimport("java.lang.String")
+    Types = jimport("org.scijava.util.Types")
+    SourceFinder = jimport("org.scijava.search.SourceFinder")
+    String = jimport("java.lang.String")
     try:
         if not isjava(data) and isinstance(data, str):
             try:
@@ -95,10 +95,10 @@ def jsource(data):
             except Exception as err:
                 raise ValueError(f"Not a Java object {err}")
         jcls = data if jinstance(data, "java.lang.Class") else jclass(data)
-        if types.location(jcls).toString().startsWith(jstring("jrt")):
+        if Types.location(jcls).toString().startsWith(String("jrt")):
             # Handles Java RunTime (jrt) exceptions.
             raise ValueError("Java Builtin: GitHub source code not available")
-        url = sf.sourceLocation(jcls, None)
+        url = SourceFinder.sourceLocation(jcls, None)
         urlstring = url.toString()
         return urlstring
     except jimport("java.lang.IllegalArgumentException") as err:

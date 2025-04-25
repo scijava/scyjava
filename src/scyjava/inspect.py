@@ -2,9 +2,7 @@
 High-level convenience functions for inspecting Java objects.
 """
 
-from typing import Optional
-
-from scyjava._introspect import jreflect, jsource
+from scyjava import _introspect
 
 
 def members(data):
@@ -50,7 +48,7 @@ def src(data):
 
     :param data: The Java class, object, or fully qualified class name as string.
     """
-    source_url = jsource(data)
+    source_url = _introspect.jsource(data)
     print(f"Source code URL: {source_url}")
 
 
@@ -108,7 +106,7 @@ def _pretty_string(entry, offset):
         return f"{return_val} {modifier} = {obj_name}({arg_string})\n"
 
 
-def _print_data(data, aspect, static: Optional[bool] = None, source: bool = True):
+def _print_data(data, aspect, static: bool | None = None, source: bool = True):
     """
     Write data to a printed table with inputs, static modifier,
     arguments, and return values.
@@ -119,7 +117,7 @@ def _print_data(data, aspect, static: Optional[bool] = None, source: bool = True
         Optional, default is None (prints all).
     :param source: Whether to print any available source code. Default True.
     """
-    table = jreflect(data, aspect)
+    table = _introspect.jreflect(data, aspect)
     if len(table) == 0:
         print(f"No {aspect} found")
         return
@@ -128,7 +126,7 @@ def _print_data(data, aspect, static: Optional[bool] = None, source: bool = True
     offset = max(list(map(lambda entry: len(entry["returns"] or "void"), table)))
     all_methods = ""
     if source:
-        urlstring = jsource(data)
+        urlstring = _introspect.jsource(data)
         print(f"Source code URL: {urlstring}")
 
     # Print methods

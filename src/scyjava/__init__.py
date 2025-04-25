@@ -92,12 +92,8 @@ from ._convert import (
     to_python,
 )
 from ._introspect import (
-    attrs,
-    fields,
     jreflect,
     jsource,
-    methods,
-    src,
 )
 from ._jvm import (  # noqa: F401
     available_processors,

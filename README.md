@@ -441,11 +441,6 @@ FUNCTIONS
 
         :raise RuntimeError: if this method is called while in Jep mode.
 
-    src(data)
-        Print the source code URL for a Java class, object, or class name.
-
-        :param data: The Java class, object, or fully qualified class name as string
-
     start_jvm(options=None) -> None
         Explicitly connect to the Java virtual machine (JVM). Only one JVM can
         be active; does nothing if the JVM has already been started. Calling

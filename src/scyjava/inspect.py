@@ -2,54 +2,62 @@
 High-level convenience functions for inspecting Java objects.
 """
 
+from sys import stdout as _stdout
+
 from scyjava import _introspect
 
 
-def members(data):
+def members(data, writer=None):
     """
     Print all the members (constructors, fields, and methods)
     for a Java class, object, or class name.
 
     :param data: The Java class, object, or fully qualified class name as string.
+    :param writer: Function to which output will be sent, sys.stdout.write by default.
     """
-    _print_data(data, aspect="all")
+    _print_data(data, aspect="all", writer=writer)
 
 
-def constructors(data):
+def constructors(data, writer=None):
     """
     Print the constructors for a Java class, object, or class name.
 
     :param data: The Java class, object, or fully qualified class name as string.
+    :param writer: Function to which output will be sent, sys.stdout.write by default.
     """
-    _print_data(data, aspect="constructors")
+    _print_data(data, aspect="constructors", writer=writer)
 
 
-def fields(data):
+def fields(data, writer=None):
     """
     Print the fields for a Java class, object, or class name.
 
     :param data: The Java class, object, or fully qualified class name as string.
+    :param writer: Function to which output will be sent, sys.stdout.write by default.
     """
-    _print_data(data, aspect="fields")
+    _print_data(data, aspect="fields", writer=writer)
 
 
-def methods(data):
+def methods(data, writer=None):
     """
     Print the methods for a Java class, object, or class name.
 
     :param data: The Java class, object, or fully qualified class name as string.
+    :param writer: Function to which output will be sent, sys.stdout.write by default.
     """
     _print_data(data, aspect="methods")
 
 
-def src(data):
+def src(data, writer=None):
     """
     Print the source code URL for a Java class, object, or class name.
 
     :param data: The Java class, object, or fully qualified class name as string.
+    :param writer: Function to which output will be sent, sys.stdout.write by default.
     """
+    writer = writer or _stdout.write
     source_url = _introspect.jsource(data)
-    print(f"Source code URL: {source_url}")
+    writer(f"Source code URL: {source_url}\n")
 
 
 def _map_syntax(base_type):
@@ -106,7 +114,9 @@ def _pretty_string(entry, offset):
         return f"{return_val} {modifier} = {obj_name}({arg_string})\n"
 
 
-def _print_data(data, aspect, static: bool | None = None, source: bool = True):
+def _print_data(
+    data, aspect, static: bool | None = None, source: bool = True, writer=None
+):
     """
     Write data to a printed table with inputs, static modifier,
     arguments, and return values.
@@ -117,9 +127,10 @@ def _print_data(data, aspect, static: bool | None = None, source: bool = True):
         Optional, default is None (prints all).
     :param source: Whether to print any available source code. Default True.
     """
+    writer = writer or _stdout.write
     table = _introspect.jreflect(data, aspect)
     if len(table) == 0:
-        print(f"No {aspect} found")
+        writer(f"No {aspect} found\n")
         return
 
     # Print source code
@@ -127,7 +138,7 @@ def _print_data(data, aspect, static: bool | None = None, source: bool = True):
     all_methods = ""
     if source:
         urlstring = _introspect.jsource(data)
-        print(f"Source code URL: {urlstring}")
+        writer(f"Source code URL: {urlstring}\n")
 
     # Print methods
     for entry in table:
@@ -147,7 +158,8 @@ def _print_data(data, aspect, static: bool | None = None, source: bool = True):
             all_methods += entry_string
         else:
             continue
+    all_methods += "\n"
 
     # 4 added to align the asterisk with output.
-    print(f"{'':<{offset + 4}}* indicates static modifier")
-    print(all_methods)
+    writer(f"{'':<{offset + 4}}* indicates static modifier\n")
+    writer(all_methods)

@@ -71,6 +71,7 @@ import logging
 from functools import lru_cache
 from typing import Any, Callable, Dict
 
+from . import config, inspect
 from ._arrays import is_arraylike, is_memoryarraylike, is_xarraylike
 from ._convert import (
     Converter,

@@ -134,7 +134,8 @@ def start_jvm(options=None, *, fetch_java: bool = True) -> None:
     """
     # if JVM is already running -- break
     if jvm_started():
-        _logger.debug("The JVM is already running.")
+        if options is not None and len(options) > 0:
+            _logger.debug(f"Options ignored due to already running JVM: {options}")
         return
 
     assert mode == Mode.JPYPE

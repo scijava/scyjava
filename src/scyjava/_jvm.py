@@ -55,12 +55,12 @@ def jvm_version() -> tuple[int, ...]:
 
     assert mode == Mode.JPYPE
 
-    jvm_version = jpype.getJVMVersion()
-    if jvm_version and jvm_version[0]:
+    jvm_ver = jpype.getJVMVersion()
+    if jvm_ver and jvm_ver[0]:
         # JPype already knew the version.
         # JVM is probably already started.
         # Or JPype got smarter since 1.3.0.
-        return jvm_version
+        return jvm_ver
 
     # JPype was clueless, which means the JVM has probably not started yet.
     # Let's look for a java executable, and ask via 'java -version'.

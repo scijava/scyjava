@@ -198,7 +198,8 @@ def start_jvm(options=None, *, fetch_java: bool = True) -> None:
     _logger.debug("Starting JVM")
     if options is None:
         options = scyjava.config.get_options()
-    jpype.startJVM(*options, interrupt=True)
+    kwargs = scyjava.config.get_kwargs()
+    jpype.startJVM(*options, **kwargs)
 
     # replace JPype/JVM shutdown handling with our own
     jpype.config.onexit = False

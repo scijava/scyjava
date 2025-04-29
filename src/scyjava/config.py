@@ -20,6 +20,7 @@ _manage_deps = True
 _cache_dir = Path.home() / ".jgo"
 _m2_repo = Path.home() / ".m2" / "repository"
 _options = []
+_kwargs = {"interrupt": True}
 _shortcuts = {}
 
 
@@ -318,6 +319,27 @@ def get_options() -> list[str]:
     """
     global _options
     return _options
+
+
+def add_kwargs(**kwargs) -> None:
+    """
+    Add keyword arguments to be passed to JPype at JVM startup. Examples:
+
+        jvmpath = "/path/to/my_jvm"
+        ignoreUnrecognized = True
+        convertStrings = True
+        interrupt = True
+    """
+    global _kwargs
+    _kwargs.update(kwargs)
+
+
+def get_kwargs() -> dict[str, str]:
+    """
+    Get the keyword arguments to be passed to JPype at JVM startup.
+    """
+    global _kwargs
+    return _kwargs
 
 
 def add_shortcut(k: str, v: str):

@@ -117,6 +117,7 @@ def start_jvm(options=None, *, fetch_java: bool = True) -> None:
     :param options:
         List of options to pass to the JVM.
         For example: ['-Dfoo=bar', '-XX:+UnlockExperimentalVMOptions']
+        See also scyjava.config.add_options.
     :param fetch_java:
         If True (default), when a JVM/or maven cannot be located on the system,
         [`cjdk`](https://github.com/cachedjdk/cjdk) will be used to download

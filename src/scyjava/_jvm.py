@@ -25,16 +25,16 @@ _startup_callbacks = []
 _shutdown_callbacks = []
 
 
-def jvm_version() -> str:
+def jvm_version() -> tuple[int, ...]:
     """
     Gets the version of the JVM as a tuple, with each dot-separated digit
     as one element. Characters in the version string beyond only numbers
     and dots are ignored, in line with the java.version system property.
 
     Examples:
-    * OpenJDK 17.0.1 -> [17, 0, 1]
-    * OpenJDK 11.0.9.1-internal -> [11, 0, 9, 1]
-    * OpenJDK 1.8.0_312 -> [1, 8, 0]
+    * OpenJDK 17.0.1 -> (17, 0, 1)
+    * OpenJDK 11.0.9.1-internal -> (11, 0, 9, 1)
+    * OpenJDK 1.8.0_312 -> (1, 8, 0)
 
     If the JVM is already started, this function returns the equivalent of:
        jimport('java.lang.System')

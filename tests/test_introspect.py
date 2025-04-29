@@ -39,10 +39,45 @@ class TestIntrospection(object):
         BitSet = scyjava.jimport(str_BitSet)
         str_Obj = scyjava.jreflect(str_BitSet, "fields")
         bitset_Obj = scyjava.jreflect(BitSet, "fields")
-        assert len(str_Obj) == 0
-        assert len(bitset_Obj) == 0
+        assert len(str_Obj) == len(bitset_Obj) == 0
         assert bitset_Obj is not None
         assert bitset_Obj == str_Obj
+
+    def test_jreflect_ctors(self):
+        if mode == Mode.JEP:
+            # JEP does not support the jclass function.
+            return
+        str_ArrayList = "java.util.ArrayList"
+        ArrayList = scyjava.jimport(str_ArrayList)
+        str_Obj = scyjava.jreflect(str_ArrayList, "constructors")
+        arraylist_Obj = scyjava.jreflect(ArrayList, "constructors")
+        assert len(str_Obj) == len(arraylist_Obj) == 3
+        arraylist_Obj.sort(
+            key=lambda row: f"{row['type']}:{row['name']}:{','.join(str(row['arguments']))}"
+        )
+        assert arraylist_Obj == [
+            {
+                "arguments": ["int"],
+                "mods": ["public"],
+                "name": "java.util.ArrayList",
+                "returns": "java.util.ArrayList",
+                "type": "constructor",
+            },
+            {
+                "arguments": ["java.util.Collection"],
+                "mods": ["public"],
+                "name": "java.util.ArrayList",
+                "returns": "java.util.ArrayList",
+                "type": "constructor",
+            },
+            {
+                "arguments": [],
+                "mods": ["public"],
+                "name": "java.util.ArrayList",
+                "returns": "java.util.ArrayList",
+                "type": "constructor",
+            },
+        ]
 
     def test_jsource(self):
         if mode == Mode.JEP:

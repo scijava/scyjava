@@ -1,24 +1,26 @@
-import enum
-import logging
-import os
-import pathlib
+import enum as _enum
+import logging as _logging
+import os as _os
+import pathlib as _pathlib
 
-import jpype
-from jgo import maven_scijava_repository
+import jpype as _jpype
+from jgo import maven_scijava_repository as _scijava_public
 
-_logger = logging.getLogger(__name__)
+
+_logger = _logging.getLogger(__name__)
 
 endpoints = []
-_repositories = {"scijava.public": maven_scijava_repository()}
+
+_repositories = {"scijava.public": _scijava_public()}
 _verbose = 0
 _manage_deps = True
-_cache_dir = pathlib.Path.home() / ".jgo"
-_m2_repo = pathlib.Path.home() / ".m2" / "repository"
+_cache_dir = _pathlib.Path.home() / ".jgo"
+_m2_repo = _pathlib.Path.home() / ".m2" / "repository"
 _options = []
 _shortcuts = {}
 
 
-class Mode(enum.Enum):
+class Mode(_enum.Enum):
     JEP = "jep"
     JPYPE = "jpype"
 
@@ -143,7 +145,7 @@ def add_classpath(*path):
         foo.bar.Fubar.
     """
     for p in path:
-        jpype.addClassPath(p)
+        _jpype.addClassPath(p)
 
 
 def find_jars(directory):
@@ -154,16 +156,16 @@ def find_jars(directory):
     :return: a list of JAR files
     """
     jars = []
-    for root, _, files in os.walk(directory):
+    for root, _, files in _os.walk(directory):
         for f in files:
             if f.lower().endswith(".jar"):
-                path = os.path.join(root, f)
+                path = _os.path.join(root, f)
                 jars.append(path)
     return jars
 
 
 def get_classpath():
-    return jpype.getClassPath()
+    return _jpype.getClassPath()
 
 
 def set_heap_min(mb: int = None, gb: int = None):

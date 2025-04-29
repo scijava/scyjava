@@ -1,3 +1,7 @@
+"""
+Tests for functions in _pandas submodule.
+"""
+
 import numpy as np
 import numpy.testing as npt
 import pandas as pd

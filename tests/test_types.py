@@ -1,3 +1,7 @@
+"""
+Tests for functions in _types submodule.
+"""
+
 from scyjava import jclass, jimport, numeric_bounds, to_java
 from scyjava.config import Mode, mode
 

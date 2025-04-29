@@ -135,7 +135,7 @@ AttributeError: 'list' object has no attribute 'stream'
 Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
 TypeError: No matching overloads found for java.util.Set.addAll(set), options are:
-	public abstract boolean java.util.Set.addAll(java.util.Collection)
+        public abstract boolean java.util.Set.addAll(java.util.Collection)
 >>> from scyjava import to_java as p2j
 >>> jset.addAll(p2j(pset))
 True
@@ -216,6 +216,22 @@ FUNCTIONS
     is_jarray(data: Any) -> bool
         Return whether the given data object is a Java array.
 
+    is_jboolean(the_type: type) -> bool
+
+    is_jbyte(the_type: type) -> bool
+
+    is_jcharacter(the_type: type) -> bool
+
+    is_jdouble(the_type: type) -> bool
+
+    is_jfloat(the_type: type) -> bool
+
+    is_jinteger(the_type: type) -> bool
+
+    is_jlong(the_type: type) -> bool
+
+    is_jshort(the_type: type) -> bool
+
     is_jvm_headless() -> bool
         Return true iff Java is running in headless mode.
 
@@ -267,6 +283,12 @@ FUNCTIONS
         You can pass a single integer to make a 1-dimensional array of that length.
         :return: The newly allocated array
 
+    jsource(data)
+        Try to find the source code using SciJava's SourceFinder.
+        :param data:
+            The object or class or fully qualified class name to check for source code.
+        :return: The URL of the java class
+
     jclass(data)
         Obtain a Java class object.
 
@@ -302,6 +324,14 @@ FUNCTIONS
         :param obj: The object to check.
         :param jtype: The Java type, as either a jimported class or as a string.
         :return: True iff the object is an instance of that Java type.
+
+    jreflect(data, aspect: str = "all") -> List[Dict[str, Any]]
+        Use Java reflection to introspect the given Java object,
+        returning a table of its available methods or fields.
+
+        :param data: The object or class or fully qualified class name to inspect.
+        :param aspect: One of: "all", "constructors", "fields", or "methods".
+        :return: List of dicts with keys: "name", "mods", "arguments", and "returns".
 
     jstacktrace(exc) -> str
         Extract the Java-side stack trace from a Java exception.

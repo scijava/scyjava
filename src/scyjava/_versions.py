@@ -15,8 +15,8 @@ def get_version(java_class_or_python_package) -> str:
     """
     Return the version of a Java class or Python package.
 
-    For Python package, uses importlib.metadata.version if available
-    (Python 3.8+), with pkg_resources.get_distribution as a fallback.
+    For Python packages, invokes importlib.metadata.version on the given
+    object's base __module__ or __package__ (before the first dot symbol).
 
     For Java classes, requires org.scijava:scijava-common on the classpath.
 
@@ -32,8 +32,16 @@ def get_version(java_class_or_python_package) -> str:
         VersionUtils = jimport("org.scijava.util.VersionUtils")
         return str(VersionUtils.getVersion(java_class_or_python_package))
 
-    # Assume we were given a Python package name.
-    return version(java_class_or_python_package)
+    # Assume we were given a Python package name or module.
+    package_name = None
+    if hasattr(java_class_or_python_package, "__module__"):
+        package_name = java_class_or_python_package.__module__
+    elif hasattr(java_class_or_python_package, "__package__"):
+        package_name = java_class_or_python_package.__package__
+    else:
+        package_name = str(java_class_or_python_package)
+
+    return version(package_name.split(".")[0])
 
 
 def is_version_at_least(actual_version: str, minimum_version: str) -> bool:

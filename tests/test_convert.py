@@ -1,3 +1,7 @@
+"""
+Tests for functions in _convert submodule.
+"""
+
 import math
 from os import getcwd
 from pathlib import Path

@@ -71,6 +71,7 @@ import logging
 from functools import lru_cache
 from typing import Any, Callable, Dict
 
+from . import config, inspect
 from ._arrays import is_arraylike, is_memoryarraylike, is_xarraylike
 from ._convert import (
     Converter,
@@ -90,6 +91,10 @@ from ._convert import (
     py_converters,
     to_java,
     to_python,
+)
+from ._introspect import (
+    jreflect,
+    jsource,
 )
 from ._jvm import (  # noqa: F401
     available_processors,

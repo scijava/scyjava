@@ -3,7 +3,8 @@ from __future__ import annotations
 import enum as _enum
 import logging as _logging
 import os as _os
-import pathlib as _pathlib
+from pathlib import Path
+from typing import Sequence
 
 import jpype as _jpype
 from jgo import maven_scijava_repository as _scijava_public
@@ -11,13 +12,13 @@ from jgo import maven_scijava_repository as _scijava_public
 
 _logger = _logging.getLogger(__name__)
 
-endpoints = []
+endpoints: list[str] = []
 
 _repositories = {"scijava.public": _scijava_public()}
 _verbose = 0
 _manage_deps = True
-_cache_dir = _pathlib.Path.home() / ".jgo"
-_m2_repo = _pathlib.Path.home() / ".m2" / "repository"
+_cache_dir = Path.home() / ".jgo"
+_m2_repo = Path.home() / ".m2" / "repository"
 _options = []
 _shortcuts = {}
 
@@ -62,7 +63,11 @@ def get_endpoints():
     return endpoints
 
 
-def add_repositories(*args, **kwargs):
+def add_repositories(*args, **kwargs) -> None:
+    """
+    Add one or more Maven repositories to be used by jgo for downloading dependencies.
+    See the jgo documentation for details.
+    """
     global _repositories
     for arg in args:
         _logger.debug("Adding repositories %s to %s", arg, _repositories)
@@ -71,57 +76,92 @@ def add_repositories(*args, **kwargs):
     _repositories.update(kwargs)
 
 
-def get_repositories():
+def get_repositories() -> dict[str, str]:
+    """
+    Gets the Maven repositories jgo will use for downloading dependencies.
+    See the jgo documentation for details.
+    """
     global _repositories
     return _repositories
 
 
-def set_verbose(level):
+def set_verbose(level: int) -> None:
+    """
+    Set the level of verbosity for logging environment construction details.
+
+    :param level:
+        0 for quiet (default), 1 for verbose, 2 for extra verbose.
+    """
     global _verbose
     _logger.debug("Setting verbose level to %d (was %d)", level, _verbose)
     _verbose = level
 
 
-def get_verbose():
+def get_verbose() -> int:
+    """
+    Get the level of verbosity for logging environment construction details.
+    """
     global _verbose
     _logger.debug("Getting verbose level: %d", _verbose)
     return _verbose
 
 
-def set_manage_deps(manage):
+def set_manage_deps(manage: bool) -> None:
+    """
+    Set whether jgo will resolve dependencies in managed mode.
+    See the jgo documentation for details.
+    """
     global _manage_deps
     _logger.debug("Setting manage deps to %d (was %d)", manage, _manage_deps)
     _manage_deps = manage
 
 
-def get_manage_deps():
+def get_manage_deps() -> bool:
+    """
+    Get whether jgo will resolve dependencies in managed mode.
+    See the jgo documentation for details.
+    """
     global _manage_deps
     return _manage_deps
 
 
-def set_cache_dir(dir):
+def set_cache_dir(cache_dir: Path | str) -> None:
+    """
+    Set the location to use for the jgo environment cache.
+    See the jgo documentation for details.
+    """
     global _cache_dir
-    _logger.debug("Setting cache dir to %s (was %s)", dir, _cache_dir)
-    _cache_dir = dir
+    _logger.debug("Setting cache dir to %s (was %s)", cache_dir, _cache_dir)
+    _cache_dir = cache_dir
 
 
-def get_cache_dir():
+def get_cache_dir() -> Path:
+    """
+    Get the location to use for the jgo environment cache.
+    See the jgo documentation for details.
+    """
     global _cache_dir
     return _cache_dir
 
 
-def set_m2_repo(dir):
+def set_m2_repo(repo_dir : Path | str) -> None:
+    """
+    Set the location to use for the local Maven repository cache.
+    """
     global _m2_repo
-    _logger.debug("Setting m2 repo dir to %s (was %s)", dir, _m2_repo)
-    _m2_repo = dir
+    _logger.debug("Setting m2 repo dir to %s (was %s)", repo_dir, _m2_repo)
+    _m2_repo = repo_dir
 
 
-def get_m2_repo():
+def get_m2_repo() -> Path:
+    """
+    Get the location to use for the local Maven repository cache.
+    """
     global _m2_repo
     return _m2_repo
 
 
-def add_classpath(*path):
+def add_classpath(*path) -> None:
     """
     Add elements to the Java class path.
 
@@ -150,7 +190,7 @@ def add_classpath(*path):
         _jpype.addClassPath(p)
 
 
-def find_jars(directory):
+def find_jars(directory: Path | str) -> list[str]:
     """
     Find .jar files beneath a given directory.
 
@@ -166,11 +206,14 @@ def find_jars(directory):
     return jars
 
 
-def get_classpath():
+def get_classpath() -> str:
+    """
+    Get the classpath to be passed to the JVM at startup.
+    """
     return _jpype.getClassPath()
 
 
-def set_heap_min(mb: int = None, gb: int = None):
+def set_heap_min(mb: int = None, gb: int = None) -> None:
     """
     Set the initial amount of memory to allocate to the Java heap.
 
@@ -187,7 +230,7 @@ def set_heap_min(mb: int = None, gb: int = None):
     add_option(f"-Xms{_mem_value(mb, gb)}")
 
 
-def set_heap_max(mb: int = None, gb: int = None):
+def set_heap_max(mb: int = None, gb: int = None) -> None:
     """
     Shortcut for passing -Xmx###m or -Xmx###g to Java.
 
@@ -210,7 +253,7 @@ def _mem_value(mb: int = None, gb: int = None) -> str:
     raise ValueError("Exactly one of mb or gb must be given.")
 
 
-def enable_headless_mode():
+def enable_headless_mode() -> None:
     """
     Enable headless mode, for running Java without a display.
     This mode prevents any graphical elements from popping up.
@@ -239,12 +282,29 @@ def enable_remote_debugging(port: int = 8000, suspend: bool = False):
     add_option(f"-agentlib:jdwp={arg_string}")
 
 
-def add_option(option):
+def add_option(option: str) -> None:
+    """
+    Add an option to pass at JVM startup. Examples:
+
+        -Djava.awt.headless=true
+        -Xmx10g
+        --add-opens=java.base/java.lang=ALL-UNNAMED
+        -XX:+UnlockExperimentalVMOptions
+
+    :param option:
+        The option to add.
+    """
     global _options
     _options.append(option)
 
 
-def add_options(options):
+def add_options(options: str | Sequence) -> None:
+    """
+    Add one or more options to pass at JVM startup.
+
+    :param options:
+        Sequence of options to add, or single string to pass as an individual option.
+    """
     global _options
     if isinstance(options, str):
         _options.append(options)
@@ -252,16 +312,27 @@ def add_options(options):
         _options.extend(options)
 
 
-def get_options():
+def get_options() -> list[str]:
+    """
+    Get the list of options to be passed at JVM startup.
+    """
     global _options
     return _options
 
 
-def add_shortcut(k, v):
+def add_shortcut(k: str, v: str):
+    """
+    Add a shortcut key/value to be used by jgo for evaluating endpoints.
+    See the jgo documentation for details.
+    """
     global _shortcuts
     _shortcuts[k] = v
 
 
-def get_shortcuts():
+def get_shortcuts() -> dict[str, str]:
+    """
+    Get the dictionary of shorts that jgo will use for evaluating endpoints.
+    See the jgo documentation for details.
+    """
     global _shortcuts
     return _shortcuts

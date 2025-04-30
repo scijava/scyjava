@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import enum as _enum
 import logging as _logging
 import os as _os

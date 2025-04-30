@@ -2,6 +2,8 @@
 High-level convenience functions for inspecting Java objects.
 """
 
+from __future__ import annotations
+
 from sys import stdout as _stdout
 
 from scyjava import _introspect

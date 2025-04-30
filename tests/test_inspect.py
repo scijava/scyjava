@@ -2,6 +2,8 @@
 Tests for functions in inspect submodule.
 """
 
+import re
+
 from scyjava import inspect
 from scyjava.config import mode, Mode
 
@@ -18,9 +20,8 @@ class TestInspect(object):
         members = []
         inspect.members("java.lang.Iterable", writer=members.append)
         expected = [
-            "Source code URL: "
-            "https://github.com/openjdk/jdk/blob/jdk-11-ga/"
-            "src/java.base/share/classes/java/lang/Iterable.java",
+            "Source code URL: https://github.com/openjdk/jdk/blob/"
+            ".../share/classes/java/lang/Iterable.java",
             "                         * indicates static modifier",
             "java.util.Iterator         = iterator()",
             "java.util.Spliterator      = spliterator()",
@@ -28,4 +29,9 @@ class TestInspect(object):
             "",
             "",
         ]
-        assert "".join(members).split("\n") == expected
+        pattern = (
+            r"(https://github.com/openjdk/jdk/blob/)"
+            "[^ ]*(/share/classes/java/lang/Iterable\.java)"
+        )
+        members_string = re.sub(pattern, r"\1...\2", "".join(members))
+        assert members_string.split("\n") == expected

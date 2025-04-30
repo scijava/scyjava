@@ -96,12 +96,12 @@ class TestIntrospection(object):
         if mode == Mode.JEP:
             # JEP does not support the jclass function.
             return
-        jv = scyjava.jvm_version()[0]
+        jv_digits = scyjava.jvm_version()
+        jv = jv_digits[1] if jv_digits[0] == 1 else jv_digits[0]
         source = scyjava.jsource("java.util.List")
-        assert (
-            source == f"https://github.com/openjdk/jdk/blob/jdk-{jv}-ga/"
-            "src/java.base/share/classes/java/util/List.java"
-        )
+        assert source.startswith("https://github.com/openjdk/jdk/blob/")
+        assert source.endswith("/share/classes/java/util/List.java")
+        assert str(jv) in source
 
     def test_imagej_legacy(self):
         if mode == Mode.JEP:

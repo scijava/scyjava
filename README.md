@@ -85,6 +85,24 @@ u'1.8.0_152-release'
 
 See the [jgo documentation](https://github.com/scijava/jgo) for more about Maven endpoints.
 
+## Bootstrap a Java installation
+
+```python
+>>> from scyjava import config, jimport
+>>> config.set_java_constraints(fetch=True, vendor='zulu', version='17')
+>>> System = jimport('java.lang.System')
+cjdk: Installing JDK zulu:17.0.15 to /home/chuckles/.cache/cjdk
+Download 100% of 189.4 MiB |##########| Elapsed Time: 0:00:02 Time:  0:00:02
+Extract | |                 #                    | 714 Elapsed Time: 0:00:01
+cjdk: Installing Maven to /home/chuckles/.cache/cjdk
+Download 100% of   8.7 MiB |##########| Elapsed Time: 0:00:00 Time:  0:00:00
+Extract | |#                                     | 102 Elapsed Time: 0:00:00
+>>> System.getProperty('java.vendor')
+'Azul Systems, Inc.'
+>>> System.getProperty('java.version')
+'17.0.15'
+```
+
 ## Convert between Python and Java data structures
 
 ### Convert Java collections to Python

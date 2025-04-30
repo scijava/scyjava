@@ -1,3 +1,7 @@
+"""
+Tests for key functions across all scyjava submodules.
+"""
+
 import re
 
 import pytest

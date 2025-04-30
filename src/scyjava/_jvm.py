@@ -11,6 +11,7 @@ import sys
 from functools import lru_cache
 from importlib import import_module
 from pathlib import Path
+from typing import Sequence
 
 import jpype
 import jpype.config
@@ -18,6 +19,7 @@ from jgo import jgo
 
 import scyjava.config
 from scyjava.config import Mode, mode
+from scyjava._cjdk_fetch import ensure_jvm_available
 
 _logger = logging.getLogger(__name__)
 
@@ -25,16 +27,16 @@ _startup_callbacks = []
 _shutdown_callbacks = []
 
 
-def jvm_version() -> str:
+def jvm_version() -> tuple[int, ...]:
     """
     Gets the version of the JVM as a tuple, with each dot-separated digit
     as one element. Characters in the version string beyond only numbers
     and dots are ignored, in line with the java.version system property.
 
     Examples:
-    * OpenJDK 17.0.1 -> [17, 0, 1]
-    * OpenJDK 11.0.9.1-internal -> [11, 0, 9, 1]
-    * OpenJDK 1.8.0_312 -> [1, 8, 0]
+    * OpenJDK 17.0.1 -> (17, 0, 1)
+    * OpenJDK 11.0.9.1-internal -> (11, 0, 9, 1)
+    * OpenJDK 1.8.0_312 -> (1, 8, 0)
 
     If the JVM is already started, this function returns the equivalent of:
        jimport('java.lang.System')
@@ -55,12 +57,12 @@ def jvm_version() -> str:
 
     assert mode == Mode.JPYPE
 
-    jvm_version = jpype.getJVMVersion()
-    if jvm_version and jvm_version[0]:
+    jvm_ver = jpype.getJVMVersion()
+    if jvm_ver and jvm_ver[0]:
         # JPype already knew the version.
         # JVM is probably already started.
         # Or JPype got smarter since 1.3.0.
-        return jvm_version
+        return jvm_ver
 
     # JPype was clueless, which means the JVM has probably not started yet.
     # Let's look for a java executable, and ask via 'java -version'.
@@ -106,7 +108,7 @@ def jvm_version() -> str:
     return tuple(map(int, m.group(1).split(".")))
 
 
-def start_jvm(options=None, *, fetch_java: bool = True) -> None:
+def start_jvm(options: Sequence[str] = None) -> None:
     """
     Explicitly connect to the Java virtual machine (JVM). Only one JVM can
     be active; does nothing if the JVM has already been started. Calling
@@ -117,23 +119,12 @@ def start_jvm(options=None, *, fetch_java: bool = True) -> None:
     :param options:
         List of options to pass to the JVM.
         For example: ['-Dfoo=bar', '-XX:+UnlockExperimentalVMOptions']
-    :param fetch_java:
-        If True (default), when a JVM/or maven cannot be located on the system,
-        [`cjdk`](https://github.com/cachedjdk/cjdk) will be used to download
-        a JRE distribution and set up the JVM. The following environment variables
-        may be used to configure the JRE and Maven distributions to download:
-        * `JAVA_VENDOR`: The vendor of the JRE distribution to download.
-          Defaults to "zulu-jre".
-        * `JAVA_VERSION`: The version of the JRE distribution to download.
-          Defaults to "11".
-        * `MAVEN_URL`: The URL of the Maven distribution to download.
-          Defaults to https://dlcdn.apache.org/maven/maven-3/3.9.9/
-        * `MAVEN_SHA`: The SHA512 hash of the Maven distribution to download, if
-          providing a custom MAVEN_URL.
+        See also scyjava.config.add_options.
     """
     # if JVM is already running -- break
     if jvm_started():
-        _logger.debug("The JVM is already running.")
+        if options is not None and len(options) > 0:
+            _logger.debug(f"Options ignored due to already running JVM: {options}")
         return
 
     assert mode == Mode.JPYPE
@@ -145,10 +136,8 @@ def start_jvm(options=None, *, fetch_java: bool = True) -> None:
     # use the logger to notify user that endpoints are being added
     _logger.debug("Adding jars from endpoints {0}".format(endpoints))
 
-    if fetch_java:
-        from scyjava._cjdk_fetch import ensure_jvm_available
-
-        ensure_jvm_available()
+    # download JDK/JRE and Maven as appropriate
+    ensure_jvm_available()
 
     # get endpoints and add to JPype class path
     if len(endpoints) > 0:
@@ -198,7 +187,8 @@ def start_jvm(options=None, *, fetch_java: bool = True) -> None:
     _logger.debug("Starting JVM")
     if options is None:
         options = scyjava.config.get_options()
-    jpype.startJVM(*options, interrupt=True)
+    kwargs = scyjava.config.get_kwargs()
+    jpype.startJVM(*options, **kwargs)
 
     # replace JPype/JVM shutdown handling with our own
     jpype.config.onexit = False
@@ -244,7 +234,7 @@ def shutdown_jvm() -> None:
         try:
             callback()
         except Exception as e:
-            print(f"Exception during shutdown callback: {e}")
+            _logger.error(f"Exception during shutdown callback: {e}")
 
     # dispose AWT resources if applicable
     if is_awt_initialized():
@@ -256,7 +246,7 @@ def shutdown_jvm() -> None:
     try:
         jpype.shutdownJVM()
     except Exception as e:
-        print(f"Exception during JVM shutdown: {e}")
+        _logger.error(f"Exception during JVM shutdown: {e}")
 
 
 def jvm_started() -> bool:

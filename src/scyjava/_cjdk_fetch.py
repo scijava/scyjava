@@ -1,3 +1,7 @@
+"""
+Utility functions for fetching JDK/JRE and Maven.
+"""
+
 from __future__ import annotations
 
 import logging
@@ -9,21 +13,23 @@ from typing import TYPE_CHECKING, Union
 import cjdk
 import jpype
 
+import scyjava.config
+
 if TYPE_CHECKING:
     from pathlib import Path
 
 _logger = logging.getLogger(__name__)
-_DEFAULT_MAVEN_URL = "tgz+https://dlcdn.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz"  # noqa: E501
-_DEFAULT_MAVEN_SHA = "a555254d6b53d267965a3404ecb14e53c3827c09c3b94b5678835887ab404556bfaf78dcfe03ba76fa2508649dca8531c74bca4d5846513522404d48e8c4ac8b"  # noqa: E501
-_DEFAULT_JAVA_VENDOR = "zulu-jre"
-_DEFAULT_JAVA_VERSION = "11"
 
 
 def ensure_jvm_available() -> None:
     """Ensure that the JVM is available and Maven is installed."""
-    if not is_jvm_available():
+    fetch = scyjava.config.get_fetch_java()
+    if fetch == "never":
+        # Not allowed to use cjdk.
+        return
+    if fetch == "always" or not is_jvm_available():
         cjdk_fetch_java()
-    if not shutil.which("mvn"):
+    if fetch == "always" or not shutil.which("mvn"):
         cjdk_fetch_maven()
 
 
@@ -47,27 +53,27 @@ def is_jvm_available() -> bool:
     return True
 
 
-def cjdk_fetch_java(vendor: str = "", version: str = "") -> None:
+def cjdk_fetch_java(vendor: str | None = None, version: str | None = None) -> None:
     """Fetch java using cjdk and add it to the PATH."""
-    if not vendor:
-        vendor = os.getenv("JAVA_VENDOR", _DEFAULT_JAVA_VENDOR)
-        version = os.getenv("JAVA_VERSION", _DEFAULT_JAVA_VERSION)
+    if vendor is None:
+        vendor = scyjava.config.get_java_vendor()
+    if version is None:
+        version = scyjava.config.get_java_version()
 
-    _logger.info(f"No JVM found, fetching {vendor}:{version} using cjdk...")
-    home = cjdk.java_home(vendor=vendor, version=version)
-    _add_to_path(str(home / "bin"))
-    os.environ["JAVA_HOME"] = str(home)
+    _logger.info(f"Fetching {vendor}:{version} using cjdk...")
+    java_home = cjdk.java_home(vendor=vendor, version=version)
+    _logger.debug(f"java_home -> {java_home}")
+    _add_to_path(str(java_home / "bin"), front=True)
+    os.environ["JAVA_HOME"] = str(java_home)
 
 
 def cjdk_fetch_maven(url: str = "", sha: str = "") -> None:
     """Fetch Maven using cjdk and add it to the PATH."""
-    # if url was passed as an argument, or env_var, use it with provided sha
+    # if url was passed as an argument, use it with provided sha
     # otherwise, use default values for both
-    if url := url or os.getenv("MAVEN_URL", ""):
-        sha = sha or os.getenv("MAVEN_SHA", "")
-    else:
-        url = _DEFAULT_MAVEN_URL
-        sha = _DEFAULT_MAVEN_SHA
+    if not url:
+        url = scyjava.config.get_maven_url()
+        sha = scyjava.config.get_maven_sha()
 
     # fix urls to have proper prefix for cjdk
     if url.startswith("http"):
@@ -88,7 +94,9 @@ def cjdk_fetch_maven(url: str = "", sha: str = "") -> None:
             )
         kwargs = {sha_lengths[sha_len]: sha}
 
+    _logger.info("Fetching Maven using cjdk...")
     maven_dir = cjdk.cache_package("Maven", url, **kwargs)
+    _logger.debug(f"maven_dir -> {maven_dir}")
     if maven_bin := next(maven_dir.rglob("apache-maven-*/**/mvn"), None):
         _add_to_path(maven_bin.parent, front=True)
     else:  # pragma: no cover

@@ -40,6 +40,22 @@ Use Maven artifacts from remote repositories:
     +++oo*OO######O**oo+++++oo*OO######O**oo+++++oo*OO######O**oo+++
     +++oo*OO######OO*oo+++++oo*OO######OO*oo+++++oo*OO######OO*oo+++
 
+Bootstrap a Java installation:
+
+    >>> from scyjava import config, jimport
+    >>> config.set_java_constraints(fetch=True, vendor='zulu', version='17')
+    >>> System = jimport('java.lang.System')
+    cjdk: Installing JDK zulu:17.0.15 to /home/chuckles/.cache/cjdk
+    Download 100% of 189.4 MiB |##########| Elapsed Time: 0:00:02 Time:  0:00:02
+    Extract | |                 #                    | 714 Elapsed Time: 0:00:01
+    cjdk: Installing Maven to /home/chuckles/.cache/cjdk
+    Download 100% of   8.7 MiB |##########| Elapsed Time: 0:00:00 Time:  0:00:00
+    Extract | |#                                     | 102 Elapsed Time: 0:00:00
+    >>> System.getProperty('java.vendor')
+    'Azul Systems, Inc.'
+    >>> System.getProperty('java.version')
+    '17.0.15'
+
 Convert Java collections to Python:
 
     >>> from scyjava import jimport
@@ -71,6 +87,7 @@ import logging
 from functools import lru_cache
 from typing import Any, Callable, Dict
 
+from . import config, inspect
 from ._arrays import is_arraylike, is_memoryarraylike, is_xarraylike
 from ._convert import (
     Converter,
@@ -90,6 +107,10 @@ from ._convert import (
     py_converters,
     to_java,
     to_python,
+)
+from ._introspect import (
+    jreflect,
+    jsource,
 )
 from ._jvm import (  # noqa: F401
     available_processors,

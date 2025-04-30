@@ -1,24 +1,37 @@
-import enum
-import logging
-import os
-import pathlib
+from __future__ import annotations
 
-import jpype
-from jgo import maven_scijava_repository
+import enum as _enum
+import logging as _logging
+import os as _os
+from pathlib import Path
+from typing import Sequence
 
-_logger = logging.getLogger(__name__)
+import jpype as _jpype
+from jgo import maven_scijava_repository as _scijava_public
 
-endpoints = []
-_repositories = {"scijava.public": maven_scijava_repository()}
+
+_logger = _logging.getLogger(__name__)
+
+# Constraints on the Java installation to be used.
+_fetch_java: str = "auto"
+_java_vendor: str = "zulu-jre"
+_java_version: str = "11"
+_maven_url: str = "tgz+https://dlcdn.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz"  # noqa: E501
+_maven_sha: str = "a555254d6b53d267965a3404ecb14e53c3827c09c3b94b5678835887ab404556bfaf78dcfe03ba76fa2508649dca8531c74bca4d5846513522404d48e8c4ac8b"  # noqa: E501
+
+endpoints: list[str] = []
+
+_repositories = {"scijava.public": _scijava_public()}
 _verbose = 0
 _manage_deps = True
-_cache_dir = pathlib.Path.home() / ".jgo"
-_m2_repo = pathlib.Path.home() / ".m2" / "repository"
+_cache_dir = Path.home() / ".jgo"
+_m2_repo = Path.home() / ".m2" / "repository"
 _options = []
+_kwargs = {"interrupt": True}
 _shortcuts = {}
 
 
-class Mode(enum.Enum):
+class Mode(_enum.Enum):
     JEP = "jep"
     JPYPE = "jpype"
 
@@ -31,34 +44,114 @@ except ImportError:
     mode = Mode.JPYPE
 
 
-def add_endpoints(*new_endpoints):
+def set_java_constraints(
+    fetch: str | bool | None = None,
+    vendor: str | None = None,
+    version: str | None = None,
+    maven_url: str | None = None,
+    maven_sha: str | None = None,
+) -> None:
     """
-    DEPRECATED since v1.2.1
-    Please modify the endpoints field directly instead.
+    Set constraints on the version of Java to be used.
+
+    :param fetch:
+        If "auto" (default), when a JVM/or maven cannot be located on the system,
+        [`cjdk`](https://github.com/cachedjdk/cjdk) will be used to download
+        a JDK/JRE distribution and set up the JVM.
+        If "always", cjdk will always be used; if "never", cjdk will never be used.
+    :param vendor:
+        The vendor of the JDK/JRE distribution for cjdk to download and cache.
+        Defaults to "zulu-jre". See the cjdk documentation for details.
+    :param version:
+        Expression defining the Java version for cjdk to download and cache.
+        Defaults to "11". See the cjdk documentation for details.
+    :param maven_url:
+        URL of the Maven distribution for cjdk to download and cache.
+        Defaults to the Maven 3.9.9 binary distribution from dlcdn.apache.org.
+    :param maven_sha:
+        The SHA512 (or SHA256 or SHA1) hash of the Maven distribution to download,
+        if providing a custom maven_url.
     """
-    _logger.warning(
-        "Deprecated method call: scyjava.config.add_endpoints(). "
-        "Please modify scyjava.config.endpoints directly instead."
-    )
-    global endpoints
-    _logger.debug("Adding endpoints %s to %s", new_endpoints, endpoints)
-    endpoints.extend(new_endpoints)
+    global _fetch_java, _java_vendor, _java_version, _maven_url, _maven_sha
+    if fetch is not None:
+        if isinstance(fetch, bool):
+            # Be nice and allow boolean values as a convenience.
+            fetch = "always" if fetch else "never"
+        expected = ["auto", "always", "never"]
+        if fetch not in expected:
+            raise ValueError(f"Fetch mode {fetch} is not one of {expected}")
+        _fetch_java = fetch
+    if vendor is not None:
+        _java_vendor = vendor
+    if version is not None:
+        _java_version = version
+    if maven_url is not None:
+        _maven_url = maven_url
+        _maven_sha = ""
+    if maven_sha is not None:
+        _maven_sha = maven_sha
 
 
-def get_endpoints():
+def get_fetch_java() -> str:
     """
-    DEPRECATED since v1.2.1
-    Please access the endpoints field directly instead.
+    Get whether [`cjdk`](https://github.com/cachedjdk/cjdk)
+    will be used to download a JDK/JRE distribution and set up the JVM.
+    To set this value, see set_java_constraints.
+
+    :return:
+        "always" for cjdk to obtain the JDK/JRE;
+        "never" for cjdk *not* to obtain a JDK/JRE;
+        "auto" for cjdk to be used only when a JVM/or Maven is not on the system path.
     """
-    _logger.warning(
-        "Deprecated method call: scyjava.config.get_endpoints(). "
-        "Please access scyjava.config.endpoints directly instead."
-    )
-    global endpoints
-    return endpoints
+    return _fetch_java
 
 
-def add_repositories(*args, **kwargs):
+def get_java_vendor() -> str:
+    """
+    Get the vendor of the JDK/JRE distribution to download.
+    Vendor of the Java installation for cjdk to download and cache.
+    To set this value, see set_java_constraints.
+
+    :return: String defining the desired JDK/JRE vendor for downloaded JDK/JREs.
+    """
+    return _java_vendor
+
+
+def get_java_version() -> str:
+    """
+    Expression defining the Java version for cjdk to download and cache.
+    To set this value, see set_java_constraints.
+
+    :return: String defining the desired JDK/JRE version for downloaded JDK/JREs.
+    """
+    return _java_version
+
+
+def get_maven_url() -> str:
+    """
+    The URL of the Maven distribution to download.
+    To set this value, see set_java_constraints.
+
+    :return: URL pointing to the Maven distribution.
+    """
+    return _maven_url
+
+
+def get_maven_sha() -> str:
+    """
+    The SHA512 (or SHA256 or SHA1) hash of the Maven distribution to download,
+    if providing a custom maven_url. To set this value, see set_java_constraints.
+
+    :return: Hash value of the Maven distribution, or empty string to skip hash check.
+    """
+    return _maven_sha
+
+
+def add_repositories(*args, **kwargs) -> None:
+    """
+    Add one or more Maven repositories to be used by jgo for downloading dependencies.
+    See the jgo documentation for details.
+    """
     global _repositories
     for arg in args:
         _logger.debug("Adding repositories %s to %s", arg, _repositories)
@@ -67,57 +160,92 @@ def add_repositories(*args, **kwargs):
     _repositories.update(kwargs)
 
 
-def get_repositories():
+def get_repositories() -> dict[str, str]:
+    """
+    Get the Maven repositories jgo will use for downloading dependencies.
+    See the jgo documentation for details.
+    """
     global _repositories
     return _repositories
 
 
-def set_verbose(level):
+def set_verbose(level: int) -> None:
+    """
+    Set the level of verbosity for logging environment construction details.
+
+    :param level:
+        0 for quiet (default), 1 for verbose, 2 for extra verbose.
+    """
     global _verbose
     _logger.debug("Setting verbose level to %d (was %d)", level, _verbose)
     _verbose = level
 
 
-def get_verbose():
+def get_verbose() -> int:
+    """
+    Get the level of verbosity for logging environment construction details.
+    """
     global _verbose
     _logger.debug("Getting verbose level: %d", _verbose)
     return _verbose
 
 
-def set_manage_deps(manage):
+def set_manage_deps(manage: bool) -> None:
+    """
+    Set whether jgo will resolve dependencies in managed mode.
+    See the jgo documentation for details.
+    """
     global _manage_deps
     _logger.debug("Setting manage deps to %d (was %d)", manage, _manage_deps)
     _manage_deps = manage
 
 
-def get_manage_deps():
+def get_manage_deps() -> bool:
+    """
+    Get whether jgo will resolve dependencies in managed mode.
+    See the jgo documentation for details.
+    """
     global _manage_deps
     return _manage_deps
 
 
-def set_cache_dir(dir):
+def set_cache_dir(cache_dir: Path | str) -> None:
+    """
+    Set the location to use for the jgo environment cache.
+    See the jgo documentation for details.
+    """
     global _cache_dir
-    _logger.debug("Setting cache dir to %s (was %s)", dir, _cache_dir)
-    _cache_dir = dir
+    _logger.debug("Setting cache dir to %s (was %s)", cache_dir, _cache_dir)
+    _cache_dir = cache_dir
 
 
-def get_cache_dir():
+def get_cache_dir() -> Path:
+    """
+    Get the location to use for the jgo environment cache.
+    See the jgo documentation for details.
+    """
     global _cache_dir
     return _cache_dir
 
 
-def set_m2_repo(dir):
+def set_m2_repo(repo_dir: Path | str) -> None:
+    """
+    Set the location to use for the local Maven repository cache.
+    """
     global _m2_repo
-    _logger.debug("Setting m2 repo dir to %s (was %s)", dir, _m2_repo)
-    _m2_repo = dir
+    _logger.debug("Setting m2 repo dir to %s (was %s)", repo_dir, _m2_repo)
+    _m2_repo = repo_dir
 
 
-def get_m2_repo():
+def get_m2_repo() -> Path:
+    """
+    Get the location to use for the local Maven repository cache.
+    """
     global _m2_repo
     return _m2_repo
 
 
-def add_classpath(*path):
+def add_classpath(*path) -> None:
     """
     Add elements to the Java class path.
 
@@ -143,10 +271,10 @@ def add_classpath(*path):
         foo.bar.Fubar.
     """
     for p in path:
-        jpype.addClassPath(p)
+        _jpype.addClassPath(p)
 
 
-def find_jars(directory):
+def find_jars(directory: Path | str) -> list[str]:
     """
     Find .jar files beneath a given directory.
 
@@ -154,19 +282,22 @@ def find_jars(directory):
     :return: a list of JAR files
     """
     jars = []
-    for root, _, files in os.walk(directory):
+    for root, _, files in _os.walk(directory):
         for f in files:
             if f.lower().endswith(".jar"):
-                path = os.path.join(root, f)
+                path = _os.path.join(root, f)
                 jars.append(path)
     return jars
 
 
-def get_classpath():
-    return jpype.getClassPath()
+def get_classpath() -> str:
+    """
+    Get the classpath to be passed to the JVM at startup.
+    """
+    return _jpype.getClassPath()
 
 
-def set_heap_min(mb: int = None, gb: int = None):
+def set_heap_min(mb: int = None, gb: int = None) -> None:
     """
     Set the initial amount of memory to allocate to the Java heap.
 
@@ -183,7 +314,7 @@ def set_heap_min(mb: int = None, gb: int = None):
     add_option(f"-Xms{_mem_value(mb, gb)}")
 
 
-def set_heap_max(mb: int = None, gb: int = None):
+def set_heap_max(mb: int = None, gb: int = None) -> None:
     """
     Shortcut for passing -Xmx###m or -Xmx###g to Java.
 
@@ -206,7 +337,7 @@ def _mem_value(mb: int = None, gb: int = None) -> str:
     raise ValueError("Exactly one of mb or gb must be given.")
 
 
-def enable_headless_mode():
+def enable_headless_mode() -> None:
     """
     Enable headless mode, for running Java without a display.
     This mode prevents any graphical elements from popping up.
@@ -235,12 +366,29 @@ def enable_remote_debugging(port: int = 8000, suspend: bool = False):
     add_option(f"-agentlib:jdwp={arg_string}")
 
 
-def add_option(option):
+def add_option(option: str) -> None:
+    """
+    Add an option to pass at JVM startup. Examples:
+
+        -Djava.awt.headless=true
+        -Xmx10g
+        --add-opens=java.base/java.lang=ALL-UNNAMED
+        -XX:+UnlockExperimentalVMOptions
+
+    :param option:
+        The option to add.
+    """
     global _options
     _options.append(option)
 
 
-def add_options(options):
+def add_options(options: str | Sequence) -> None:
+    """
+    Add one or more options to pass at JVM startup.
+
+    :param options:
+        Sequence of options to add, or single string to pass as an individual option.
+    """
     global _options
     if isinstance(options, str):
         _options.append(options)
@@ -248,16 +396,75 @@ def add_options(options):
         _options.extend(options)
 
 
-def get_options():
+def get_options() -> list[str]:
+    """
+    Get the list of options to be passed at JVM startup.
+    """
     global _options
     return _options
 
 
-def add_shortcut(k, v):
+def add_kwargs(**kwargs) -> None:
+    """
+    Add keyword arguments to be passed to JPype at JVM startup. Examples:
+
+        jvmpath = "/path/to/my_jvm"
+        ignoreUnrecognized = True
+        convertStrings = True
+        interrupt = True
+    """
+    global _kwargs
+    _kwargs.update(kwargs)
+
+
+def get_kwargs() -> dict[str, str]:
+    """
+    Get the keyword arguments to be passed to JPype at JVM startup.
+    """
+    global _kwargs
+    return _kwargs
+
+
+def add_shortcut(k: str, v: str):
+    """
+    Add a shortcut key/value to be used by jgo for evaluating endpoints.
+    See the jgo documentation for details.
+    """
     global _shortcuts
     _shortcuts[k] = v
 
 
-def get_shortcuts():
+def get_shortcuts() -> dict[str, str]:
+    """
+    Get the dictionary of shorts that jgo will use for evaluating endpoints.
+    See the jgo documentation for details.
+    """
     global _shortcuts
     return _shortcuts
+
+
+def add_endpoints(*new_endpoints):
+    """
+    DEPRECATED since v1.2.1
+    Please modify the endpoints field directly instead.
+    """
+    _logger.warning(
+        "Deprecated method call: scyjava.config.add_endpoints(). "
+        "Please modify scyjava.config.endpoints directly instead."
+    )
+    global endpoints
+    _logger.debug("Adding endpoints %s to %s", new_endpoints, endpoints)
+    endpoints.extend(new_endpoints)
+
+
+def get_endpoints():
+    """
+    DEPRECATED since v1.2.1
+    Please access the endpoints field directly instead.
+    """
+    _logger.warning(
+        "Deprecated method call: scyjava.config.get_endpoints(). "
+        "Please access scyjava.config.endpoints directly instead."
+    )
+    global endpoints
+    return endpoints

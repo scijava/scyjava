@@ -12,17 +12,17 @@
 #
 # In addition to the dependencies needed for using scyjava, it
 # includes tools for developer-related actions like running
-# automated tests (pytest) and linting the code (black). If you
+# automated tests (pytest) and linting the code (ruff). If you
 # want an environment without these tools, use environment.yml.
 name: scyjava-dev
 channels:
   - conda-forge
 dependencies:
-  - python >= 3.9
+  - python = 3.9
   # Project dependencies
   - jpype1 >= 1.3.0
   - jgo
-  - openjdk >= 8, < 12
+  - cjdk
   # Test dependencies
   - numpy
   - pandas
@@ -37,6 +37,5 @@ dependencies:
   # Project from source
   - pip
   - pip:
-    - cjdk
     - git+https://github.com/ninia/jep.git@cfca63f8b3398daa6d2685428660dc4b2bfab67d
     - -e .

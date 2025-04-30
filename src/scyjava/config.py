@@ -52,7 +52,7 @@ def add_repositories(*args, **kwargs) -> None:
 
 def get_repositories() -> dict[str, str]:
     """
-    Gets the Maven repositories jgo will use for downloading dependencies.
+    Get the Maven repositories jgo will use for downloading dependencies.
     See the jgo documentation for details.
     """
     global _repositories
@@ -118,7 +118,7 @@ def get_cache_dir() -> Path:
     return _cache_dir
 
 
-def set_m2_repo(repo_dir : Path | str) -> None:
+def set_m2_repo(repo_dir: Path | str) -> None:
     """
     Set the location to use for the local Maven repository cache.
     """

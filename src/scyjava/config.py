@@ -12,6 +12,13 @@ from jgo import maven_scijava_repository as _scijava_public
 
 _logger = _logging.getLogger(__name__)
 
+# Constraints on the Java installation to be used.
+_fetch_java: str = "auto"
+_java_vendor: str = "zulu-jre"
+_java_version: str = "11"
+_maven_url: str = "tgz+https://dlcdn.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz"  # noqa: E501
+_maven_sha: str = "a555254d6b53d267965a3404ecb14e53c3827c09c3b94b5678835887ab404556bfaf78dcfe03ba76fa2508649dca8531c74bca4d5846513522404d48e8c4ac8b"  # noqa: E501
+
 endpoints: list[str] = []
 
 _repositories = {"scijava.public": _scijava_public()}
@@ -35,6 +42,109 @@ try:
     mode = Mode.JEP
 except ImportError:
     mode = Mode.JPYPE
+
+
+def set_java_constraints(
+    fetch: str | bool | None = None,
+    vendor: str | None = None,
+    version: str | None = None,
+    maven_url: str | None = None,
+    maven_sha: str | None = None,
+) -> None:
+    """
+    Set constraints on the version of Java to be used.
+
+    :param fetch:
+        If "auto" (default), when a JVM/or maven cannot be located on the system,
+        [`cjdk`](https://github.com/cachedjdk/cjdk) will be used to download
+        a JDK/JRE distribution and set up the JVM.
+        If "always", cjdk will always be used; if "never", cjdk will never be used.
+    :param vendor:
+        The vendor of the JDK/JRE distribution for cjdk to download and cache.
+        Defaults to "zulu-jre". See the cjdk documentation for details.
+    :param version:
+        Expression defining the Java version for cjdk to download and cache.
+        Defaults to "11". See the cjdk documentation for details.
+    :param maven_url:
+        URL of the Maven distribution for cjdk to download and cache.
+        Defaults to the Maven 3.9.9 binary distribution from dlcdn.apache.org.
+    :param maven_sha:
+        The SHA512 (or SHA256 or SHA1) hash of the Maven distribution to download,
+        if providing a custom maven_url.
+    """
+    global _fetch_java, _java_vendor, _java_version, _maven_url, _maven_sha
+    if fetch is not None:
+        if isinstance(fetch, bool):
+            # Be nice and allow boolean values as a convenience.
+            fetch = "always" if fetch else "never"
+        expected = ["auto", "always", "never"]
+        if fetch not in expected:
+            raise ValueError(f"Fetch mode {fetch} is not one of {expected}")
+        _fetch_java = fetch
+    if vendor is not None:
+        _java_vendor = vendor
+    if version is not None:
+        _java_version = version
+    if maven_url is not None:
+        _maven_url = maven_url
+        _maven_sha = ""
+    if maven_sha is not None:
+        _maven_sha = maven_sha
+
+
+def get_fetch_java() -> str:
+    """
+    Get whether [`cjdk`](https://github.com/cachedjdk/cjdk)
+    will be used to download a JDK/JRE distribution and set up the JVM.
+    To set this value, see set_java_constraints.
+
+    :return:
+        "always" for cjdk to obtain the JDK/JRE;
+        "never" for cjdk *not* to obtain a JDK/JRE;
+        "auto" for cjdk to be used only when a JVM/or Maven is not on the system path.
+    """
+    return _fetch_java
+
+
+def get_java_vendor() -> str:
+    """
+    Get the vendor of the JDK/JRE distribution to download.
+    Vendor of the Java installation for cjdk to download and cache.
+    To set this value, see set_java_constraints.
+
+    :return: String defining the desired JDK/JRE vendor for downloaded JDK/JREs.
+    """
+    return _java_vendor
+
+
+def get_java_version() -> str:
+    """
+    Expression defining the Java version for cjdk to download and cache.
+    To set this value, see set_java_constraints.
+
+    :return: String defining the desired JDK/JRE version for downloaded JDK/JREs.
+    """
+    return _java_version
+
+
+def get_maven_url() -> str:
+    """
+    The URL of the Maven distribution to download.
+    To set this value, see set_java_constraints.
+
+    :return: URL pointing to the Maven distribution.
+    """
+    return _maven_url
+
+
+def get_maven_sha() -> str:
+    """
+    The SHA512 (or SHA256 or SHA1) hash of the Maven distribution to download,
+    if providing a custom maven_url. To set this value, see set_java_constraints.
+
+    :return: Hash value of the Maven distribution, or empty string to skip hash check.
+    """
+    return _maven_sha
 
 
 def add_repositories(*args, **kwargs) -> None:

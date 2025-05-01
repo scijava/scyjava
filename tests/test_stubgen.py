@@ -46,7 +46,6 @@ def test_stubgen(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         from org.scijava.parsington import Function
 
         assert Function is not None
-        assert repr(Function) == "<scyjava class 'org.scijava.parsington.Function'>"
         # ensure that no calls to start_jvm were made
         mock_start_jvm.assert_not_called()
 

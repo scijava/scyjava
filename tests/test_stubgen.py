@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import jpype
+import pytest
 
 import scyjava
 from scyjava._stubs import _cli
@@ -12,9 +13,11 @@ from scyjava._stubs import _cli
 if TYPE_CHECKING:
     from pathlib import Path
 
-    import pytest
 
-
+@pytest.mark.skipif(
+    scyjava.config.mode != scyjava.config.Mode.JPYPE,
+    reason="Stubgen not supported in JEP",
+)
 def test_stubgen(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     # run the stubgen command as if it was run from the command line
     monkeypatch.setattr(

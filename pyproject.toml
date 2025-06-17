@@ -43,7 +43,6 @@ dependencies = [
 dev = [
     "assertpy",
     "build",
-    "jep",
     "pytest",
     "pytest-cov",
     "numpy",

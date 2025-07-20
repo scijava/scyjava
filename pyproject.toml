@@ -47,7 +47,7 @@ dev = [
     "pandas",
     "ruff",
     "toml",
-    "validate-pyproject[all]"
+    "validate-pyproject[all]",
 ]
 
 [project.urls]
@@ -65,7 +65,6 @@ include-package-data = false
 where = ["src"]
 namespaces = false
 
-# ruff configuration
 [tool.ruff]
 line-length = 88
 src = ["src", "tests"]

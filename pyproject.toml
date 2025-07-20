@@ -31,11 +31,7 @@ classifiers = [
 ]
 
 requires-python = ">=3.9"
-dependencies = [
-    "jpype1 >= 1.3.0",
-    "jgo",
-    "cjdk",
-]
+dependencies = ["jpype1 >= 1.3.0", "jgo", "cjdk", "stubgenj"]
 
 [dependency-groups]
 dev = [
@@ -49,6 +45,14 @@ dev = [
     "toml",
     "validate-pyproject[all]",
 ]
+
+[project.scripts]
+scyjava-stubgen = "scyjava._stubs._cli:main"
+
+[project.entry-points.hatch]
+scyjava = "scyjava._stubs._hatchling_plugin"
+[project.entry-points."distutils.commands"]
+build_py = "scyjava_stubgen.build:build_py"
 
 [project.urls]
 homepage = "https://github.com/scijava/scyjava"

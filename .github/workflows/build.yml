@@ -52,13 +52,11 @@ jobs:
         python -m pip install uv
 
     - name: Run tests
+      shell: bash
       run: |
         bin/test.sh
 
     - name: Lint code
+      shell: bash
       run: |
         bin/lint.sh
-
-    - name: Upload coverage
-      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13' && matrix.java-version == '11'
-      uses: codecov/codecov-action@v4

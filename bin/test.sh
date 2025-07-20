@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Executes the pytest framework in both JPype and Jep modes.
+# Runs the unit tests.
 #
 # Usage examples:
 #   bin/test.sh
@@ -19,9 +19,9 @@ echo "----------------------"
 
 if [ $# -gt 0 ]
 then
-  python -m pytest -p no:faulthandler $@
+  uv run python -m pytest -v -p no:faulthandler $@
 else
-  python -m pytest -p no:faulthandler tests/
+  uv run python -m pytest -v -p no:faulthandler tests/
 fi
 jpypeCode=$?
 
@@ -32,7 +32,7 @@ echo "-----------------------------"
 itCode=0
 for t in tests/it/*.py
 do
-  python "$t"
+  uv run python "$t"
   code=$?
   printf -- "--> %s " "$t"
   if [ "$code" -eq 0 ]

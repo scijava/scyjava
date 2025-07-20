@@ -3,4 +3,4 @@
 dir=$(dirname "$0")
 cd "$dir/.."
 
-mamba env create -f dev-environment.yml
+uv run python -m build

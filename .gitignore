@@ -23,3 +23,7 @@ coverage.xml
 # IDEA
 .idea/
 *.iml
+
+# uv
+/.venv/
+/uv.lock

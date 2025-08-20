@@ -16,7 +16,7 @@ _logger = _logging.getLogger(__name__)
 _fetch_java: str = "auto"
 _java_vendor: str = "zulu-jre"
 _java_version: str = "11"
-_maven_url: str = "tgz+https://dlcdn.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz"  # noqa: E501
+_maven_url: str = "tgz+https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz"  # noqa: E501
 _maven_sha: str = "a555254d6b53d267965a3404ecb14e53c3827c09c3b94b5678835887ab404556bfaf78dcfe03ba76fa2508649dca8531c74bca4d5846513522404d48e8c4ac8b"  # noqa: E501
 
 endpoints: list[str] = []

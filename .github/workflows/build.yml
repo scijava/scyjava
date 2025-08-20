@@ -11,7 +11,7 @@ on:
       - main
 
 jobs:
-  build-cross-platform:
+  build:
     name: test ${{matrix.os}} - ${{matrix.python-version}} - ${{matrix.java-version}}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -33,79 +33,30 @@ jobs:
             java-version: ''
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
-    - uses: actions/setup-python@v3
+    - uses: actions/setup-python@v5
       with:
         python-version: ${{matrix.python-version}}
 
-    - uses: actions/setup-java@v3
+    - uses: actions/setup-java@v4
       if: matrix.java-version != ''
       with:
         java-version: ${{matrix.java-version}}
         distribution: 'zulu'
         cache: 'maven'
 
-    - name: Install ScyJava
+    - name: Set up uv
       run: |
         python -m pip install --upgrade pip
-        python -m pip install -e '.[dev]'
+        python -m pip install uv
 
-    - name: Test ScyJava
+    - name: Run tests
+      shell: bash
       run: |
-        bin/test.sh --color=yes
+        bin/test.sh
 
-  ensure-clean-code:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v3
-
-      - name: Lint code
-        run: |
-          python -m pip install ruff
-          ruff check
-          ruff format --check
-
-      - name: Validate pyproject.toml
-        run: |
-          python -m pip install validate-pyproject[all]
-          python -m validate_pyproject pyproject.toml
-
-  conda-dev-test:
-    name: Conda Setup & Code Coverage
-    runs-on: ubuntu-latest
-    defaults:
-      # Steps that rely on the activated environment must be run with this shell setup.
-      # See https://github.com/marketplace/actions/setup-miniconda#important
-      run:
-        shell: bash -l {0}
-    steps:
-      - uses: actions/checkout@v2
-      - name: Cache conda
-        uses: actions/cache@v4
-        env:
-          # Increase this value to reset cache if dev-environment.yml has not changed
-          CACHE_NUMBER: 0
-        with:
-          path: ~/conda_pkgs_dir
-          key:
-            ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{ hashFiles('dev-environment.yml') }}
-      - uses: conda-incubator/setup-miniconda@v3
-        with:
-          # Create env with dev packages
-          auto-update-conda: true
-          python-version: 3.9
-          miniforge-version: latest
-          environment-file: dev-environment.yml
-          # Activate scyjava-dev environment
-          activate-environment: scyjava-dev
-          auto-activate-base: false
-          # Use mamba for faster setup
-          use-mamba: true
-      - name: Test scyjava
-        run: |
-          bin/test.sh --cov-report=xml --cov=.
-      # We could do this in its own action, but we'd have to setup the environment again.
-      - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@v2
+    - name: Lint code
+      shell: bash
+      run: |
+        bin/lint.sh

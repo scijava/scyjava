@@ -7,7 +7,7 @@ name = "scyjava"
 version = "1.12.2.dev0"
 description = "Supercharged Java access from Python"
 license = "Unlicense"
-authors = [{name = "SciJava developers", email = "ctrueden@wisc.edu"}]
+authors = [{ name = "SciJava developers", email = "ctrueden@wisc.edu" }]
 readme = "README.md"
 keywords = ["java", "maven", "cross-language"]
 classifiers = [
@@ -31,7 +31,12 @@ classifiers = [
 ]
 
 requires-python = ">=3.9"
-dependencies = ["jpype1 >= 1.3.0", "jgo", "cjdk", "stubgenj"]
+dependencies = [
+    "jpype1 >= 1.3.0",
+    "jgo",
+    "cjdk",
+    "stubgenj",
+]
 
 [dependency-groups]
 dev = [
@@ -57,7 +62,7 @@ download = "https://pypi.org/project/scyjava/"
 tracker = "https://github.com/scijava/scyjava/issues"
 
 [tool.setuptools]
-package-dir = {"" = "src"}
+package-dir = { "" = "src" }
 include-package-data = false
 
 [tool.setuptools.packages.find]

@@ -1,4 +1,12 @@
-"""The scyjava-stubs executable."""
+"""The scyjava-stubs executable.
+
+Provides cli access to the `scyjava._stubs.generate_stubs` function.
+
+The only interesting additional things going on here is the choice of *where* the stubs
+go by default.  When using the CLI, they land in `scyjava.types` by default; see the
+`_get_ouput_dir` helper function for details on how the output directory is resolved
+from the CLI arguments.
+"""
 
 from __future__ import annotations
 

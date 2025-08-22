@@ -1,3 +1,14 @@
+"""Type stub generation utilities using stubgen.
+
+This module provides utilities for generating type stubs for Java classes
+using the stubgenj library.  `stubgenj` must be installed for this to work
+(it, in turn, only depends on JPype).
+
+See `generate_stubs` for most functionality.  For the command-line tool,
+see `scyjava._stubs.cli`, which provides a CLI interface for the `generate_stubs`
+function.
+"""
+
 from __future__ import annotations
 
 import ast
@@ -42,9 +53,11 @@ def generate_stubs(
         The prefixes to generate stubs for. This should be a list of Java class
         prefixes that you expect to find in the endpoints. For example,
         ["org.apache.commons"].  If not provided, the prefixes will be
-        automatically determined from the jar files provided by endpoints.
+        automatically determined from the jar files provided by endpoints (see the
+        `_list_top_level_packages` helper function).
     output_dir : str | Path, optional
-        The directory to write the generated stubs to. Defaults to "stubs".
+        The directory to write the generated stubs to. Defaults to "stubs" in the
+        current working directory.
     convert_strings : bool, optional
         Whether to cast Java strings to Python strings in the stubs. Defaults to True.
         NOTE: This leads to type stubs that may not be strictly accurate at runtime.
@@ -58,8 +71,10 @@ def generate_stubs(
         Whether to include Javadoc in the generated stubs. Defaults to True.
     add_runtime_imports : bool, optional
         Whether to add runtime imports to the generated stubs. Defaults to True.
-        This is useful if you want to use the stubs as a runtime package with type
-        safety.
+        This is useful if you want to actually import the stubs as a runtime package
+        with type safety.  The runtime import "magic" depends on the
+        `scyjava._stubs.setup_java_imports` function.  See its documentation for
+        more details.
     remove_namespace_only_stubs : bool, optional
         Whether to remove stubs that export no names beyond a single
         `__module_protocol__`. This leaves some folders as PEP420 implicit namespace
@@ -95,7 +110,7 @@ def generate_stubs(
         ep_artifacts = tuple(ep.split(":")[1] for ep in endpoints)
         for j in cp.split(os.pathsep):
             if Path(j).name.startswith(ep_artifacts):
-                _prefixes.update(list_top_level_packages(j))
+                _prefixes.update(_list_top_level_packages(j))
 
     prefixes = sorted(_prefixes)
     logger.info(f"Using endpoints: {scyjava.config.endpoints!r}")
@@ -189,7 +204,7 @@ def ruff_check(output: Path, select: str = "E,W,F,I,UP,C4,B,RUF,TC,TID") -> None
     subprocess.run(["ruff", "format", *py_files, "--quiet"])
 
 
-def list_top_level_packages(jar_path: str) -> set[str]:
+def _list_top_level_packages(jar_path: str) -> set[str]:
     """Inspect a JAR file and return the set of top-level Java package names."""
     packages: set[str] = set()
     with ZipFile(jar_path, "r") as jar:

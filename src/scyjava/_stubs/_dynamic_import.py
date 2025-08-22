@@ -1,3 +1,24 @@
+"""Logic for using generated type stubs as runtime importable, with lazy JVM startup.
+
+Most often, the functionality here will be used as follows:
+
+```
+from scyjava._stubs import setup_java_imports
+
+__all__, __getattr__ = setup_java_imports(
+    __name__,
+    __file__,
+    endpoints=["org.scijava:parsington:3.1.0"],
+    base_prefix="org"
+)
+```
+
+...and that little snippet is written into the generated stubs modules by the
+`scyjava._stubs.generate_stubs` function.
+
+See docstring of `setup_java_imports` for details on how it works.
+"""
+
 import ast
 from logging import warning
 from pathlib import Path
@@ -21,11 +42,14 @@ def setup_java_imports(
     :param module_file: The path to the module file (usually `__file__` in the calling
         module).
     :param endpoints: A list of Java endpoints to add to the scyjava configuration.
+        (Note that `scyjava._stubs.generate_stubs` will automatically add the necessary
+        endpoints for the generated stubs.)
     :param base_prefix: The base prefix for the Java package name. This is used when
         determining the Java class path for the requested class. The java class path
         will be truncated to only the part including the base_prefix and after.  This
         makes it possible to embed a module in a subpackage (like `scyjava.types`) and
         still have the correct Java class path.
+
     :return: A 2-tuple containing:
         - A list of all classes in the module (as defined in the stub file), to be
             assigned to `__all__`.
@@ -57,6 +81,7 @@ def setup_java_imports(
         if ep not in scyjava.config.endpoints:
             scyjava.config.endpoints.append(ep)
 
+    # list intended to be assigned to `__all__` in the generated module.
     module_all = []
     try:
         my_stub = Path(module_file).with_suffix(".pyi")
@@ -75,6 +100,7 @@ def setup_java_imports(
         )
 
     def module_getattr(name: str, mod_name: str = module_name) -> Any:
+        """Function intended to be assigned to __getattr__ in the generate module."""
         if module_all and name not in module_all:
             raise AttributeError(f"module {module_name!r} has no attribute {name!r}")
 
@@ -83,6 +109,9 @@ def setup_java_imports(
             mod_name = mod_name[mod_name.index(base_prefix) :]
 
         class_path = f"{mod_name}.{name}"
+
+        # Generate a proxy type (with a nice repr) that
+        # delays the call to `jimport` until the last moment when type.__new__ is called
 
         class ProxyMeta(type):
             def __repr__(self) -> str:

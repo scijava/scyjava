@@ -5,10 +5,10 @@ import logging
 import os
 import shutil
 import subprocess
+import sys
 from importlib import import_module
 from itertools import chain
 from pathlib import Path, PurePath
-import sys
 from typing import TYPE_CHECKING, Any
 from unittest.mock import patch
 from zipfile import ZipFile

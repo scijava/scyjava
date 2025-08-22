@@ -1,4 +1,5 @@
 # Ignore everything in this directory
 *
-# Except this file
+# Except this file and the __init__.py file
 !.gitignore
+!__init__.py

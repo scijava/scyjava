@@ -7,6 +7,7 @@ import inspect
 import logging
 import math
 from bisect import insort
+from importlib.util import find_spec
 from pathlib import Path
 from typing import Any, Callable, Dict, List, NamedTuple
 
@@ -677,7 +678,7 @@ def _stock_py_converters() -> List:
             priority=Priority.VERY_LOW,
         ),
     ]
-    if _import_pandas(required=False):
+    if find_spec("pandas"):
         converters.append(
             Converter(
                 name="org.scijava.table.Table -> pandas.DataFrame",
@@ -716,7 +717,7 @@ def _stock_py_converters() -> List:
                 ),
             ]
         )
-        if _import_numpy(required=False):
+        if find_spec("numpy"):
             converters.append(
                 Converter(
                     name="primitive array -> numpy.ndarray",
@@ -803,16 +804,15 @@ def _jarray_shape(jarr):
     return shape
 
 
-def _import_numpy(required=True):
+def _import_numpy():
     try:
         import numpy as np
 
         return np
     except ImportError as e:
-        if required:
-            msg = "The NumPy library is missing (https://numpy.org/). "
-            msg += "Please install it before using this function."
-            raise RuntimeError(msg) from e
+        msg = "The NumPy library is missing (https://numpy.org/). "
+        msg += "Please install it before using this function."
+        raise RuntimeError(msg) from e
 
 
 ######################################
@@ -838,16 +838,15 @@ def _convert_table(obj: Any):
         return None
 
 
-def _import_pandas(required=True):
+def _import_pandas():
     try:
         import pandas as pd
 
         return pd
     except ImportError as e:
-        if required:
-            msg = "The Pandas library is missing (http://pandas.pydata.org/). "
-            msg += "Please install it before using this function."
-            raise RuntimeError(msg) from e
+        msg = "The Pandas library is missing (http://pandas.pydata.org/). "
+        msg += "Please install it before using this function."
+        raise RuntimeError(msg) from e
 
 
 def _table_to_pandas(table):

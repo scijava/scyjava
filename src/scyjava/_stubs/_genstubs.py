@@ -90,7 +90,7 @@ def generate_stubs(
             "stubgenj is not installed, but is required to generate java stubs. "
             "Please install it with `pip/conda install stubgenj`."
         ) from e
-
+    print("GENERATE")
     import jpype
 
     startJVM = jpype.startJVM

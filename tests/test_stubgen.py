@@ -14,10 +14,11 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-@pytest.mark.skipif(
-    scyjava.config.mode != scyjava.config.Mode.JPYPE,
-    reason="Stubgen not supported in JEP",
-)
+JEP_MODE = scyjava.config.mode != scyjava.config.Mode.JPYPE
+skip_if_jep = pytest.mark.skipif(JEP_MODE, reason="Stubgen not supported in JEP")
+
+
+@skip_if_jep
 def test_stubgen(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     # run the stubgen command as if it was run from the command line
     monkeypatch.setattr(
@@ -32,10 +33,6 @@ def test_stubgen(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     )
     _cli.main()
 
-    # remove the `jpype.imports` magic from the import system if present
-    mp = [x for x in sys.meta_path if not isinstance(x, jpype.imports._JImportLoader)]
-    monkeypatch.setattr(sys, "meta_path", mp)
-
     # add tmp_path to the import path
     monkeypatch.setattr(sys, "path", [str(tmp_path)])
 
@@ -43,8 +40,8 @@ def test_stubgen(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     sys.modules.pop("org", None)
     sys.modules.pop("org.scijava", None)
     sys.modules.pop("org.scijava.parsington", None)
-    # make sure the stubgen command works and that we can now impmort stuff
 
+    # make sure the stubgen command works and that we can now import stuff
     with patch.object(scyjava._jvm, "start_jvm") as mock_start_jvm:
         from org.scijava.parsington import Function
 

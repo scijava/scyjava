@@ -9,136 +9,96 @@ The generator function will be called at import time with the full module name
 
 from __future__ import annotations
 
-import importlib.util
+import os
 import sys
 import threading
-import types
-from ast import mod
-from importlib.abc import Loader, MetaPathFinder
-from importlib.machinery import SourceFileLoader
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import scyjava
-from scyjava._stubs import generate_stubs
-
 if TYPE_CHECKING:
+    import types
     from collections.abc import Sequence
     from importlib.machinery import ModuleSpec
 
 
+# where generated stubs should land (defaults to this dir: `scyjava.types`)
+STUBS_DIR = os.getenv("SCYJAVA_STUBS_DIR", str(Path(__file__).parent))
+# namespace under which generated stubs will be placed
+STUBS_NAMESPACE = __name__
+# module lock to prevent concurrent stub generation
 _STUBS_LOCK = threading.Lock()
-TYPES_DIR = Path(__file__).parent
 
 
-class ScyJavaTypesMetaFinder(MetaPathFinder):
-    """Meta path finder for scyjava.types that delegates to our loader."""
+class ScyJavaTypesMetaFinder:
+    """Meta path finder for scyjava.types that generates stubs on demand."""
 
     def find_spec(
         self,
         fullname: str,
         path: Sequence[str] | None,
         target: types.ModuleType | None = None,
-        /,
     ) -> ModuleSpec | None:
         """Return a spec for names under scyjava.types (except the base)."""
-        base_package = __name__
+        # if this is an import from this module ('scyjava.types.<name>')
+        # check if the module exists, and if not, call generation routines
+        if fullname.startswith(f"{__name__}."):
+            with _STUBS_LOCK:
+                # check if the spec already exists
+                # under the module lock to avoid duplicate work
+                if not _find_spec(fullname, path, target, skip=self):
+                    _generate_stubs()
 
-        if not fullname.startswith(base_package + ".") or fullname == base_package:
-            return None
-
-        return importlib.util.spec_from_loader(
-            fullname,
-            ScyJavaTypesLoader(fullname),
-            origin="dynamic",
-        )
-
-
-class ScyJavaTypesLoader(Loader):
-    """Loader that lazily generates stubs and loads/synthesizes modules."""
-
-    def __init__(self, fullname: str) -> None:
-        self.fullname = fullname
-
-    def create_module(self, spec: ModuleSpec) -> types.ModuleType | None:
-        """Load an existing module/package or lazily generate stubs then load."""
-        pkg_dir, pkg_init, mod_file = _paths_for(spec.name, TYPES_DIR)
-
-        def _load_module() -> types.ModuleType | None:
-            # Fast paths: concrete module file or package present
-            if pkg_init.exists() or mod_file.exists():
-                return _load_generated_module(spec.name, TYPES_DIR)
-            if pkg_dir.is_dir():
-                return _namespace_package(spec, pkg_dir)
-            return None
-
-        if module := _load_module():
-            return module
-
-        # Nothing exists for this name: generate once under a lock
-        with _STUBS_LOCK:
-            # Re-check under the lock to avoid duplicate work
-            if not (pkg_init.exists() or mod_file.exists() or pkg_dir.exists()):
-                endpoints = ["org.scijava:parsington:3.1.0"]  # TODO
-                generate_stubs(endpoints, output_dir=TYPES_DIR)
-
-        # Retry after generation (or if another thread created it)
-        if module := _load_module():
-            return module
-
-        raise ImportError(f"Generated module not found: {spec.name} under {pkg_dir}")
-
-    def exec_module(self, module: types.ModuleType) -> None:
-        pass
+        return None
 
 
-def _paths_for(fullname: str, out_dir: Path) -> tuple[Path, Path, Path]:
-    """Return (pkg_dir, pkg_init, mod_file) for a scyjava.types.* fullname."""
-    rel = fullname.split("scyjava.types.", 1)[1]
-    pkg_dir = out_dir / rel.replace(".", "/")
-    pkg_init = pkg_dir / "__init__.py"
-    mod_file = out_dir / (rel.replace(".", "/") + ".py")
-    return pkg_dir, pkg_init, mod_file
+def _generate_stubs() -> None:
+    """Install stubs for all endpoints detected in `scyjava.config`.
 
-
-def _namespace_package(spec: ModuleSpec, pkg_dir: Path) -> types.ModuleType:
-    """Create a simple package module pointing at pkg_dir.
-
-    This fills the role of a namespace package, (a folder with no __init__.py).
+    This could be expanded to include additional endpoints detected in, for example,
+    python entry-points discovered in packages in the environment.
     """
-    module = types.ModuleType(spec.name)
-    module.__package__ = spec.name
-    module.__path__ = [str(pkg_dir)]
-    module.__spec__ = spec
-    return module
+    from scyjava import config
+    from scyjava._stubs import generate_stubs
+
+    generate_stubs(
+        config.endpoints,
+        output_dir=STUBS_DIR,
+        add_runtime_imports=True,
+        remove_namespace_only_stubs=True,
+    )
 
 
-def _load_generated_module(fullname: str, out_dir: Path) -> types.ModuleType:
-    """Load a just-generated module/package from disk and return it."""
-    _, pkg_init, mod_file = _paths_for(fullname, out_dir)
-    path = pkg_init if pkg_init.exists() else mod_file
-    if not path.exists():
-        raise ImportError(f"Generated module not found: {fullname} at {path}")
+def _find_spec(
+    fullname: str,
+    path: Sequence[str] | None,
+    target: types.ModuleType | None = None,
+    skip: object | None = None,
+) -> ModuleSpec | None:
+    """Find a module spec, skipping finder `skip` to avoid recursion."""
+    # if the module is already loaded and has a spec, return it
+    if module := sys.modules.get(fullname):
+        try:
+            if module.__spec__ is not None:
+                return module.__spec__
+        except AttributeError:
+            pass
 
-    loader = SourceFileLoader(fullname, str(path))
-    spec = importlib.util.spec_from_loader(fullname, loader, origin=str(path))
-    if spec is None or spec.loader is None:
-        raise ImportError(f"Failed to build spec for: {fullname}")
-
-    spec.has_location = True  # populate __file__
-    sys.modules[fullname] = module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-# -----------------------------------------------------------
+    for finder in sys.meta_path:
+        if finder is not skip:
+            try:
+                spec = finder.find_spec(fullname, path, target)
+            except AttributeError:
+                continue
+            else:
+                if spec is not None:
+                    return spec
+    return None
 
 
 def _install_meta_finder() -> None:
-    for finder in sys.meta_path:
-        if isinstance(finder, ScyJavaTypesMetaFinder):
-            return
-
+    """Install the ScyJavaTypesMetaFinder into sys.meta_path if not already there."""
+    if any(isinstance(finder, ScyJavaTypesMetaFinder) for finder in sys.meta_path):
+        return
     sys.meta_path.insert(0, ScyJavaTypesMetaFinder())
 
 

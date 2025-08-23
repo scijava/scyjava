@@ -65,8 +65,8 @@ def generate_stubs(
         called with the `convertStrings` argument set to True or False.  By setting
         this `convert_strings` argument to true, the type stubs will be generated as if
         `convertStrings` is set to True: that is, all string types will be listed as
-        `str` rather than `java.lang.String | str`.  This is a safer default (as `str`)
-        is a subtype of `java.lang.String`), but may lead to type errors in some cases.
+        `str` rather than `java.lang.String | str`.  This is a safer default (as `str`
+        is a base of `java.lang.String`), but may lead to type errors in some cases.
     include_javadoc : bool, optional
         Whether to include Javadoc in the generated stubs. Defaults to True.
     add_runtime_imports : bool, optional
@@ -90,8 +90,12 @@ def generate_stubs(
             "stubgenj is not installed, but is required to generate java stubs. "
             "Please install it with `pip/conda install stubgenj`."
         ) from e
-    print("GENERATE")
     import jpype
+
+    # if jpype.isJVMStarted():
+    # raise RuntimeError(
+    # "Generating type stubs after the JVM has started is not supported."
+    # )
 
     startJVM = jpype.startJVM
 
@@ -117,23 +121,24 @@ def generate_stubs(
     logger.info(f"Generating stubs for: {prefixes}")
     logger.info(f"Writing stubs to: {output_dir}")
 
-    metapath = sys.meta_path
+    metapath = sys.meta_path.copy()
     try:
         import jpype.imports
 
         jmodules = [import_module(prefix) for prefix in prefixes]
-    finally:
-        # remove the jpype.imports magic from the import system
-        # if it wasn't there to begin with
-        sys.meta_path = metapath
 
-    stubgenj.generateJavaStubs(
-        jmodules,
-        useStubsSuffix=False,
-        outputDir=str(output_dir),
-        jpypeJPackageStubs=False,
-        includeJavadoc=include_javadoc,
-    )
+        stubgenj.generateJavaStubs(
+            jmodules,
+            useStubsSuffix=False,
+            outputDir=str(output_dir),
+            jpypeJPackageStubs=False,
+            includeJavadoc=include_javadoc,
+        )
+
+    finally:
+        # restore sys.metapath
+        # (remove the jpype.imports magic if it wasn't there to begin with)
+        sys.meta_path[:] = metapath
 
     output_dir = Path(output_dir)
     if add_runtime_imports:

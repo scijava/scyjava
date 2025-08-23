@@ -9,7 +9,7 @@ import math
 from bisect import insort
 from importlib.util import find_spec
 from pathlib import Path
-from typing import Any, Callable, Dict, List, NamedTuple, reveal_type
+from typing import Any, Callable, Dict, List, NamedTuple
 
 from jpype import JBoolean, JByte, JChar, JDouble, JFloat, JInt, JLong, JShort
 

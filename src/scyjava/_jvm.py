@@ -105,9 +105,7 @@ def jvm_version() -> tuple[int, ...]:
     m = re.match('.* version "([^"]*)"', output)
     if not m:
         raise RuntimeError(
-            "Inscrutable java command output:\n" +
-            f"$ {java} -version\n" +
-            output
+            f"Inscrutable java command output:\n$ {java} -version\n{output}"
         )
 
     v = m.group(1)

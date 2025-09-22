@@ -93,6 +93,7 @@ def jvm_version() -> tuple[int, ...]:
     if java is None:
         raise RuntimeError(f"No java executable found inside: {p}")
 
+    _logger.debug(f"Invoking `{java} -version`...")
     try:
         output = subprocess.check_output(
             [str(java), "-version"], stderr=subprocess.STDOUT
@@ -101,11 +102,21 @@ def jvm_version() -> tuple[int, ...]:
         raise RuntimeError("System call to java failed") from e
 
     output = output.replace("\n", " ").replace("\r", "")
-    m = re.match('.*version "(([0-9]+\\.)+[0-9]+)', output)
+    m = re.match('.* version "([^"]*)"', output)
     if not m:
-        raise RuntimeError(f"Inscrutable java command output:\n{output}")
+        raise RuntimeError(
+            "Inscrutable java command output:\n" +
+            f"$ {java} -version\n" +
+            output
+        )
 
-    return tuple(map(int, m.group(1).split(".")))
+    v = m.group(1)
+    _logger.debug(f"Got Java version: {v}")
+
+    try:
+        return tuple(map(int, v.split(".")))
+    except ValueError:
+        raise RuntimeError(f"Inscrutable java version: {v}")
 
 
 def start_jvm(options: Sequence[str] = None) -> None:

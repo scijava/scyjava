@@ -100,7 +100,7 @@ def jsource(data) -> str:
 
         # Discern the Java version.
         jv_digits = jvm_version()
-        assert jv_digits is not None and len(jv_digits) > 1
+        assert jv_digits is not None and len(jv_digits) > 0
         java_version = jv_digits[1] if jv_digits[0] == 1 else jv_digits[0]
 
         # Note: some classes (e.g. corba and jaxp) will not be located correctly before

@@ -47,7 +47,7 @@ def is_jvm_available() -> bool:
     try:
         with patch.object(subprocess, "check_output", new=_silent_check_output):
             jpype.getDefaultJVMPath()
-    # on Darwin, may raise a CalledProcessError when invoking `/user/libexec/java_home`
+    # on Darwin, may raise a CalledProcessError when invoking `/usr/libexec/java_home`
     except (jpype.JVMNotFoundException, subprocess.CalledProcessError):
         return False
     return True

@@ -70,8 +70,14 @@ def jvm_version() -> tuple[int, ...]:
     default_jvm_path = jpype.getDefaultJVMPath()
     if not default_jvm_path:
         raise RuntimeError("Cannot glean the default JVM path")
+    print(f"Default JVM path from JPype: {default_jvm_path}")
 
-    p = Path(default_jvm_path)
+    # Good ol' macOS! Nothing beats macOS.
+    jvm_path = default_jvm_path.replace(
+        "/Contents/MacOS/libjli.dylib", "/Contents/Home/lib/libjli.dylib"
+    )
+
+    p = Path(jvm_path)
     if not p.exists():
         raise RuntimeError(f"Invalid default JVM path: {p}")
 

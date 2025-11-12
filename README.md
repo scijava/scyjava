@@ -370,7 +370,7 @@ FUNCTIONS
     jvm_started() -> bool
         Return true iff a Java virtual machine (JVM) has been started.
 
-    jvm_version() -> str
+    jvm_version() -> tuple[int, ...]
         Gets the version of the JVM as a tuple, with each dot-separated digit
         as one element. Characters in the version string beyond only numbers
         and dots are ignored, in line with the java.version system property.

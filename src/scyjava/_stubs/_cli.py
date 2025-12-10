@@ -4,7 +4,7 @@ Provides cli access to the `scyjava._stubs.generate_stubs` function.
 
 The only interesting additional things going on here is the choice of *where* the stubs
 go by default.  When using the CLI, they land in `scyjava.types` by default; see the
-`_get_ouput_dir` helper function for details on how the output directory is resolved
+`_get_output_dir` helper function for details on how the output directory is resolved
 from the CLI arguments.
 """
 
@@ -98,7 +98,7 @@ def main() -> None:
         sys.exit(1)
 
     args = parser.parse_args()
-    output_dir = _get_ouput_dir(args.output_dir, args.output_python_path)
+    output_dir = _get_output_dir(args.output_dir, args.output_python_path)
     if not output_dir.exists():
         output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -132,7 +132,7 @@ def _derive_python_prefix(output_dir: str | None) -> str:
     return "scyjava.types"
 
 
-def _get_ouput_dir(output_dir: str | None, python_path: str | None) -> Path:
+def _get_output_dir(output_dir: str | None, python_path: str | None) -> Path:
     if out_dir := output_dir:
         return Path(out_dir)
     if pp := python_path:

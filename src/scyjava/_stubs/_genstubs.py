@@ -41,6 +41,7 @@ def generate_stubs(
     include_javadoc: bool = True,
     add_runtime_imports: bool = True,
     remove_namespace_only_stubs: bool = False,
+    python_package_prefix: str = "",
 ) -> None:
     """Generate stubs for the given maven endpoints.
 
@@ -82,6 +83,11 @@ def generate_stubs(
         merge the generated stubs with other stubs in the same namespace.  Without this,
         the `__init__.pyi` for any given module will be whatever whatever the *last*
         stub generator wrote to it (and therefore inaccurate).
+    python_package_prefix : str, optional
+        The Python package prefix under which stubs are being installed. For example,
+        if stubs are being installed to `scyjava.types.org.scijava...`, this should be
+        "scyjava.types". This is used to rewrite imports in the stub files so that
+        type checkers can properly resolve cross-references. Defaults to "".
     """
     try:
         import stubgenj
@@ -136,10 +142,20 @@ def generate_stubs(
     )
 
     output_dir = Path(output_dir)
+    if python_package_prefix:
+        logger.info(
+            "Rewriting stub imports with Python package prefix: %s",
+            python_package_prefix,
+        )
+
     if add_runtime_imports:
         logger.info("Adding runtime imports to generated stubs")
 
     for stub in output_dir.rglob("*.pyi"):
+        # Rewrite imports if a Python package prefix was specified
+        if python_package_prefix:
+            _rewrite_stub_imports(stub, python_package_prefix)
+
         stub_ast = ast.parse(stub.read_text())
         members = {node.name for node in stub_ast.body if hasattr(node, "name")}
         if members == {"__module_protocol__"}:
@@ -176,6 +192,113 @@ __all__, __getattr__ = setup_java_imports(
     base_prefix={base_prefix},
 )
 """
+
+
+def _rewrite_stub_imports(stub_path: Path, python_package_prefix: str) -> None:
+    """Rewrite imports in a stub file to use the full Python package path.
+
+    When stubs are generated into a subdirectory like scyjava/types, they need to have
+    their imports rewritten so that type checkers can resolve cross-references. This
+    function transforms imports like:
+
+        import org.scijava.object
+
+    into:
+
+        import scyjava.types.org.scijava.object
+
+    and transforms type references like:
+
+        org.scijava.object.ObjectIndex
+
+    into:
+
+        scyjava.types.org.scijava.object.ObjectIndex
+    """
+    import re
+
+    content = stub_path.read_text()
+
+    # Split into lines for import processing
+    lines = content.split("\n")
+    new_lines = []
+    import_patterns = []  # Patterns to replace in annotations
+
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.strip()
+
+        # Handle import statements
+        if stripped.startswith("import ") and (
+            "org." in stripped or "java." in stripped
+        ):
+            # Parse "import org.scijava.service"
+            match = stripped.split()
+            if len(match) >= 2:
+                module_name = match[1]
+                if (
+                    not module_name.startswith(".")
+                    and "scyjava.types" not in module_name
+                ):
+                    # Only rewrite org.* imports (not java.*)
+                    if module_name.startswith("org."):
+                        new_module = f"{python_package_prefix}.{module_name}"
+                        # Preserve indentation
+                        indent = line[: len(line) - len(line.lstrip())]
+                        new_lines.append(f"{indent}import {new_module}")
+                        # Record this pattern for later annotation rewriting
+                        import_patterns.append((module_name, new_module))
+                        i += 1
+                        continue
+
+        # Handle "from X import Y" statements
+        elif stripped.startswith("from ") and (" import " in stripped):
+            if "org." in stripped or "java." in stripped:
+                parts = stripped.split(" import ")
+                if len(parts) == 2:
+                    module_part = parts[0].replace("from ", "").strip()
+                    imports_part = parts[1].strip()
+
+                    if (
+                        not module_part.startswith(".")
+                        and "scyjava.types" not in module_part
+                    ):
+                        if module_part.startswith("org."):
+                            new_module = f"{python_package_prefix}.{module_part}"
+                            indent = line[: len(line) - len(line.lstrip())]
+                            new_lines.append(
+                                f"{indent}from {new_module} import {imports_part}"
+                            )
+                            import_patterns.append((module_part, new_module))
+                            i += 1
+                            continue
+
+        new_lines.append(line)
+        i += 1
+
+    # Reconstruct content with rewritten imports
+    new_content = "\n".join(new_lines)
+
+    # Now rewrite type annotations that reference org.* packages
+    # Only replace in type hints, not in already-rewritten import statements
+    # We do this by replacing the old module names with new ones, but being careful
+    # to not double-replace
+    for old_prefix, new_prefix in import_patterns:
+        # Replace qualified names like "org.scijava.service.ServiceIndex"
+        # but NOT names that already have the prefix
+        # Pattern: old_prefix followed by a dot and word characters
+        # Use negative lookbehind to avoid replacing if already prefixed
+        pattern = (
+            r"(?<!"
+            + re.escape(python_package_prefix)
+            + r"\.)"
+            + re.escape(old_prefix)
+            + r"(?=\.\w)"
+        )
+        new_content = re.sub(pattern, new_prefix, new_content)
+
+    stub_path.write_text(new_content)
 
 
 def ruff_check(output: Path, select: str = "E,W,F,I,UP,C4,B,RUF,TC,TID") -> None:

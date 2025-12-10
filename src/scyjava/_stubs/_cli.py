@@ -102,6 +102,11 @@ def main() -> None:
     if not output_dir.exists():
         output_dir.mkdir(parents=True, exist_ok=True)
 
+    # Determine the Python package prefix for import rewriting
+    python_package_prefix = args.output_python_path or _derive_python_prefix(
+        args.output_dir
+    )
+
     generate_stubs(
         endpoints=args.endpoints,
         prefixes=args.prefix,
@@ -110,7 +115,21 @@ def main() -> None:
         include_javadoc=args.with_javadoc,
         add_runtime_imports=args.runtime_imports,
         remove_namespace_only_stubs=args.remove_namespace_only_stubs,
+        python_package_prefix=python_package_prefix,
     )
+
+
+def _derive_python_prefix(output_dir: str | None) -> str:
+    """Derive the Python package prefix from the output directory.
+
+    If output_dir is None, defaults to 'scyjava.types'.
+    """
+    if output_dir:
+        # For a filesystem path, we can't reliably derive the Python prefix
+        # Return empty string to skip import rewriting
+        return ""
+    # Default case: stubs go to scyjava.types
+    return "scyjava.types"
 
 
 def _get_ouput_dir(output_dir: str | None, python_path: str | None) -> Path:

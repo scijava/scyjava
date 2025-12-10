@@ -308,7 +308,7 @@ def ruff_check(output: Path, select: str = "E,W,F,I,UP,C4,B,RUF,TC,TID") -> None
 
     py_files = [str(x) for x in chain(output.rglob("*.py"), output.rglob("*.pyi"))]
     logger.info(
-        "Running ruff check on %d generated stubs in % s",
+        "Running ruff check on %d generated stubs in %s",
         len(py_files),
         str(output),
     )

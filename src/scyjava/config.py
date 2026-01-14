@@ -7,7 +7,9 @@ from pathlib import Path
 from typing import Sequence
 
 import jpype as _jpype
-from jgo import maven_scijava_repository as _scijava_public
+
+
+_SCIJAVA_PUBLIC = "https://maven.scijava.org/content/groups/public"
 
 
 _logger = _logging.getLogger(__name__)
@@ -21,7 +23,7 @@ _maven_sha: str = "a555254d6b53d267965a3404ecb14e53c3827c09c3b94b5678835887ab404
 
 endpoints: list[str] = []
 
-_repositories = {"scijava.public": _scijava_public()}
+_repositories = {"scijava.public": _SCIJAVA_PUBLIC}
 _verbose = 0
 _manage_deps = True
 _cache_dir = Path.home() / ".jgo"

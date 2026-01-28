@@ -18,8 +18,6 @@ _logger = _logging.getLogger(__name__)
 _fetch_java: str = "always"
 _java_vendor: str = "zulu-jre"
 _java_version: str = "11"
-_maven_url: str = "tgz+https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz"  # noqa: E501
-_maven_sha: str = "a555254d6b53d267965a3404ecb14e53c3827c09c3b94b5678835887ab404556bfaf78dcfe03ba76fa2508649dca8531c74bca4d5846513522404d48e8c4ac8b"  # noqa: E501
 
 endpoints: list[str] = []
 
@@ -56,25 +54,30 @@ def set_java_constraints(
     """
     Set constraints on the version of Java to be used.
 
+    :return:
+        "always" to download (or retrieve from cache) a suitable JDK/JRE;
+        "never" to rely only on an existing "system Java" installation
+        (discovered via the JAVA_HOME environment variable or system path);
+        "auto" to prefer system Java, but download one if no existing JVM is found.
     :param fetch:
-        If "always" (default), cjdk will always be used; if "never", cjdk will
-        never be used. If "auto", when a JVM/or maven cannot be located on the system,
-        [`cjdk`](https://github.com/cachedjdk/cjdk) will be used to download a
-        JDK/JRE distribution and set up the JVM.
+        If "always" (default), a suitable JDK/JRE will be downloaded (or retrieved from
+        cache if previously downloaded) ignoring any system Java installations;
+        if "never", only an already-available JDK/JRE will be used,
+        discovered via the JAVA_HOME environment variable or system path;
+        If "auto", a suitable JDK/JRE will be downloaded and cached only when an
+        existing JDK/JRE cannot be located on the system.
     :param vendor:
-        The vendor of the JDK/JRE distribution for cjdk to download and cache.
-        Defaults to "zulu-jre". See the cjdk documentation for details.
+        The vendor of the JDK/JRE distribution to download and cache.
+        Defaults to "zulu-jre". Does not constrain matching of system JDK/JREs.
     :param version:
-        Expression defining the Java version for cjdk to download and cache.
-        Defaults to "11". See the cjdk documentation for details.
+        Expression defining the Java version to download and cache.
+        Defaults to "11". Does not constrain matching of system JDK/JREs.
     :param maven_url:
-        URL of the Maven distribution for cjdk to download and cache.
-        Defaults to the Maven 3.9.9 binary distribution from dlcdn.apache.org.
+        DEPRECATED: scyjava no longer uses Maven to resolve dependencies.
     :param maven_sha:
-        The SHA512 (or SHA256 or SHA1) hash of the Maven distribution to download,
-        if providing a custom maven_url.
+        DEPRECATED: scyjava no longer uses Maven to resolve dependencies.
     """
-    global _fetch_java, _java_vendor, _java_version, _maven_url, _maven_sha
+    global _fetch_java, _java_vendor, _java_version
     if fetch is not None:
         if isinstance(fetch, bool):
             # Be nice and allow boolean values as a convenience.
@@ -88,30 +91,38 @@ def set_java_constraints(
     if version is not None:
         _java_version = version
     if maven_url is not None:
+        _logger.warning(
+            "Deprecated argument: scyjava.config.set_java_constraints(maven_url). "
+            "scyjava no longer uses Maven to resolve dependencies."
+        )
         _maven_url = maven_url
-        _maven_sha = ""
     if maven_sha is not None:
+        _logger.warning(
+            "Deprecated argument: scyjava.config.set_java_constraints(maven_sha). "
+            "scyjava no longer uses Maven to resolve dependencies."
+        )
         _maven_sha = maven_sha
 
 
 def get_fetch_java() -> str:
     """
-    Get whether [`cjdk`](https://github.com/cachedjdk/cjdk)
-    will be used to download a JDK/JRE distribution and set up the JVM.
+    Get whether to download (or retrieve from local cache if previously downloaded)
+    a JDK/JRE distribution and set up the JVM.
     To set this value, see set_java_constraints.
 
     :return:
-        "always" for cjdk to obtain the JDK/JRE;
-        "never" for cjdk *not* to obtain a JDK/JRE;
-        "auto" for cjdk to be used only when a JVM/or Maven is not on the system path.
+        "always" to download (or retrieve from cache) a suitable JDK/JRE;
+        "never" to fully rely on an existing installation
+        (discovered via the JAVA_HOME environment variable or system path);
+        "auto" to prefer system Java, but download one if no existing JVM is found.
     """
     return _fetch_java
 
 
 def get_java_vendor() -> str:
     """
-    Get the vendor of the JDK/JRE distribution to download.
-    Vendor of the Java installation for cjdk to download and cache.
+    Vendor of the Java installation to download and cache. Does not
+    constrain matching of system JDK/JREs, only those fetched and cached.
     To set this value, see set_java_constraints.
 
     :return: String defining the desired JDK/JRE vendor for downloaded JDK/JREs.
@@ -121,32 +132,13 @@ def get_java_vendor() -> str:
 
 def get_java_version() -> str:
     """
-    Expression defining the Java version for cjdk to download and cache.
+    Expression defining the Java version to download and cache. Does not
+    constrain matching of system JDK/JREs, only those fetched and cached.
     To set this value, see set_java_constraints.
 
     :return: String defining the desired JDK/JRE version for downloaded JDK/JREs.
     """
     return _java_version
-
-
-def get_maven_url() -> str:
-    """
-    The URL of the Maven distribution to download.
-    To set this value, see set_java_constraints.
-
-    :return: URL pointing to the Maven distribution.
-    """
-    return _maven_url
-
-
-def get_maven_sha() -> str:
-    """
-    The SHA512 (or SHA256 or SHA1) hash of the Maven distribution to download,
-    if providing a custom maven_url. To set this value, see set_java_constraints.
-
-    :return: Hash value of the Maven distribution, or empty string to skip hash check.
-    """
-    return _maven_sha
 
 
 def add_repositories(*args, **kwargs) -> None:
@@ -470,3 +462,37 @@ def get_endpoints():
     )
     global endpoints
     return endpoints
+
+
+_maven_url: str = "tgz+https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz"  # noqa: E501
+_maven_sha: str = "a555254d6b53d267965a3404ecb14e53c3827c09c3b94b5678835887ab404556bfaf78dcfe03ba76fa2508649dca8531c74bca4d5846513522404d48e8c4ac8b"  # noqa: E501
+
+
+def get_maven_url() -> str:
+    """
+    DEPRECATED since v1.12.3
+    scyjava no longer uses Maven to resolve dependencies,
+    but rather jgo v2's pure-Python dependency resolver.
+
+    :return: Path to Maven 3.9.9 download (for backwards compatibility).
+    """
+    _logger.warning(
+        "Deprecated method call: scyjava.config.get_maven_url(). "
+        "scyjava no longer uses Maven to resolve dependencies."
+    )
+    return _maven_url
+
+
+def get_maven_sha() -> str:
+    """
+    DEPRECATED since v1.12.3
+    scyjava no longer uses Maven to resolve dependencies,
+    but rather jgo v2's pure-Python dependency resolver.
+
+    :return: Hash of Maven 3.9.9 download (for backwards compatibility).
+    """
+    _logger.warning(
+        "Deprecated method call: scyjava.config.get_maven_sha(). "
+        "scyjava no longer uses Maven to resolve dependencies."
+    )
+    return _maven_sha

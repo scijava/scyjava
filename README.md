@@ -4,7 +4,7 @@
 Supercharged Java access from Python.
 
 Built on [JPype](https://jpype.readthedocs.io/en/latest/)
-and [jgo](https://github.com/scijava/jgo).
+and [jgo](https://github.com/apposed/jgo).
 
 ## Use Java classes from Python
 
@@ -83,7 +83,7 @@ u'1.8.0_152-release'
 +++oo*OO######OO*oo+++++oo*OO######OO*oo+++++oo*OO######OO*oo+++
 ```
 
-See the [jgo documentation](https://github.com/scijava/jgo) for more about Maven endpoints.
+See the [jgo documentation](https://github.com/apposed/jgo) for more about Maven endpoints.
 
 ## Bootstrap a Java installation
 

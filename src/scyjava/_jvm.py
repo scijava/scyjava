@@ -15,11 +15,11 @@ from typing import Sequence
 
 import jpype
 import jpype.config
-from jgo import jgo
+import jgo
 
 import scyjava.config
 from scyjava.config import Mode, mode
-from scyjava._cjdk_fetch import ensure_jvm_available
+from scyjava._jdk_fetch import ensure_jvm_available
 
 _logger = logging.getLogger(__name__)
 
@@ -151,23 +151,31 @@ def start_jvm(options: Sequence[str] = None) -> None:
     # use the logger to notify user that endpoints are being added
     _logger.debug("Adding jars from endpoints {0}".format(endpoints))
 
-    # download JDK/JRE and Maven as appropriate
+    # download Java as appropriate
     ensure_jvm_available()
 
     # get endpoints and add to JPype class path
     if len(endpoints) > 0:
+        # sort endpoints list, except for the first one
         endpoints = endpoints[:1] + sorted(endpoints[1:])
         _logger.debug("Using endpoints %s", endpoints)
-        _, workspace = jgo.resolve_dependencies(
-            "+".join(endpoints),
-            m2_repo=scyjava.config.get_m2_repo(),
+
+        # join endpoints list to single concatenated endpoint
+        endpoint = "+".join(endpoints)
+
+        env = jgo.build(
+            endpoint=endpoint,
+            #update=False,
             cache_dir=scyjava.config.get_cache_dir(),
-            manage_dependencies=scyjava.config.get_manage_deps(),
             repositories=repositories,
-            verbose=scyjava.config.get_verbose(),
-            shortcuts=scyjava.config.get_shortcuts(),
+            # The following obsolete arguments are from jgo v1:
+            #m2_repo=scyjava.config.get_m2_repo(),
+            #manage_dependencies=scyjava.config.get_manage_deps(),
+            #verbose=scyjava.config.get_verbose(),
+            #shortcuts=scyjava.config.get_shortcuts(),
         )
-        jpype.addClassPath(os.path.join(workspace, "*"))
+        jpype.addClassPath(env.modules_dir / "*")
+        jpype.addClassPath(env.jars_dir / "*")
 
     # HACK: Try to set JAVA_HOME if it isn't already.
     if (

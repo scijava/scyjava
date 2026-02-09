@@ -53,7 +53,9 @@ class TestIntrospection(object):
         arraylist_Obj = scyjava.jreflect(ArrayList, "constructors")
         assert len(str_Obj) == len(arraylist_Obj) == 3
         arraylist_Obj.sort(
-            key=lambda row: f"{row['type']}:{row['name']}:{','.join(str(row['arguments']))}"
+            key=lambda row: (
+                f"{row['type']}:{row['name']}:{','.join(str(row['arguments']))}"
+            )
         )
         assert arraylist_Obj == [
             {

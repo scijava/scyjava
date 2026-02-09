@@ -60,11 +60,11 @@ class TestPandas(object):
         df = pd.DataFrame(array, columns=columns)
 
         # Convert column 0 to integer
-        df.iloc[:, 0] = (df.iloc[:, 0] * 100).astype("int")
+        df[columns[0]] = (df[columns[0]] * 100).astype("int")
         # Convert column 1 to bool
-        df.iloc[:, 1] = df.iloc[:, 1] > 0.5
+        df[columns[1]] = df[columns[1]] > 0.5
         # Convert column 2 to string
-        df.iloc[:, 2] = df.iloc[:, 2].to_string(index=False).split("\n")
+        df[columns[2]] = df[columns[2]].to_string(index=False).split("\n")
 
         table = to_java(df)
 
@@ -137,11 +137,11 @@ class TestPandas(object):
 
         # fill mixed table
         for i in range(table.getRowCount()):
-            table.set(0, i, Float(float(array_float[i])))
+            table.set(0, i, Float(float(array_float[i].item())))
             table.set(1, i, Integer(int(array_int[i].item())))
-            table.set(2, i, Boolean(bool(array_bool[i])))
+            table.set(2, i, Boolean(bool(array_bool[i].item())))
             table.set(3, i, String(array_str[i]))
-            table.set(4, i, Double(float(array_double[i])))
+            table.set(4, i, Double(float(array_double[i].item())))
 
         df = to_python(table)
         # Table types cannot be the same here, unless we want to cast.

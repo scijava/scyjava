@@ -237,72 +237,90 @@ def _stock_java_converters() -> List[Converter]:
         ),
         Converter(
             name="int -> java.lang.Byte",
-            predicate=lambda obj, **hints: isinstance(obj, int)
-            and ("type" in hints and hints["type"] in ("b", "byte", "Byte"))
-            and _jc.Byte.MIN_VALUE <= obj <= _jc.Byte.MAX_VALUE,
+            predicate=lambda obj, **hints: (
+                isinstance(obj, int)
+                and ("type" in hints and hints["type"] in ("b", "byte", "Byte"))
+                and _jc.Byte.MIN_VALUE <= obj <= _jc.Byte.MAX_VALUE
+            ),
             converter=_jc.Byte,
             priority=Priority.HIGH,
         ),
         Converter(
             name="int -> java.lang.Short",
-            predicate=lambda obj, **hints: isinstance(obj, int)
-            and ("type" in hints and hints["type"] in ("s", "short", "Short"))
-            and _jc.Short.MIN_VALUE <= obj <= _jc.Short.MAX_VALUE,
+            predicate=lambda obj, **hints: (
+                isinstance(obj, int)
+                and ("type" in hints and hints["type"] in ("s", "short", "Short"))
+                and _jc.Short.MIN_VALUE <= obj <= _jc.Short.MAX_VALUE
+            ),
             converter=_jc.Short,
             priority=Priority.HIGH,
         ),
         Converter(
             name="int -> java.lang.Integer",
-            predicate=lambda obj, **hints: isinstance(obj, int)
-            and ("type" not in hints or hints["type"] in ("i", "int", "Integer"))
-            and _jc.Integer.MIN_VALUE <= obj <= _jc.Integer.MAX_VALUE,
+            predicate=lambda obj, **hints: (
+                isinstance(obj, int)
+                and ("type" not in hints or hints["type"] in ("i", "int", "Integer"))
+                and _jc.Integer.MIN_VALUE <= obj <= _jc.Integer.MAX_VALUE
+            ),
             converter=_jc.Integer,
         ),
         Converter(
             name="int -> java.lang.Long",
-            predicate=lambda obj, **hints: isinstance(obj, int)
-            and ("type" not in hints or hints["type"] in ("j", "l", "long", "Long"))
-            and _jc.Long.MIN_VALUE <= obj <= _jc.Long.MAX_VALUE,
+            predicate=lambda obj, **hints: (
+                isinstance(obj, int)
+                and ("type" not in hints or hints["type"] in ("j", "l", "long", "Long"))
+                and _jc.Long.MIN_VALUE <= obj <= _jc.Long.MAX_VALUE
+            ),
             converter=_jc.Long,
             priority=Priority.NORMAL - 1,
         ),
         Converter(
             name="int -> java.math.BigInteger",
-            predicate=lambda obj, **hints: isinstance(obj, int)
-            and (
-                "type" not in hints or hints["type"] in ("bi", "bigint", "BigInteger")
+            predicate=lambda obj, **hints: (
+                isinstance(obj, int)
+                and (
+                    "type" not in hints
+                    or hints["type"] in ("bi", "bigint", "BigInteger")
+                )
             ),
             converter=lambda obj: _jc.BigInteger(str(obj)),
             priority=Priority.NORMAL - 2,
         ),
         Converter(
             name="float -> java.lang.Float",
-            predicate=lambda obj, **hints: isinstance(obj, float)
-            and ("type" not in hints or hints["type"] in ("f", "float", "Float"))
-            and (
-                math.isinf(obj)
-                or math.isnan(obj)
-                or -_jc.Float.MAX_VALUE <= obj <= _jc.Float.MAX_VALUE
+            predicate=lambda obj, **hints: (
+                isinstance(obj, float)
+                and ("type" not in hints or hints["type"] in ("f", "float", "Float"))
+                and (
+                    math.isinf(obj)
+                    or math.isnan(obj)
+                    or -_jc.Float.MAX_VALUE <= obj <= _jc.Float.MAX_VALUE
+                )
             ),
             converter=_jc.Float,
         ),
         Converter(
             name="float -> java.lang.Double",
-            predicate=lambda obj, **hints: isinstance(obj, float)
-            and ("type" not in hints or hints["type"] in ("d", "double", "Double"))
-            and (
-                math.isinf(obj)
-                or math.isnan(obj)
-                or -_jc.Double.MAX_VALUE <= obj <= _jc.Double.MAX_VALUE
+            predicate=lambda obj, **hints: (
+                isinstance(obj, float)
+                and ("type" not in hints or hints["type"] in ("d", "double", "Double"))
+                and (
+                    math.isinf(obj)
+                    or math.isnan(obj)
+                    or -_jc.Double.MAX_VALUE <= obj <= _jc.Double.MAX_VALUE
+                )
             ),
             converter=_jc.Double,
             priority=Priority.NORMAL - 1,
         ),
         Converter(
             name="float -> java.math.BigDecimal",
-            predicate=lambda obj, **hints: isinstance(obj, float)
-            and (
-                "type" not in hints or hints["type"] in ("bd", "bigdec", "BigDecimal")
+            predicate=lambda obj, **hints: (
+                isinstance(obj, float)
+                and (
+                    "type" not in hints
+                    or hints["type"] in ("bd", "bigdec", "BigDecimal")
+                )
             ),
             converter=lambda obj: _jc.BigDecimal(str(obj)),
             priority=Priority.NORMAL - 2,

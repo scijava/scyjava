@@ -13,6 +13,7 @@ assert_that(before_version).is_not_none()
 assert_that(len(before_version)).is_greater_than_or_equal_to(1)
 assert_that(before_version[0]).is_greater_than(0)
 
+scyjava.config.set_java_constraints(fetch="never")
 scyjava.config.enable_headless_mode()
 scyjava.start_jvm()
 

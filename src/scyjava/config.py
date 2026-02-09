@@ -13,7 +13,7 @@ from jgo import maven_scijava_repository as _scijava_public
 _logger = _logging.getLogger(__name__)
 
 # Constraints on the Java installation to be used.
-_fetch_java: str = "auto"
+_fetch_java: str = "always"
 _java_vendor: str = "zulu-jre"
 _java_version: str = "11"
 _maven_url: str = "tgz+https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz"  # noqa: E501
@@ -55,10 +55,10 @@ def set_java_constraints(
     Set constraints on the version of Java to be used.
 
     :param fetch:
-        If "auto" (default), when a JVM/or maven cannot be located on the system,
-        [`cjdk`](https://github.com/cachedjdk/cjdk) will be used to download
-        a JDK/JRE distribution and set up the JVM.
-        If "always", cjdk will always be used; if "never", cjdk will never be used.
+        If "always" (default), cjdk will always be used; if "never", cjdk will
+        never be used. If "auto", when a JVM/or maven cannot be located on the system,
+        [`cjdk`](https://github.com/cachedjdk/cjdk) will be used to download a
+        JDK/JRE distribution and set up the JVM.
     :param vendor:
         The vendor of the JDK/JRE distribution for cjdk to download and cache.
         Defaults to "zulu-jre". See the cjdk documentation for details.

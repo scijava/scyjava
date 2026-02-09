@@ -70,7 +70,7 @@ def jvm_version() -> tuple[int, ...]:
     default_jvm_path = jpype.getDefaultJVMPath()
     if not default_jvm_path:
         raise RuntimeError("Cannot glean the default JVM path")
-    print(f"Default JVM path from JPype: {default_jvm_path}")
+    _logger.debug(f"Default JVM path from JPype: {default_jvm_path}")
 
     # Good ol' macOS! Nothing beats macOS.
     jvm_path = default_jvm_path.replace(

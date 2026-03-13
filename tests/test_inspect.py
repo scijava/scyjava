@@ -31,7 +31,7 @@ class TestInspect(object):
         ]
         pattern = (
             r"(https://github.com/openjdk/jdk/blob/)"
-            "[^ ]*(/share/classes/java/lang/Iterable\.java)"
+            r"[^ ]*(/share/classes/java/lang/Iterable\.java)"
         )
         members_string = re.sub(pattern, r"\1...\2", "".join(members))
         assert members_string.split("\n") == expected

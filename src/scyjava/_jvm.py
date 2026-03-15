@@ -78,26 +78,49 @@ def jvm_version() -> tuple[int, ...]:
     )
 
     p = Path(jvm_path)
-    if not p.exists():
-        raise RuntimeError(f"Invalid default JVM path: {p}")
-
     java = None
-    for _ in range(3):  # The bin folder is always <=3 levels up from libjvm.
-        p = p.parent
-        if p.name == "lib":
-            java = p.parent / "bin" / "java"
-        elif p.name == "bin":
-            java = p / "java"
 
-        if java is not None:
+    if not p.exists():
+        # Try Java 8 macOS dylib path (jre/lib/jli/libjli.dylib vs lib/libjli.dylib).
+        p8 = Path(
+            default_jvm_path.replace(
+                "/Contents/MacOS/libjli.dylib",
+                "/Contents/Home/jre/lib/jli/libjli.dylib",
+            )
+        )
+        if p8.exists():
+            p = p8
+
+    if not p.exists():
+        # Fall back to JAVA_HOME if the dylib path resolution failed.
+        java_home = os.environ.get("JAVA_HOME")
+        if java_home:
+            candidate = Path(java_home) / "bin" / "java"
             if os.name == "nt":
-                # Good ol' Windows! Nothing beats Windows.
-                java = java.with_suffix(".exe")
-            if not java.is_file():
-                raise RuntimeError(f"No ../bin/java found at: {p}")
-            break
+                candidate = candidate.with_suffix(".exe")
+            if candidate.is_file():
+                java = candidate
+
+        if java is None:
+            raise RuntimeError(f"Invalid default JVM path: {p}")
+
     if java is None:
-        raise RuntimeError(f"No java executable found inside: {p}")
+        for _ in range(3):  # The bin folder is always <=3 levels up from libjvm.
+            p = p.parent
+            if p.name == "lib":
+                java = p.parent / "bin" / "java"
+            elif p.name == "bin":
+                java = p / "java"
+
+            if java is not None:
+                if os.name == "nt":
+                    # Good ol' Windows! Nothing beats Windows.
+                    java = java.with_suffix(".exe")
+                if not java.is_file():
+                    raise RuntimeError(f"No ../bin/java found at: {p}")
+                break
+        if java is None:
+            raise RuntimeError(f"No java executable found inside: {p}")
 
     _logger.debug(f"Invoking `{java} -version`...")
     try:
@@ -153,6 +176,19 @@ def start_jvm(options: Sequence[str] = None) -> None:
 
     # download Java as appropriate
     ensure_jvm_available()
+
+    # Fail fast if Java version is too old. JPype 1.6+ dropped Java 8 support.
+    try:
+        ver = jvm_version()
+        if ver < (11,):
+            raise RuntimeError(
+                f"Java {'.'.join(str(v) for v in ver)} is not supported. "
+                "scyjava requires Java 11 or later."
+            )
+    except RuntimeError as e:
+        if "not supported" in str(e):
+            raise
+        _logger.debug(f"Could not determine JVM version before start: {e}")
 
     # get endpoints and add to JPype class path
     if len(endpoints) > 0:

@@ -201,15 +201,15 @@ def start_jvm(options: Sequence[str] = None) -> None:
 
         env = jgo.build(
             endpoint=endpoint,
-            #update=False,
+            # update=False,
             cache_dir=scyjava.config.get_cache_dir(),
             repositories=repositories,
             resolver=jgo.maven.PythonResolver(lenient=True),
             # The following obsolete arguments are from jgo v1:
-            #m2_repo=scyjava.config.get_m2_repo(),
-            #manage_dependencies=scyjava.config.get_manage_deps(),
-            #verbose=scyjava.config.get_verbose(),
-            #shortcuts=scyjava.config.get_shortcuts(),
+            # m2_repo=scyjava.config.get_m2_repo(),
+            # manage_dependencies=scyjava.config.get_manage_deps(),
+            # verbose=scyjava.config.get_verbose(),
+            # shortcuts=scyjava.config.get_shortcuts(),
         )
         jpype.addClassPath(env.modules_dir / "*")
         jpype.addClassPath(env.jars_dir / "*")

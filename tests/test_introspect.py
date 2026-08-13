@@ -13,7 +13,7 @@ scyjava.config.endpoints.extend(
 )
 
 
-class TestIntrospection(object):
+class TestIntrospection:
     """
     Test introspection functionality.
     """

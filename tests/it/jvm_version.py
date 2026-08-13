@@ -2,9 +2,9 @@
 Test the jvm_version() function.
 """
 
-import scyjava
-
 from assertpy import assert_that
+
+import scyjava
 
 assert_that(scyjava.jvm_started()).is_false()
 

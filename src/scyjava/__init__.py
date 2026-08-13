@@ -84,8 +84,9 @@ Convert Python collections to Java:
 """
 
 import logging
+from collections.abc import Callable
 from functools import lru_cache
-from typing import Any, Callable, Dict
+from typing import Any
 
 from . import config, inspect
 from ._arrays import is_arraylike, is_memoryarraylike, is_xarraylike
@@ -112,7 +113,7 @@ from ._introspect import (
     jreflect,
     jsource,
 )
-from ._jvm import (  # noqa: F401
+from ._jvm import (
     available_processors,
     gc,
     is_awt_initialized,
@@ -161,7 +162,7 @@ __all__ = [
 _logger = logging.getLogger(__name__)
 
 # Set of module properties
-_CONSTANTS: Dict[str, Callable] = {}
+_CONSTANTS: dict[str, Callable] = {}
 
 
 def constant(func: Callable[[], Any], cache=True) -> Callable[[], Any]:

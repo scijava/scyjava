@@ -4,9 +4,9 @@ Test the enable_python_scripting function, but here explictly testing import sco
 
 import sys
 
-import scyjava
-
 from assertpy import assert_that
+
+import scyjava
 
 scyjava.config.endpoints.extend(
     ["org.scijava:scijava-common:2.94.2", "org.scijava:scripting-python:MANAGED"]
@@ -59,7 +59,7 @@ except Exception as e:
     trace = scyjava.jstacktrace(e)
     if trace:
         sys.stderr.write(f"{trace}\n")
-    raise e
+    raise
 
 assert_that(statement).is_equal_to("2")
 assert_that(return_value).is_equal_to("The rounded cube root of my age is 2")

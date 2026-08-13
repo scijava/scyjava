@@ -2,9 +2,9 @@
 Test scyjava headless mode.
 """
 
-import scyjava
-
 from assertpy import assert_that
+
+import scyjava
 
 scyjava.config.enable_headless_mode()
 

@@ -144,7 +144,7 @@ def _print_data(
         return
 
     # Print source code
-    offset = max(list(map(lambda entry: len(entry["returns"] or "void"), table)))
+    offset = max(len(entry["returns"] or "void") for entry in table)
     all_methods = ""
     if source or source is None:
         try:
@@ -162,14 +162,13 @@ def _print_data(
             entry["returns"] = _map_syntax(entry["returns"])
         if entry["arguments"]:
             entry["arguments"] = [_map_syntax(e) for e in entry["arguments"]]
-        if static is None:
-            entry_string = _pretty_string(entry, offset)
-            all_methods += entry_string
-
-        elif static and "static" in entry["mods"]:
-            entry_string = _pretty_string(entry, offset)
-            all_methods += entry_string
-        elif not static and "static" not in entry["mods"]:
+        if (
+            static is None
+            or static
+            and "static" in entry["mods"]
+            or not static
+            and "static" not in entry["mods"]
+        ):
             entry_string = _pretty_string(entry, offset)
             all_methods += entry_string
         else:

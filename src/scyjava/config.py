@@ -3,11 +3,10 @@ from __future__ import annotations
 import enum as _enum
 import logging as _logging
 import os as _os
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 import jpype as _jpype
-
 
 _SCIJAVA_PUBLIC = "https://maven.scijava.org/content/groups/public"
 
@@ -146,7 +145,6 @@ def add_repositories(*args, **kwargs) -> None:
     Add one or more Maven repositories to be used by jgo for downloading dependencies.
     See the jgo documentation for details.
     """
-    global _repositories
     for arg in args:
         _logger.debug("Adding repositories %s to %s", arg, _repositories)
         _repositories.update(arg)
@@ -159,7 +157,6 @@ def get_repositories() -> dict[str, str]:
     Get the Maven repositories jgo will use for downloading dependencies.
     See the jgo documentation for details.
     """
-    global _repositories
     return _repositories
 
 
@@ -179,7 +176,6 @@ def get_verbose() -> int:
     """
     Get the level of verbosity for logging environment construction details.
     """
-    global _verbose
     _logger.debug("Getting verbose level: %d", _verbose)
     return _verbose
 
@@ -199,7 +195,6 @@ def get_manage_deps() -> bool:
     Get whether jgo will resolve dependencies in managed mode.
     See the jgo documentation for details.
     """
-    global _manage_deps
     return _manage_deps
 
 
@@ -218,7 +213,6 @@ def get_cache_dir() -> Path:
     Get the location to use for the jgo environment cache.
     See the jgo documentation for details.
     """
-    global _cache_dir
     return _cache_dir
 
 
@@ -235,7 +229,6 @@ def get_m2_repo() -> Path:
     """
     Get the location to use for the local Maven repository cache.
     """
-    global _m2_repo
     return _m2_repo
 
 
@@ -291,7 +284,7 @@ def get_classpath() -> str:
     return _jpype.getClassPath()
 
 
-def set_heap_min(mb: int = None, gb: int = None) -> None:
+def set_heap_min(mb: int | None = None, gb: int | None = None) -> None:
     """
     Set the initial amount of memory to allocate to the Java heap.
 
@@ -308,7 +301,7 @@ def set_heap_min(mb: int = None, gb: int = None) -> None:
     add_option(f"-Xms{_mem_value(mb, gb)}")
 
 
-def set_heap_max(mb: int = None, gb: int = None) -> None:
+def set_heap_max(mb: int | None = None, gb: int | None = None) -> None:
     """
     Shortcut for passing -Xmx###m or -Xmx###g to Java.
 
@@ -323,10 +316,10 @@ def set_heap_max(mb: int = None, gb: int = None) -> None:
     add_option(f"-Xmx{_mem_value(mb, gb)}")
 
 
-def _mem_value(mb: int = None, gb: int = None) -> str:
+def _mem_value(mb: int | None = None, gb: int | None = None) -> str:
     # fmt: off
-    if mb is not None and gb is None: return f"{mb}m"  # noqa: E701
-    if gb is not None and mb is None: return f"{gb}g"  # noqa: E701
+    if mb is not None and gb is None: return f"{mb}m"
+    if gb is not None and mb is None: return f"{gb}g"
     # fmt: on
     raise ValueError("Exactly one of mb or gb must be given.")
 
@@ -372,7 +365,6 @@ def add_option(option: str) -> None:
     :param option:
         The option to add.
     """
-    global _options
     _options.append(option)
 
 
@@ -383,7 +375,6 @@ def add_options(options: str | Sequence) -> None:
     :param options:
         Sequence of options to add, or single string to pass as an individual option.
     """
-    global _options
     if isinstance(options, str):
         _options.append(options)
     else:
@@ -394,7 +385,6 @@ def get_options() -> list[str]:
     """
     Get the list of options to be passed at JVM startup.
     """
-    global _options
     return _options
 
 
@@ -407,7 +397,6 @@ def add_kwargs(**kwargs) -> None:
         convertStrings = True
         interrupt = True
     """
-    global _kwargs
     _kwargs.update(kwargs)
 
 
@@ -415,7 +404,6 @@ def get_kwargs() -> dict[str, str]:
     """
     Get the keyword arguments to be passed to JPype at JVM startup.
     """
-    global _kwargs
     return _kwargs
 
 
@@ -424,7 +412,6 @@ def add_shortcut(k: str, v: str):
     Add a shortcut key/value to be used by jgo for evaluating endpoints.
     See the jgo documentation for details.
     """
-    global _shortcuts
     _shortcuts[k] = v
 
 
@@ -433,7 +420,6 @@ def get_shortcuts() -> dict[str, str]:
     Get the dictionary of shorts that jgo will use for evaluating endpoints.
     See the jgo documentation for details.
     """
-    global _shortcuts
     return _shortcuts
 
 
@@ -446,7 +432,6 @@ def add_endpoints(*new_endpoints):
         "Deprecated method call: scyjava.config.add_endpoints(). "
         "Please modify scyjava.config.endpoints directly instead."
     )
-    global endpoints
     _logger.debug("Adding endpoints %s to %s", new_endpoints, endpoints)
     endpoints.extend(new_endpoints)
 
@@ -460,12 +445,11 @@ def get_endpoints():
         "Deprecated method call: scyjava.config.get_endpoints(). "
         "Please access scyjava.config.endpoints directly instead."
     )
-    global endpoints
     return endpoints
 
 
-_maven_url: str = "tgz+https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz"  # noqa: E501
-_maven_sha: str = "a555254d6b53d267965a3404ecb14e53c3827c09c3b94b5678835887ab404556bfaf78dcfe03ba76fa2508649dca8531c74bca4d5846513522404d48e8c4ac8b"  # noqa: E501
+_maven_url: str = "tgz+https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz"
+_maven_sha: str = "a555254d6b53d267965a3404ecb14e53c3827c09c3b94b5678835887ab404556bfaf78dcfe03ba76fa2508649dca8531c74bca4d5846513522404d48e8c4ac8b"
 
 
 def get_maven_url() -> str:

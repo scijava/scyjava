@@ -10,7 +10,7 @@ import scyjava
 from scyjava.config import Mode, mode
 
 
-class TestBasics(object):
+class TestBasics:
     """
     Test basic scyjava functions.
     """

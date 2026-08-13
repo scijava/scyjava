@@ -2,9 +2,9 @@
 Test scyjava JVM memory-related functions.
 """
 
-import scyjava
-
 from assertpy import assert_that
+
+import scyjava
 
 mb_initial = 50  # initial MB of memory to snarf up
 mb_tolerance = 10  # ceiling of expected MB in use

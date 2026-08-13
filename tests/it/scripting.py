@@ -7,9 +7,9 @@ As a side effect, this script also tests Maven dependency resolution.
 
 import sys
 
-import scyjava
-
 from assertpy import assert_that
+
+import scyjava
 
 scyjava.config.endpoints.extend(
     ["org.scijava:scijava-common:2.94.2", "org.scijava:scripting-python:MANAGED"]
@@ -56,7 +56,7 @@ except Exception as e:
     trace = scyjava.jstacktrace(e)
     if trace:
         sys.stderr.write(f"{trace}\n")
-    raise e
+    raise
 
 assert_that(statement).is_equal_to(
     "Hello, Chuckles! In one year you will be 14 years old."

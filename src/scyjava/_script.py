@@ -67,7 +67,7 @@ def enable_python_scripting(context):
         def apply(self, arg):
             # Copy script bindings/vars into script locals.
             script_locals = {}
-            for key in arg.vars.keys():
+            for key in arg.vars:
                 script_locals[key] = arg.vars[key]
 
             stdoutContextWriter.addScriptContext(
@@ -100,7 +100,7 @@ def enable_python_scripting(context):
                     # See: https://docs.python.org/3/library/functions.html#exec
                     _globals = script_locals
 
-                    exec(
+                    exec(  # noqa: S102
                         compile(block, "<string>", mode="exec"), _globals, script_locals
                     )
                     if last is not None:
@@ -109,7 +109,7 @@ def enable_python_scripting(context):
                             _globals,
                             script_locals,
                         )
-                except Exception:
+                except Exception:  # noqa: BLE001
                     error_message = traceback.format_exc()
                     error_writer = arg.scriptContext.getErrorWriter()
                     if error_writer is None:
@@ -123,11 +123,11 @@ def enable_python_scripting(context):
             stdoutContextWriter.removeScriptContext(threading.currentThread())
 
             # Copy script locals back into script bindings/vars.
-            for key in script_locals.keys():
+            for key, value in script_locals.items():
                 try:
-                    arg.vars[key] = to_java(script_locals[key])
-                except Exception:
-                    arg.vars[key] = PythonObjectSupplier(script_locals[key])
+                    arg.vars[key] = to_java(value)
+                except Exception:  # noqa: BLE001
+                    arg.vars[key] = PythonObjectSupplier(value)
 
             return to_java(return_value)
 

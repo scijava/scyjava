@@ -22,7 +22,7 @@ def assert_same_table(table, df):
         assert table.getColumnHeader(i) == df.columns[i]
 
 
-class TestPandas(object):
+class TestPandas:
     def testPandasToTable(self):
         columns = ["header1", "header2", "header3", "header4", "header5"]
 

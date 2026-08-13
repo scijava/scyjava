@@ -28,7 +28,7 @@ config.endpoints.append("org.scijava:scijava-table")
 config.enable_headless_mode()
 
 
-class TestConvert(object):
+class TestConvert:
     def testClass(self):
         """
         Test class detection from Java objects.
@@ -167,7 +167,7 @@ class TestConvert(object):
         assert ostring == pstring
 
     def testList(self):
-        olist = "The quick brown fox jumps over the lazy dogs".split()
+        olist = ["The", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dogs"]
         jlist = to_java(olist)
         for e, a in zip(olist, jlist):
             assert e == to_python(a)
@@ -179,7 +179,7 @@ class TestConvert(object):
         assert "The quick brown fox jumps over the silly dogs" == " ".join(plist)
 
     def testSet(self):
-        s = set(["orange", "apple", "pineapple", "plum"])
+        s = {"orange", "apple", "pineapple", "plum"}
         js = to_java(s)
         assert len(s) == js.size()
         for e in s:
@@ -262,7 +262,7 @@ class TestConvert(object):
     def testMixed(self):
         test_dict = {"a": "b", "c": "d"}
         test_list = ["e", "f", "g", "h"]
-        test_set = set(["i", "j", "k"])
+        test_set = {"i", "j", "k"}
 
         # mixed types in a dictionary
         mixed_dict = {"d": test_dict, "l": test_list, "s": test_set, "str": "hello"}
@@ -303,7 +303,7 @@ class TestConvert(object):
         bad_conversion = None
         try:
             bad_conversion = to_python(unknown_thing)
-        except BaseException:
+        except TypeError:
             # NB: Failure is expected here.
             pass
         assert bad_conversion is None

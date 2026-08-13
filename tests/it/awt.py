@@ -5,9 +5,9 @@ Test scyjava AWT-related functions.
 import platform
 import sys
 
-import scyjava
-
 from assertpy import assert_that
+
+import scyjava
 
 if platform.system() == "Darwin":
     # NB: This test would hang on macOS, due to AWT threading issues.

@@ -6,7 +6,7 @@ from scyjava import jclass, jimport, numeric_bounds, to_java
 from scyjava.config import Mode, mode
 
 
-class TestTypes(object):
+class TestTypes:
     """
     Test Java-type-related functions.
     """

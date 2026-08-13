@@ -7,9 +7,10 @@ import inspect
 import logging
 import math
 from bisect import insort
+from collections.abc import Callable
 from importlib.util import find_spec
 from pathlib import Path
-from typing import Any, Callable, Dict, List, NamedTuple
+from typing import Any, NamedTuple
 
 from jpype import JBoolean, JByte, JChar, JDouble, JFloat, JInt, JLong, JShort
 
@@ -52,14 +53,14 @@ class Converter(NamedTuple):
     priority: float = Priority.NORMAL
     name: str = "<unnamed>"
 
-    def supports(self, obj: Any, **hints: Dict) -> bool:
+    def supports(self, obj: Any, **hints: dict) -> bool:
         return (
             self.predicate(obj, **hints)
             if _has_kwargs(self.predicate)
             else self.predicate(obj)
         )
 
-    def convert(self, obj: Any, **hints: Dict) -> Any:
+    def convert(self, obj: Any, **hints: dict) -> Any:
         return (
             self.converter(obj, **hints)
             if _has_kwargs(self.converter)
@@ -82,7 +83,7 @@ class Converter(NamedTuple):
         return self.name
 
 
-def _convert(obj: Any, converters: List[Converter], **hints: Dict) -> Any:
+def _convert(obj: Any, converters: list[Converter], **hints: dict) -> Any:
     # NB: The given converters are assumed to be sorted ascending by priority,
     # meaning lower-priority items appear earlier than higher-priority ones.
     # But we want to try the higher priority converters first, so we
@@ -132,7 +133,7 @@ def _convertIterable(obj: collections.abc.Iterable):
     return jlist
 
 
-java_converters: List[Converter] = []
+java_converters: list[Converter] = []
 
 
 def add_java_converter(converter: Converter) -> None:
@@ -143,7 +144,7 @@ def add_java_converter(converter: Converter) -> None:
     insort(java_converters, converter)
 
 
-def to_java(obj: Any, **hints: Dict) -> Any:
+def to_java(obj: Any, **hints: dict) -> Any:
     """
     Recursively convert a Python object to a Java object.
 
@@ -197,7 +198,7 @@ def to_java(obj: Any, **hints: Dict) -> Any:
     return _convert(obj, java_converters, **hints)
 
 
-def _stock_java_converters() -> List[Converter]:
+def _stock_java_converters() -> list[Converter]:
     """
     Construct the Python-to-Java converters supported out of the box.
     :return: A list of Converters
@@ -366,7 +367,7 @@ def _jstr(data):
     if isinstance(data, JavaObject):
         return str(data)
     # NB: We want Python strings to render in single quotes.
-    return "{!r}".format(data)
+    return f"{data!r}"
 
 
 class JavaObject:
@@ -526,7 +527,7 @@ class JavaSet(JavaCollection, collections.abc.MutableSet):
         return "{" + ", ".join(_jstr(v) for v in self) + "}"
 
 
-py_converters: List[Converter] = []
+py_converters: list[Converter] = []
 
 
 def add_py_converter(converter: Converter) -> None:
@@ -566,13 +567,13 @@ def to_python(data: Any, gentle: bool = False) -> Any:
     start_jvm()
     try:
         return _convert(data, py_converters)
-    except TypeError as exc:
+    except TypeError:
         if gentle:
             return data
-        raise exc
+        raise
 
 
-def _stock_py_converters() -> List:
+def _stock_py_converters() -> list:
     """
     Construct the Java-to-Python converters supported out of the box.
     :return: A list of Converters
@@ -842,7 +843,7 @@ def _is_table(obj: Any) -> bool:
     """Check if obj is a table."""
     try:
         return jinstance(obj, "org.scijava.table.Table")
-    except BaseException:
+    except BaseException:  # noqa: BLE001
         # No worries if scijava-table is not available.
         return False
 
@@ -851,7 +852,7 @@ def _convert_table(obj: Any):
     """Convert obj to a table."""
     try:
         return _table_to_pandas(obj)
-    except BaseException:
+    except BaseException:  # noqa: BLE001
         # No worries if scijava-table is not available.
         return None
 
@@ -894,8 +895,8 @@ def _pandas_to_table(df):
         elif table_type.name.startswith("bool"):
             TableClass = jimport("org.scijava.table.DefaultBoolTable")
         else:
-            msg = "The type '{}' is not supported.".format(table_type.name)
-            raise Exception(msg)
+            msg = f"The type '{table_type.name}' is not supported."
+            raise ValueError(msg)
 
     table = TableClass(*df.shape[::-1])
 
@@ -913,51 +914,51 @@ def _pandas_to_table(df):
 # fmt: off
 class _JavaClasses(JavaClasses):
     @JavaClasses.java_import
-    def Boolean(self):       return "java.lang.Boolean"        # noqa: E272
+    def Boolean(self):       return "java.lang.Boolean"
     @JavaClasses.java_import
-    def Byte(self):          return "java.lang.Byte"           # noqa: E272
+    def Byte(self):          return "java.lang.Byte"
     @JavaClasses.java_import
-    def Character(self):     return "java.lang.Character"      # noqa: E272
+    def Character(self):     return "java.lang.Character"
     @JavaClasses.java_import
-    def Double(self):        return "java.lang.Double"         # noqa: E272
+    def Double(self):        return "java.lang.Double"
     @JavaClasses.java_import
-    def Float(self):         return "java.lang.Float"          # noqa: E272
+    def Float(self):         return "java.lang.Float"
     @JavaClasses.java_import
-    def Integer(self):       return "java.lang.Integer"        # noqa: E272
+    def Integer(self):       return "java.lang.Integer"
     @JavaClasses.java_import
-    def Iterable(self):      return "java.lang.Iterable"       # noqa: E272
+    def Iterable(self):      return "java.lang.Iterable"
     @JavaClasses.java_import
-    def Long(self):          return "java.lang.Long"           # noqa: E272
+    def Long(self):          return "java.lang.Long"
     @JavaClasses.java_import
-    def Object(self):        return "java.lang.Object"         # noqa: E272
+    def Object(self):        return "java.lang.Object"
     @JavaClasses.java_import
-    def Short(self):         return "java.lang.Short"          # noqa: E272
+    def Short(self):         return "java.lang.Short"
     @JavaClasses.java_import
-    def String(self):        return "java.lang.String"         # noqa: E272
+    def String(self):        return "java.lang.String"
     @JavaClasses.java_import
-    def BigDecimal(self):    return "java.math.BigDecimal"     # noqa: E272
+    def BigDecimal(self):    return "java.math.BigDecimal"
     @JavaClasses.java_import
-    def BigInteger(self):    return "java.math.BigInteger"     # noqa: E272
+    def BigInteger(self):    return "java.math.BigInteger"
     @JavaClasses.java_import
-    def Path(self):          return "java.nio.file.Path"       # noqa: E272
+    def Path(self):          return "java.nio.file.Path"
     @JavaClasses.java_import
-    def Paths(self):         return "java.nio.file.Paths"      # noqa: E272
+    def Paths(self):         return "java.nio.file.Paths"
     @JavaClasses.java_import
-    def ArrayList(self):     return "java.util.ArrayList"      # noqa: E272
+    def ArrayList(self):     return "java.util.ArrayList"
     @JavaClasses.java_import
-    def Collection(self):    return "java.util.Collection"     # noqa: E272
+    def Collection(self):    return "java.util.Collection"
     @JavaClasses.java_import
-    def Iterator(self):      return "java.util.Iterator"       # noqa: E272
+    def Iterator(self):      return "java.util.Iterator"
     @JavaClasses.java_import
-    def LinkedHashMap(self): return "java.util.LinkedHashMap"  # noqa: E272
+    def LinkedHashMap(self): return "java.util.LinkedHashMap"
     @JavaClasses.java_import
-    def LinkedHashSet(self): return "java.util.LinkedHashSet"  # noqa: E272
+    def LinkedHashSet(self): return "java.util.LinkedHashSet"
     @JavaClasses.java_import
-    def List(self):          return "java.util.List"           # noqa: E272
+    def List(self):          return "java.util.List"
     @JavaClasses.java_import
-    def Map(self):           return "java.util.Map"            # noqa: E272
+    def Map(self):           return "java.util.Map"
     @JavaClasses.java_import
-    def Set(self):           return "java.util.Set"            # noqa: E272
+    def Set(self):           return "java.util.Set"
 # fmt: on
 
 

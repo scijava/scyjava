@@ -5,10 +5,10 @@ Tests for functions in inspect submodule.
 import re
 
 from scyjava import inspect
-from scyjava.config import mode, Mode
+from scyjava.config import Mode, mode
 
 
-class TestInspect(object):
+class TestInspect:
     """
     Test scyjava.inspect convenience functions.
     """
@@ -20,8 +20,10 @@ class TestInspect(object):
         members = []
         inspect.members("java.lang.Iterable", writer=members.append)
         expected = [
-            "Source code URL: https://github.com/openjdk/jdk/blob/"
-            ".../share/classes/java/lang/Iterable.java",
+            (
+                "Source code URL: https://github.com/openjdk/jdk/blob/"
+                ".../share/classes/java/lang/Iterable.java"
+            ),
             "                         * indicates static modifier",
             "java.util.Iterator         = iterator()",
             "java.util.Spliterator      = spliterator()",

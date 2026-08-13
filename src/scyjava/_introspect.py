@@ -3,13 +3,13 @@ Introspection functions for reporting Java
 class methods, fields, and source code URL.
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 from scyjava._jvm import jimport, jvm_version
-from scyjava._types import isjava, jinstance, jclass
+from scyjava._types import isjava, jclass, jinstance
 
 
-def jreflect(data, aspect: str = "all") -> List[Dict[str, Any]]:
+def jreflect(data, aspect: str = "all") -> list[dict[str, Any]]:
     """
     Use Java reflection to introspect the given Java object,
     returning a table of its available methods or fields.
@@ -91,7 +91,7 @@ def jsource(data) -> str:
         try:
             data = jimport(data)  # check if data can be imported
         except Exception as err:
-            raise ValueError(f"Not a Java object {err}")
+            raise ValueError(f"Not a Java object {err}") from err
     jcls = data if jinstance(data, "java.lang.Class") else jclass(data)
 
     if jcls.getClassLoader() is None:

@@ -8,18 +8,18 @@ import os
 import re
 import subprocess
 import sys
-from functools import lru_cache
+from collections.abc import Sequence
+from functools import cache
 from importlib import import_module
 from pathlib import Path
-from typing import Sequence
 
+import jgo
 import jpype
 import jpype.config
-import jgo
 
 import scyjava.config
-from scyjava.config import Mode, mode
 from scyjava._jdk_fetch import resolve_java
+from scyjava.config import Mode, mode
 
 _logger = logging.getLogger(__name__)
 
@@ -130,11 +130,15 @@ def jvm_version() -> tuple[int, ...]:
     except subprocess.CalledProcessError as e:
         raise RuntimeError("System call to java failed") from e
 
-    output = output.replace("\n", " ").replace("\r", "")
-    m = re.match('.* version "([^"]*)"', output)
+    return _jvm_version_str_to_tuple(output, java)
+
+
+def _jvm_version_str_to_tuple(java_version_output: str, java: str) -> tuple[int, ...]:
+    java_version_output = java_version_output.replace("\n", " ").replace("\r", "")
+    m = re.match(r'.*version "(\d+(?:\.\d+)*)', java_version_output)
     if not m:
         raise RuntimeError(
-            f"Inscrutable java command output:\n$ {java} -version\n{output}"
+            f"Inscrutable java command output:\n$ {java} -version\n{java_version_output}"
         )
 
     v = m.group(1)
@@ -172,7 +176,7 @@ def start_jvm(options: Sequence[str] | None = None) -> None:
     repositories = scyjava.config.get_repositories()
 
     # use the logger to notify user that endpoints are being added
-    _logger.debug("Adding jars from endpoints {0}".format(endpoints))
+    _logger.debug(f"Adding jars from endpoints {endpoints}")
 
     # download Java as appropriate
     resolve_java()
@@ -293,7 +297,7 @@ def shutdown_jvm() -> None:
     for callback in _shutdown_callbacks:
         try:
             callback()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             _logger.error(f"Exception during shutdown callback: {e}")
 
     # dispose AWT resources if applicable
@@ -305,7 +309,7 @@ def shutdown_jvm() -> None:
     # okay to shutdown JVM
     try:
         jpype.shutdownJVM()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         _logger.error(f"Exception during JVM shutdown: {e}")
 
 
@@ -440,7 +444,6 @@ def when_jvm_starts(f) -> None:
         f()
     else:
         # Add function to the list of callbacks to invoke upon start_jvm().
-        global _startup_callbacks
         _startup_callbacks.append(f)
 
 
@@ -454,11 +457,10 @@ def when_jvm_stops(f) -> None:
 
     :param f: Function to invoke when scyjava.shutdown_jvm() is called.
     """
-    global _shutdown_callbacks
     _shutdown_callbacks.append(f)
 
 
-@lru_cache(maxsize=None)
+@cache
 def jimport(class_name: str):
     """
     Import a class from Java to Python.

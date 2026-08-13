@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 from jgo.exec import JavaLocator, JavaSource
 
@@ -64,7 +64,7 @@ def resolve_java(vendor: str | None = None, version: str | None = None) -> None:
     os.environ["JAVA_HOME"] = str(java_home)
 
 
-def _add_to_path(path: Union[Path, str], front: bool = False) -> None:
+def _add_to_path(path: Path | str, front: bool = False) -> None:
     """Add a path to the PATH environment variable.
 
     If front is True, the path is added to the front of the PATH.

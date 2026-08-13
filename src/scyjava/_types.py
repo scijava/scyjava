@@ -2,7 +2,8 @@
 Utility functions for working with and reasoning about Java types.
 """
 
-from typing import Any, Callable, Sequence, Tuple, Union
+from collections.abc import Callable, Sequence
+from typing import Any
 
 import jpype
 
@@ -50,7 +51,7 @@ class JavaClasses:
         @property
         def inner(self):
             if not jvm_started():
-                raise Exception()
+                raise RuntimeError("The JVM has not been started yet.")
             try:
                 return jimport(func(self))
             except TypeError:
@@ -128,7 +129,7 @@ def jstacktrace(exc) -> str:
         sw = StringWriter()
         exc.printStackTrace(PrintWriter(sw, True))
         return str(sw)
-    except BaseException:
+    except BaseException:  # noqa: BLE001
         return ""
 
 
@@ -138,7 +139,7 @@ def isjava(data) -> bool:
         return jinstance(data, "java.lang.Object")
 
     assert mode == Mode.JPYPE
-    return isinstance(data, jpype.JClass) or isinstance(data, jpype.JObject)
+    return isinstance(data, (jpype.JClass, jpype.JObject))
 
 
 def is_jbyte(the_type: type) -> bool:
@@ -227,7 +228,7 @@ def jarray(kind, lengths: Sequence):
     arraytype = kind
 
     if mode == Mode.JEP:
-        import jep  # noqa: F401
+        import jep
 
         if len(lengths) == 1:
             # Fast case: 1-d array (we can use primitives)
@@ -286,7 +287,7 @@ def jarray(kind, lengths: Sequence):
 
 def numeric_bounds(
     the_type: type,
-) -> Union[Tuple[int, int], Tuple[float, float], Tuple[None, None]]:
+) -> tuple[int, int] | tuple[float, float] | tuple[None, None]:
     """
     Get the minimum and maximum values for the given numeric type.
     For example, a Java long returns (int(Long.MIN_VALUE), int(Long.MAX_VALUE)),

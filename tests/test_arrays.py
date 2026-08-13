@@ -8,7 +8,7 @@ from scyjava import is_jarray, jarray, to_python
 from scyjava.config import Mode, mode
 
 
-class TestArrays(object):
+class TestArrays:
     def test_non_primitive_jarray(self):
         pass
 

@@ -435,6 +435,8 @@ class JavaList(JavaCollection, collections.abc.MutableSequence):
         JavaObject.__init__(self, jobj, _jc.List)
 
     def __getitem__(self, key):
+        if isinstance(key, slice):
+            return [self[index] for index in range(*key.indices(len(self)))]
         # NB: Even if an element cannot be converted,
         # we still want Pythonic access to elements.
         return to_python(self.jobj.get(key), gentle=True)

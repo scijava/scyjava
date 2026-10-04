@@ -32,9 +32,11 @@ def resolve_java(vendor: str | None = None, version: str | None = None) -> None:
     if version is None:
         version = scyjava.config.get_java_version()
 
-    _logger.info(f"Fetching {vendor}:{version}...")
-
     fetch = scyjava.config.get_fetch_java()
+
+    # Note: Whether Java gets downloaded is up to jgo's JavaLocator, which
+    # logs what it actually ends up using.
+    _logger.debug(f"Resolving Java {vendor}:{version} (fetch mode: {fetch})")
 
     # Map scyjava fetch mode to jgo JavaSource strategy.
     # "always" -> DOWNLOAD: always use cjdk-managed Java, ignoring system Java.

@@ -6,14 +6,12 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import TYPE_CHECKING
+import subprocess
+from pathlib import Path
 
 from jgo.exec import JavaLocator, JavaSource
 
 import scyjava.config
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 _logger = logging.getLogger(__name__)
 
@@ -59,11 +57,41 @@ def resolve_java(vendor: str | None = None, version: str | None = None) -> None:
 
     # Locate returns path to java executable (e.g., /path/to/java/bin/java)
     java_exe = locator.locate()
-    java_home = java_exe.parent.parent  # Navigate from bin/java to JAVA_HOME
+    java_home = _java_home(java_exe)
 
     _logger.debug(f"java_home -> {java_home}")
     _add_to_path(str(java_home / "bin"), front=True)
     os.environ["JAVA_HOME"] = str(java_home)
+
+
+def _java_home(java_exe: Path) -> Path:
+    """
+    Determine the Java installation directory of the given java executable.
+
+    The executable is asked for its java.home property, because it is not
+    necessarily located at JAVA_HOME/bin/java: it might be a symlink (e.g.
+    /usr/bin/java with Linux alternatives) or a launcher stub (e.g. macOS's
+    /usr/bin/java, which delegates to the registered JDK).
+    """
+    try:
+        output = subprocess.run(
+            [str(java_exe), "-XshowSettings:properties", "-version"],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        ).stderr
+        for line in output.splitlines():
+            key, sep, value = line.partition("=")
+            if sep and key.strip() == "java.home":
+                java_home = Path(value.strip())
+                if java_home.is_dir():
+                    return java_home
+    except (OSError, subprocess.SubprocessError) as e:
+        _logger.debug(f"Failed to query java.home from {java_exe}: {e}")
+
+    _logger.debug(f"Could not query java.home from {java_exe}; assuming bin/java")
+    return java_exe.parent.parent
 
 
 def _add_to_path(path: Path | str, front: bool = False) -> None:

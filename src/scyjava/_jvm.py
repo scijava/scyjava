@@ -70,6 +70,9 @@ def jvm_version() -> tuple[int, ...]:
     default_jvm_path = jpype.getDefaultJVMPath()
     if not default_jvm_path:
         raise RuntimeError("Cannot glean the default JVM path")
+    # Note: On macOS, JPype may fall back to /usr/libexec/java_home, which
+    # yields a Java home directory as bytes, rather than a JVM library path.
+    default_jvm_path = os.fsdecode(default_jvm_path)
     _logger.debug(f"Default JVM path from JPype: {default_jvm_path}")
 
     # Good ol' macOS! Nothing beats macOS.
@@ -103,6 +106,13 @@ def jvm_version() -> tuple[int, ...]:
 
         if java is None:
             raise RuntimeError(f"Invalid default JVM path: {p}")
+
+    if java is None and p.is_dir():
+        java = p / "bin" / "java"
+        if os.name == "nt":
+            java = java.with_suffix(".exe")
+        if not java.is_file():
+            raise RuntimeError(f"No bin/java found inside: {p}")
 
     if java is None:
         for _ in range(3):  # The bin folder is always <=3 levels up from libjvm.
@@ -180,6 +190,17 @@ def start_jvm(options: Sequence[str] | None = None) -> None:
 
     # download Java as appropriate
     resolve_java()
+
+    # Note: When JPype finds no JVM library via JAVA_HOME (e.g. JAVA_HOME=/usr
+    # from macOS's /usr/bin/java stub), it falls back to /usr/libexec/java_home,
+    # which yields a Java home directory rather than a JVM library path, and
+    # from which JPype cannot start the JVM. But given that directory as
+    # JAVA_HOME, JPype finds the JVM library inside it.
+    default_jvm_path = jpype.getDefaultJVMPath()
+    if default_jvm_path and os.path.isdir(default_jvm_path):
+        java_home = os.fsdecode(default_jvm_path)
+        _logger.debug(f"Detected JAVA_HOME: {java_home}")
+        os.environ["JAVA_HOME"] = java_home
 
     # Fail fast if Java version is too old. JPype 1.6+ dropped Java 8 support.
     try:

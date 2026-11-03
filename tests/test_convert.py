@@ -29,6 +29,42 @@ config.enable_headless_mode()
 
 
 class TestConvert:
+    @pytest.mark.parametrize(
+        "selection",
+        [
+            slice(None),
+            slice(1, 4),
+            slice(-4, -1),
+            slice(None, None, 2),
+            slice(None, None, -1),
+            slice(4, 0, -2),
+            slice(-100, 100),
+            slice(3, 1),
+        ],
+    )
+    def testListSlice(self, selection):
+        original = ["a", "b", "c", "d", "e"]
+        converted = to_python(to_java(original))
+        result = converted[selection]
+        assert result == original[selection]
+        assert all(isinstance(value, str) for value in result)
+        assert converted == original
+
+    def testListSliceZeroStep(self):
+        converted = to_python(to_java([1, 2, 3]))
+        with pytest.raises(ValueError, match="slice step cannot be zero"):
+            converted[::0]
+
+    def testEmptyListSlice(self):
+        converted = to_python(to_java([]))
+        assert converted[:] == []
+        assert converted[::-1] == []
+
+    def testListSliceUnconvertedElement(self):
+        element = jimport("java.lang.Object")()
+        converted = to_python(to_java([element]))
+        assert converted[:] == [element]
+
     def testClass(self):
         """
         Test class detection from Java objects.
